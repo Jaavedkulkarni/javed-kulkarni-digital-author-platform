@@ -1,0 +1,95 @@
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { supabase } from '../lib/supabase';
+import { AdminView } from '../types/blog';
+
+interface AdminContextType {
+  isAuthenticated: boolean;
+  session: any;
+  user: any;
+  login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  logout: () => Promise<void>;
+  currentView: AdminView;
+  setCurrentView: (view: AdminView) => void;
+  sidebarOpen: boolean;
+  toggleSidebar: () => void;
+}
+
+const AdminContext = createContext<AdminContextType | undefined>(undefined);
+
+export function AdminProvider({ children }: { children: ReactNode }) {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [session, setSession] = useState<any>(null);
+  const [user, setUser] = useState<any>(null);
+  const [currentView, setCurrentView] = useState<AdminView>('dashboard');
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+
+  useEffect(() => {
+    // Check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setIsAuthenticated(!!session);
+    }).catch(console.error);
+
+    // Initialize Supabase auth
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      setIsAuthenticated(!!session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const login = async (email: string, password: string) => {
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) {
+        return { success: false, error: error.message };
+      }
+      setUser(data.user);
+      return { success: true };
+    } catch (err) {
+      console.error('Login error:', err);
+      return { success: false, error: 'An unexpected error occurred' };
+    }
+  };
+
+  const logout = async () => {
+    try {
+      await supabase.auth.signOut();
+      setIsAuthenticated(false);
+      setUser(null);
+      setSession(null);
+    } catch (err) {
+      console.error('Logout error:', err);
+    }
+  };
+
+  const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
+
+  return (
+    <AdminContext.Provider
+      value={{
+        isAuthenticated,
+        session,
+        user,
+        login,
+        logout,
+        currentView,
+        setCurrentView,
+        sidebarOpen,
+        toggleSidebar,
+      }}
+    >
+      {children}
+    </AdminContext.Provider>
+  );
+}
+
+export function useAdmin() {
+  const context = useContext(AdminContext);
+  if (context === undefined) {
+    throw new Error('useAdmin must be used within an AdminProvider');
+  }
+  return context;
+}
