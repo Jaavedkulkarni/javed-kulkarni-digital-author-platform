@@ -1,3 +1,5 @@
+import SEO from "./seo/SEO";
+import StructuredData from "./seo/StructuredData";
 import { useState, useEffect, Suspense, lazy } from 'react';
 import { Routes, Route, Link } from 'react-router-dom';
 import {
@@ -101,7 +103,16 @@ function MainWebsite() {
   };
 
   return (
-    <div className={`min-h-screen transition-colors duration-300 ${darkMode ? 'dark bg-navy-900' : 'bg-white'}`}>
+    <>
+    <SEO
+      title="जावेद कुलकर्णी | मराठी लेखक | Amazon Published Author"
+      description="मराठी लेखक जावेद कुलकर्णी यांच्या अधिकृत वेबसाइटवर पुस्तके, ब्लॉग, कथा, पालकत्व, आत्मविकास आणि डिजिटल जीवनावरील लेख वाचा."
+      keywords="जावेद कुलकर्णी, Marathi Author, Marathi Books, Amazon Author, Marathi Blog"
+      />
+
+    <StructuredData />
+
+     <div className={`min-h-screen transition-colors duration-300 ${darkMode ? 'dark bg-navy-900' : 'bg-white'}`}>
       {/* Navigation */}
       <nav
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
@@ -421,6 +432,7 @@ function MainWebsite() {
             </div>
           </div>
         </div>
+      
       </section>
 
       {/* Featured Books Section */}
@@ -1087,9 +1099,10 @@ function MainWebsite() {
             </div>
           </div>
         </div>
-      </footer>
-    </div>
-  );
+  </footer>
+</div>
+</>
+);
 }
 
 function App() {
