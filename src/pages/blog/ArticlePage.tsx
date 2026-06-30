@@ -23,6 +23,9 @@ import {
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { INSTAGRAM_AUTHOR_URL } from '../../data/books';
+import BreadcrumbSchema from "../../seo/BreadcrumbSchema";
+import ArticleSchema from "../../seo/ArticleSchema";
+import SEO from "../../seo/SEO";
 
 
 export function ArticlePage() {
@@ -168,6 +171,29 @@ export function ArticlePage() {
 
   return (
     <BlogLayout>
+      <SEO
+        title={`${article.title} | जावेद कुलकर्णी`}
+        description={article.excerpt || article.subtitle || article.title}
+        image={article.featured_image ?? undefined}
+        url={`https://javedkulkarni.com/blog/${article.slug}`}
+      />
+      <ArticleSchema
+        title={article.title}
+        description={article.excerpt || article.subtitle || article.title}
+        image={article.featured_image ?? undefined}
+        url={`https://javedkulkarni.com/blog/${article.slug}`}
+        author={article.author_name}
+        publishedAt={article.published_at ?? undefined}
+        modifiedAt={article.published_at ?? undefined}
+      />
+      <BreadcrumbSchema
+        items={[
+          {name:"मुख्यपृष्ठ",url:"https://javedkulkarni.com"},
+          {name:"ब्लॉग",url:"https://javedkulkarni.com/blog"},
+          {name:article.title,url:`https://javedkulkarni.com/blog/${article.slug}`},
+        ]}
+      />
+
       {/* Reading Progress Bar */}
       <div className="fixed top-0 left-0 right-0 h-1 bg-gray-200 z-[60]">
         <div
