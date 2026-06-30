@@ -79,6 +79,15 @@ const blogCategories = [
 const navLinks = ['Home', 'About', 'Books', 'Categories', 'Blog', 'Amazon', 'Contact'];
 const navLabels = ['मुख्यपृष्ठ', 'माझ्याविषयी', 'पुस्तके', 'पुस्तक श्रेणी', 'ब्लॉग', 'Amazon', 'संपर्क'];
 
+const featuredBook = books.find((b) => b.slug === 'digital-kaid-mr')!;
+const featuredBookHighlights = [
+  'डिजिटल व्यसन',
+  'सोशल मीडिया',
+  'डेटा गोपनीयता',
+  'कृत्रिम बुद्धिमत्ता',
+  'सायबर युद्ध',
+];
+
 function MainWebsite() {
   const [darkMode, setDarkMode] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -379,6 +388,259 @@ function MainWebsite() {
                 </div> 
             </div>
           </div>
+      </section>
+
+      {/* Writing Journey Welcome Section */}
+      <section
+        aria-label="माझ्या लेखन प्रवासात आपले स्वागत"
+        className={`py-20 lg:py-28 ${darkMode ? 'bg-navy-800/50' : 'bg-gray-50'}`}
+      >
+        <div className="section-container">
+          <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+            {/* Left — Narrative */}
+            <div className="order-2 lg:order-1 text-center lg:text-left">
+              <div
+                className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium mb-6 animate-fade-in ${
+                  darkMode
+                    ? 'bg-gold-400/10 text-gold-400 border border-gold-500/30'
+                    : 'bg-gold-100 text-gold-700 border border-gold-200'
+                }`}
+              >
+                <span aria-hidden="true">✦</span>
+                <span>लेखन प्रवास</span>
+              </div>
+
+              <p
+                className={`text-2xl sm:text-3xl font-bold mb-3 animate-slide-up ${
+                  darkMode ? 'text-gold-400' : 'text-gold-600'
+                }`}
+              >
+                माझ्या लेखन प्रवासात आपले स्वागत
+              </p>
+
+              <h2
+                className={`text-3xl sm:text-4xl lg:text-[2.5rem] font-display font-semibold leading-snug mb-8 animate-slide-up animation-delay-100 ${
+                  darkMode ? 'text-white' : 'text-navy-800'
+                }`}
+              >
+                प्रत्येक पुस्तक एका प्रश्नातून जन्म घेतं.
+              </h2>
+
+              <div className="space-y-5 text-lg leading-relaxed">
+                <p
+                  className={`animate-slide-up animation-delay-200 ${
+                    darkMode ? 'text-gray-300' : 'text-gray-700'
+                  }`}
+                >
+                  माझ्यासाठी लेखन म्हणजे केवळ कथा सांगणे नाही — ते माणसांच्या मनातील प्रश्नांना
+                  आकार देणे, अनुभवांना शब्द देणे आणि जीवनाशी संवाद साधणे आहे. प्रत्येक वाक्य
+                  मागे एक विचार, एक भावना आणि एक हेतू असतो.
+                </p>
+                <p
+                  className={`animate-slide-up animation-delay-300 ${
+                    darkMode ? 'text-gray-300' : 'text-gray-700'
+                  }`}
+                >
+                  पुस्तके वाचकांशी संवाद सुरू करतात — ते विचारांना उजाळा देतात, नव्या दृष्टिकोनाला
+                  जन्म देतात आणि आत्मचिंतनाला वेळ देतात. प्रत्येक पुस्तकाचा एक उद्देश असतो:
+                  वाचकाच्या आयुष्यात काहीतरी सकारात्मक बदल घडवणे.
+                </p>
+                <p
+                  className={`animate-slide-up animation-delay-400 ${
+                    darkMode ? 'text-gray-400' : 'text-gray-600'
+                  }`}
+                >
+                  या प्रवासात आपण माझे सोबती आहात — प्रत्येक वाचक हा माझ्या लेखनाचा भागीदार आहे.
+                  चला, या शब्दांच्या सफरीत एकत्र पुढे जाऊया.
+                </p>
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mt-10 animate-scale-in animation-delay-400">
+                <button
+                  type="button"
+                  onClick={() => scrollToSection('books')}
+                  className="btn-primary"
+                >
+                  <BookOpen className="w-5 h-5" aria-hidden="true" />
+                  📚 माझी पुस्तके
+                </button>
+                <Link to="/blog" className="btn-secondary">
+                  <PenTool className="w-5 h-5" aria-hidden="true" />
+                  ✍️ ब्लॉग वाचा
+                </Link>
+              </div>
+            </div>
+
+            {/* Right — Quote Card */}
+            <div className="order-1 lg:order-2 flex justify-center animate-slide-in-right">
+              <div className="relative w-full max-w-md">
+                <div className="absolute -inset-4 bg-gradient-to-br from-gold-400/25 via-navy-500/20 to-gold-600/25 rounded-3xl blur-2xl animate-float" />
+
+                <figure
+                  className={`relative p-8 sm:p-10 rounded-2xl border-2 shadow-2xl ${
+                    darkMode
+                      ? 'bg-gradient-to-br from-navy-800 via-navy-900 to-navy-800 border-gold-500/40 shadow-gold-500/10'
+                      : 'bg-gradient-to-br from-white via-navy-50 to-gold-50/50 border-gold-400/50 shadow-navy-500/10'
+                  }`}
+                >
+                  <Quote
+                    className={`absolute -top-5 left-8 w-10 h-10 p-2 rounded-full shadow-lg animate-float ${
+                      darkMode
+                        ? 'bg-gradient-to-br from-gold-400 to-gold-600 text-navy-900'
+                        : 'bg-gradient-to-br from-gold-400 to-gold-500 text-navy-900'
+                    }`}
+                    aria-hidden="true"
+                  />
+
+                  <blockquote
+                    className={`pt-6 text-xl sm:text-2xl font-display font-semibold leading-relaxed text-center ${
+                      darkMode ? 'text-white' : 'text-navy-800'
+                    }`}
+                  >
+                    "जिथे शब्द संपतात,
+                    <br />
+                    तिथे विचार सुरू होतात."
+                  </blockquote>
+
+                  <figcaption
+                    className={`mt-6 text-center text-base font-medium ${
+                      darkMode ? 'text-gold-400' : 'text-gold-600'
+                    }`}
+                  >
+                    — जावेद कुलकर्णी
+                  </figcaption>
+                </figure>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Featured Book Section */}
+      <section
+        aria-labelledby="featured-book-heading"
+        className={`py-20 lg:py-28 relative overflow-hidden ${darkMode ? 'bg-navy-900' : 'bg-white'}`}
+      >
+        <div
+          className="absolute top-1/2 right-0 -translate-y-1/2 w-full max-w-2xl h-96 bg-gradient-to-bl from-gold-400/15 via-navy-500/10 to-transparent rounded-full blur-3xl pointer-events-none"
+          aria-hidden="true"
+        />
+        <div
+          className="absolute bottom-0 left-0 w-full max-w-xl h-80 bg-gradient-to-tr from-navy-500/10 via-gold-400/10 to-transparent rounded-full blur-3xl pointer-events-none"
+          aria-hidden="true"
+        />
+
+        <div className="section-container relative">
+          <header className="text-center lg:text-left mb-12 lg:mb-16 animate-fade-in">
+            <p
+              className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium mb-5 ${
+                darkMode
+                  ? 'bg-gold-400/10 text-gold-400 border border-gold-500/30'
+                  : 'bg-gold-100 text-gold-700 border border-gold-200'
+              }`}
+            >
+              📖 या महिन्याचं विशेष पुस्तक
+            </p>
+            <h2
+              id="featured-book-heading"
+              className={`text-3xl sm:text-4xl lg:text-5xl font-bold mb-4 ${
+                darkMode ? 'text-white' : 'text-navy-800'
+              }`}
+            >
+              डिजिटल कैद आणि नव्या युगातील सायबर युद्ध
+            </h2>
+            <p className={`text-lg sm:text-xl max-w-2xl mx-auto lg:mx-0 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+              आजच्या डिजिटल युगात प्रत्येकाने वाचायलाच हवं असं पुस्तक.
+            </p>
+          </header>
+
+          <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+            {/* Left — Book Cover */}
+            <div className="flex justify-center animate-fade-in">
+              <div className="relative group w-full max-w-sm">
+                <div className="absolute -inset-4 bg-gradient-to-br from-gold-400/20 via-navy-400/15 to-gold-600/20 rounded-3xl blur-2xl opacity-80 group-hover:opacity-100 transition-opacity duration-500" />
+                <div
+                  className={`relative rounded-[22px] overflow-hidden border-4 border-gold-400/50 bg-white p-[18px] shadow-[0_24px_60px_rgba(26,46,93,0.15)] transition-transform duration-500 ease-out group-hover:scale-[1.02] ${
+                    darkMode ? 'shadow-[0_24px_60px_rgba(218,165,32,0.12)]' : ''
+                  }`}
+                >
+                  <div className="relative w-full overflow-hidden rounded-lg" style={{ aspectRatio: '2 / 3' }}>
+                    <img
+                      src={featuredBook.cover}
+                      alt={featuredBook.title}
+                      loading="lazy"
+                      className="w-full h-full object-contain transition-transform duration-700 ease-out group-hover:scale-[1.03]"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Right — Book Details */}
+            <div className="relative animate-fade-in animation-delay-100">
+              <h3 className={`text-2xl sm:text-3xl font-bold mb-5 ${darkMode ? 'text-white' : 'text-navy-800'}`}>
+                {featuredBook.title}
+              </h3>
+
+              <p className={`text-base sm:text-lg leading-relaxed mb-8 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                डिजिटल व्यसन, माहिती युद्ध आणि सायबर सुरक्षेवर आधारित हे पुस्तक आपल्याला दाखवते की
+                आपण नकळतच एका अदृश्य कैदेत कसे अडकतो. सोशल मीडिया, डेटा गोपनीयता आणि कृत्रिम
+                बुद्धिमत्तेच्या युगात स्वतःचे रक्षण कसे करावे — हे प्रत्येक जागरूक वाचकासाठी
+                अत्यावश्यक वाचन आहे.
+              </p>
+
+              <ul className="space-y-3 mb-10" aria-label="पुस्तकाचे मुख्य विषय">
+                {featuredBookHighlights.map((point) => (
+                  <li
+                    key={point}
+                    className={`flex items-center gap-3 text-base font-medium ${
+                      darkMode ? 'text-gray-200' : 'text-navy-700'
+                    }`}
+                  >
+                    <span
+                      className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
+                        darkMode
+                          ? 'bg-gold-400/20 text-gold-400'
+                          : 'bg-gold-100 text-gold-700'
+                      }`}
+                      aria-hidden="true"
+                    >
+                      ✓
+                    </span>
+                    {point}
+                  </li>
+                ))}
+              </ul>
+
+              <div className="flex flex-col sm:flex-row gap-4">
+                <a
+                  href={featuredBook.amazonUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn-secondary"
+                >
+                  🛒 Amazon वर खरेदी करा
+                </a>
+                <Link to={`/sample/${featuredBook.slug}`} className="btn-primary">
+                  📖 मोफत नमुना वाचा
+                </Link>
+              </div>
+
+              <div className="mt-8">
+                <span
+                  className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold ${
+                    darkMode
+                      ? 'bg-navy-800 text-gold-400 border border-gold-500/30'
+                      : 'bg-navy-50 text-navy-700 border border-navy-200'
+                  }`}
+                >
+                  <Award className="w-4 h-4 text-green-500" aria-hidden="true" />
+                  Amazon Published
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
       </section>
 
       {/* Tagline Section */}
