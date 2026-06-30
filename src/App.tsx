@@ -357,15 +357,17 @@ function MainWebsite() {
               {/* Photo */}
               <div className="relative w-72 h-72 sm:w-80 sm:h-80 lg:w-96 lg:h-96 rounded-2xl overflow-hidden shadow-2xl border-4 border-gold-400/50 bg-navy-800">
 
-                <img
-                  src="/images/author.webp"
-                  alt="जावेद कुलकर्णी"
-                  width={500}
-                  height={500}
-                  fetchPriority="high"
-                  decoding="async"
-                  className="w-full h-full object-cover"
-                />
+            <img
+              src="/images/author.webp"
+              alt="मराठी लेखक जावेद कुलकर्णी यांचा फोटो"
+              width={500}
+              height={500}
+              fetchPriority="high"
+              loading="eager"
+              decoding="async"
+              className="w-full h-full object-cover"
+              draggable={false}
+            />
 
               </div>
 
@@ -790,75 +792,87 @@ function MainWebsite() {
                 darkMode ? 'bg-navy-800' : 'bg-gray-50'
               } ${darkMode ? 'border border-navy-700' : ''}`}
             >
-              <form className="space-y-6">
-                <div>
-                  <label
-                    htmlFor="name"
-                    className={`block text-sm font-medium mb-2 ${
-                      darkMode ? 'text-gray-300' : 'text-navy-700'
-                    }`}
-                  >
-                    नाव
-                  </label>
-                  <input
-                    type="text"
-                    id="name"
-                    className={`w-full px-4 py-3 rounded-lg transition-colors ${
-                      darkMode
-                        ? 'bg-navy-700 border-navy-600 text-white placeholder-gray-400 focus:border-gold-400'
-                        : 'bg-white border-gray-300 text-navy-800 placeholder-gray-400 focus:border-navy-500'
-                    } border focus:outline-none focus:ring-2 focus:ring-gold-400/20`}
-                    placeholder="तुमचे नाव"
-                  />
-                </div>
+ <form className="space-y-6" autoComplete="on">
+  <div>
+    <label
+      htmlFor="name"
+      className={`block text-sm font-medium mb-2 ${
+        darkMode ? "text-gray-300" : "text-navy-700"
+      }`}
+    >
+      नाव
+    </label>
 
-                <div>
-                  <label
-                    htmlFor="email"
-                    className={`block text-sm font-medium mb-2 ${
-                      darkMode ? 'text-gray-300' : 'text-navy-700'
-                    }`}
-                  >
-                    ईमेल
-                  </label>
-                  <input
-                    type="email"
-                    id="email"
-                    className={`w-full px-4 py-3 rounded-lg transition-colors ${
-                      darkMode
-                        ? 'bg-navy-700 border-navy-600 text-white placeholder-gray-400 focus:border-gold-400'
-                        : 'bg-white border-gray-300 text-navy-800 placeholder-gray-400 focus:border-navy-500'
-                    } border focus:outline-none focus:ring-2 focus:ring-gold-400/20`}
-                    placeholder="तुमचा ईमेल"
-                  />
-                </div>
+    <input
+      type="text"
+      id="name"
+      name="name"
+      autoComplete="name"
+      className={`w-full px-4 py-3 rounded-lg transition-colors ${
+        darkMode
+          ? "bg-navy-700 border-navy-600 text-white placeholder-gray-400 focus:border-gold-400"
+          : "bg-white border-gray-300 text-navy-800 placeholder-gray-400 focus:border-navy-500"
+      } border focus:outline-none focus:ring-2 focus:ring-gold-400/20`}
+      placeholder="तुमचे नाव"
+      required
+    />
+  </div>
 
-                <div>
-                  <label
-                    htmlFor="message"
-                    className={`block text-sm font-medium mb-2 ${
-                      darkMode ? 'text-gray-300' : 'text-navy-700'
-                    }`}
-                  >
-                    संदेश
-                  </label>
-                  <textarea
-                    id="message"
-                    rows={5}
-                    className={`w-full px-4 py-3 rounded-lg transition-colors resize-none ${
-                      darkMode
-                        ? 'bg-navy-700 border-navy-600 text-white placeholder-gray-400 focus:border-gold-400'
-                        : 'bg-white border-gray-300 text-navy-800 placeholder-gray-400 focus:border-navy-500'
-                    } border focus:outline-none focus:ring-2 focus:ring-gold-400/20`}
-                    placeholder="तुमचा संदेश..."
-                  />
-                </div>
+  <div>
+    <label
+      htmlFor="email"
+      className={`block text-sm font-medium mb-2 ${
+        darkMode ? "text-gray-300" : "text-navy-700"
+      }`}
+    >
+      ईमेल
+    </label>
 
-                <button type="submit" className="btn-primary w-full">
-                  <Send className="w-5 h-5" />
-                  संदेश पाठवा
-                </button>
-              </form>
+    <input
+      type="email"
+      id="email"
+      name="email"
+      autoComplete="email"
+      className={`w-full px-4 py-3 rounded-lg transition-colors ${
+        darkMode
+          ? "bg-navy-700 border-navy-600 text-white placeholder-gray-400 focus:border-gold-400"
+          : "bg-white border-gray-300 text-navy-800 placeholder-gray-400 focus:border-navy-500"
+      } border focus:outline-none focus:ring-2 focus:ring-gold-400/20`}
+      placeholder="तुमचा ईमेल"
+      required
+    />
+  </div>
+
+  <div>
+    <label
+      htmlFor="message"
+      className={`block text-sm font-medium mb-2 ${
+        darkMode ? "text-gray-300" : "text-navy-700"
+      }`}
+    >
+      संदेश
+    </label>
+
+    <textarea
+      id="message"
+      name="message"
+      autoComplete="off"
+      rows={5}
+      className={`w-full px-4 py-3 rounded-lg transition-colors resize-none ${
+        darkMode
+          ? "bg-navy-700 border-navy-600 text-white placeholder-gray-400 focus:border-gold-400"
+          : "bg-white border-gray-300 text-navy-800 placeholder-gray-400 focus:border-navy-500"
+      } border focus:outline-none focus:ring-2 focus:ring-gold-400/20`}
+      placeholder="तुमचा संदेश..."
+      required
+    />
+  </div>
+
+  <button type="submit" className="btn-primary w-full">
+    <Send className="w-5 h-5" />
+    संदेश पाठवा
+  </button>
+</form>
             </div>
 
             {/* Contact Info */}
