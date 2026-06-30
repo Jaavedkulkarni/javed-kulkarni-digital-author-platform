@@ -1,7 +1,7 @@
 import SEO from "./seo/SEO";
 import StructuredData from "./seo/StructuredData";
 import AuthorSchema from "./seo/AuthorSchema";
-import BookSchema from "../../seo/BookSchema";
+
 import { useState, useEffect, Suspense, lazy } from 'react';
 import { Routes, Route, Link } from 'react-router-dom';
 import {
@@ -347,32 +347,36 @@ function MainWebsite() {
               </div>
             </div>
 
-            {/* Right Content - Author Photo */}
-            <div className="order-1 lg:order-2 flex justify-center animate-slide-in-right">
-              <div className="relative">
-                {/* Decorative background */}
-                <div className="absolute -inset-4 bg-gradient-to-br from-gold-400/20 via-navy-400/20 to-gold-600/20 rounded-3xl blur-2xl animate-float" />
+          {/* Right Content - Author Photo */}
+          <div className="order-1 lg:order-2 flex justify-center animate-slide-in-right">
+            <div className="relative">
 
-                {/* Photo container */}
-                <div className="relative w-72 h-72 sm:w-80 sm:h-80 lg:w-96 lg:h-96 rounded-2xl overflow-hidden shadow-2xl border-4 border-gold-400/50 bg-gradient-to-br from-navy-500 to-navy-700 flex items-center justify-center">
-                  <div className="text-center p-8">
-                    <User className="w-24 h-24 mx-auto text-gold-400 mb-4" />
-                    <p className="text-white/80 text-sm">
-                      Author Photo
-                      <br />
-                      <span className="text-gold-400">जावेद कुलकर्णी</span>
-                    </p>
-                  </div>
-                </div>
+              {/* Decorative background */}
+              <div className="absolute -inset-4 bg-gradient-to-br from-gold-400/20 via-navy-400/20 to-gold-600/20 rounded-3xl blur-2xl animate-float" />
 
-                {/* Floating badge */}
-                <div className="absolute -bottom-3 -right-3 bg-gradient-to-r from-gold-400 to-gold-500 text-navy-900 px-4 py-2 rounded-lg shadow-lg font-semibold text-sm">
-                  8+ Published Books
-                </div>
+              {/* Photo */}
+              <div className="relative w-72 h-72 sm:w-80 sm:h-80 lg:w-96 lg:h-96 rounded-2xl overflow-hidden shadow-2xl border-4 border-gold-400/50 bg-navy-800">
+
+                <img
+                  src="/images/author.webp"
+                  alt="जावेद कुलकर्णी"
+                  width={500}
+                  height={500}
+                  fetchPriority="high"
+                  decoding="async"
+                  className="w-full h-full object-cover"
+                />
+
               </div>
+
+              {/* Floating badge */}
+              <div className="absolute -bottom-3 -right-3 bg-gradient-to-r from-gold-400 to-gold-500 text-navy-900 px-4 py-2 rounded-lg shadow-lg font-semibold text-sm">
+                8+ Published Books
+              </div>
+                </div> 
+                </div> 
             </div>
           </div>
-        </div>
       </section>
 
       {/* Tagline Section */}

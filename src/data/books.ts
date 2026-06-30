@@ -27,7 +27,7 @@ export const books: Book[] = [
     category: 'पालकत्व',
     language: 'मराठी',
     isbn: '978-93-344-0195-0',
-    cover: '/covers/parenting.jpeg',
+    cover: '/covers/parenting.webp',
     description:
       'आधुनिक काळातील पालक आणि मुलांमधील बदलते नाते, संवाद आणि समज यावर आधारित मार्गदर्शक पुस्तक. स्मार्टफोन, सोशल मीडिया आणि व्यस्त जीवनशैलीमुळे पालक आणि मुलांमधील भावनिक अंतर कसे वाढत आहे आणि ते कसे कमी करता येईल याचा व्यावहारिक आढावा.',
     whyRead:
@@ -53,7 +53,7 @@ export const books: Book[] = [
     category: 'भयकथा',
     language: 'मराठी',
     isbn: '978-93-344-1846-0',
-    cover: '/covers/bhut-sanskriti-bhag-1.jpeg',
+    cover: '/covers/bhut-sanskriti-bhag-1.webp',
     description:
       'अदृश्य जग, भावना आणि रहस्यांनी भरलेली काल्पनिक भयकथा. भूत संस्कृती ही केवळ भयकथा नाही — ती एक सांस्कृतिक प्रवास आहे जो आपल्याला आपल्या लोककथा, दंतकथा आणि अदृश्य जगाशी जोडतो.',
     whyRead:
@@ -79,7 +79,7 @@ export const books: Book[] = [
     category: 'Self Development',
     language: 'English',
     isbn: '978-93-344-2555-0',
-    cover: '/covers/digital-detox-en.jpeg',
+    cover: '/covers/digital-detox-en.webp',
     description:
       'How to become the master of technology, not its prisoner. In a world where screens dominate every moment, this book offers a practical roadmap to reclaiming your time, focus, and mental health from the grip of digital addiction.',
     whyRead:
@@ -105,7 +105,7 @@ export const books: Book[] = [
     category: 'आत्मविकास',
     language: 'मराठी',
     isbn: '978-93-344-0462-3',
-    cover: '/covers/digital-detox-mr.jpeg',
+    cover: '/covers/digital-detox-mr.webp',
     description:
       'डिजिटल जगातून मानसिक स्वातंत्र्याकडे नेणारा व्यावहारिक प्रवास. तंत्रज्ञानाचा गुलाम न होता त्याचा मालक कसे व्हावे हे या पुस्तकात सांगितले आहे.',
     whyRead:
@@ -131,7 +131,7 @@ export const books: Book[] = [
     category: 'डिजिटल जीवन',
     language: 'मराठी',
     isbn: '978-93-344-0590-3',
-    cover: '/covers/digital-kaid-mr.jpeg',
+    cover: '/covers/digital-kaid-mr.webp',
     description:
       'डिजिटल व्यसन, माहिती युद्ध आणि सायबर सुरक्षेवरील पुस्तक. आपण नकळत डिजिटल कैदेत कसे अडकत आहोत आणि या कैदेतून बाहेर पडण्याचे मार्ग काय आहेत हे या पुस्तकात विस्ताराने सांगितले आहे.',
     whyRead:
@@ -157,7 +157,7 @@ export const books: Book[] = [
     category: 'Technology',
     language: 'English',
     isbn: '978-93-344-2678-6',
-    cover: '/covers/digital-prison-en.jpeg',
+    cover: '/covers/digital-prison-en.webp',
     description:
       'Understand the hidden dangers of the digital era and cyber warfare. This book exposes how social media algorithms, big tech surveillance, and information warfare are silently controlling our lives, and what we can do to reclaim our freedom.',
     whyRead:
@@ -183,7 +183,7 @@ export const books: Book[] = [
     category: 'कथा',
     language: 'मराठी',
     isbn: '978-93-5813-939-6',
-    cover: '/covers/mehandi-utarlyanantarchi-goshta.jpeg',
+    cover: '/covers/mehandi-utarlyanantarchi-goshta.webp',
     description:
       'भावना, नाती आणि आयुष्याच्या आठवणींवर आधारित कथासंग्रह. मेहंदी उतरल्यानंतर उरतं काय? या प्रश्नाचे उत्तर शोधत निघालेल्या या कथा आपल्याला नात्यांच्या खोल समुद्रात घेऊन जातात.',
     whyRead:
@@ -209,7 +209,7 @@ export const books: Book[] = [
     category: 'आत्मविकास',
     language: 'मराठी',
     isbn: '978-93-344-1317-5',
-    cover: '/covers/nirnay-ghenyachi-kala.jpeg',
+    cover: '/covers/nirnay-ghenyachi-kala.webp',
     description:
       'भीती आणि संभ्रम दूर करून योग्य निर्णय घेण्याचे मार्गदर्शन. आयुष्यात येणाऱ्या प्रत्येक निर्णयाला सामोरे जाण्याची कला शिकवणारे हे पुस्तक आत्मविकासाच्या क्षेत्रातील एक महत्त्वाचे योगदान आहे.',
     whyRead:
@@ -235,7 +235,7 @@ export const books: Book[] = [
     category: 'आत्मविकास',
     language: 'मराठी',
     isbn: '978-93-5933-125-6',
-    cover: '/covers/saha-aayam-6d.jpeg',
+    cover: '/covers/saha-aayam-6d.webp',
     description:
       'विचार, नाती, ध्येय, भावना, आत्मशोध आणि विकास यांचा जीवनप्रवास. सहा आयामांमधून स्वतःला समजून घेणे आणि जीवन सुंदर बनवण्याचा हा एक सर्वांगीण मार्गदर्शक ग्रंथ आहे.',
     whyRead:
@@ -261,7 +261,7 @@ export const books: Book[] = [
     category: 'विनोदी लेखन',
     language: 'मराठी',
     isbn: '978-93-344-1174-4',
-    cover: '/covers/valan-ani-valaval.jpeg',
+    cover: '/covers/valan-ani-valaval.webp',
     description:
       'हसत-हसत विचार करायला लावणारे हलकेफुलके लेख. वळणं आणि वळवळ म्हणजे आयुष्याच्या कठीण वळणांवर हसत-खेळत पुढे जाण्याची कला. या पुस्तकातील लेख वाचताना तुम्ही कधी हसाल, कधी विचार कराल आणि कधी स्वतःलाच ओळखाल.',
     whyRead:
