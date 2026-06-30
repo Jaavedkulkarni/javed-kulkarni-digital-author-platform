@@ -1,6 +1,7 @@
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import SEO from "../../seo/SEO";
 import BookSchema from "../../seo/BookSchema";
+import BreadcrumbSchema from "../../seo/BreadcrumbSchema";
 import {
   ArrowLeft,
   BookOpen,
@@ -94,6 +95,22 @@ export default function BookPage() {
   isbn={book.isbn}
   language={book.language}
   amazonUrl={book.amazonUrl}
+/>
+<BreadcrumbSchema
+  items={[
+    {
+      name: "मुख्यपृष्ठ",
+      url: "https://javedkulkarni.com",
+    },
+    {
+      name: "पुस्तके",
+      url: "https://javedkulkarni.com/#books",
+    },
+    {
+      name: book.title,
+      url: `https://javedkulkarni.com/books/${book.slug}`,
+    },
+  ]}
 />
     <div className={`min-h-screen ${bg} transition-colors duration-300`}>
       {/* Top bar */}
