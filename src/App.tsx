@@ -1,5 +1,7 @@
 import SEO from "./seo/SEO";
 import StructuredData from "./seo/StructuredData";
+import AuthorSchema from "./seo/AuthorSchema";
+import BookSchema from "../../seo/BookSchema";
 import { useState, useEffect, Suspense, lazy } from 'react';
 import { Routes, Route, Link } from 'react-router-dom';
 import {
@@ -111,6 +113,7 @@ function MainWebsite() {
       />
 
     <StructuredData />
+    <AuthorSchema />
 
      <div className={`min-h-screen transition-colors duration-300 ${darkMode ? 'dark bg-navy-900' : 'bg-white'}`}>
       {/* Navigation */}

@@ -1,4 +1,6 @@
 import { useParams, Link, useNavigate } from 'react-router-dom';
+import SEO from "../../seo/SEO";
+import BookSchema from "../../seo/BookSchema";
 import {
   ArrowLeft,
   BookOpen,
@@ -75,6 +77,21 @@ export default function BookPage() {
   const divider = darkMode ? 'border-navy-700' : 'border-gray-200';
 
   return (
+      <>
+    <SEO
+      title={`${book.title} | जावेद कुलकर्णी`}
+      description={book.description}
+      keywords={`${book.title}, ${book.category}, Marathi Book, जावेद कुलकर्णी`}
+      image={book.cover}
+      url={`https://javedkulkarni.com/books/${book.slug}`}
+    />
+
+    <BookSchema
+      title={book.title}
+      description={book.description}
+      image={book.cover}
+      url={`https://javedkulkarni.com/books/${book.slug}`}
+    />
     <div className={`min-h-screen ${bg} transition-colors duration-300`}>
       {/* Top bar */}
       <div className={`sticky top-0 z-40 border-b ${darkMode ? 'bg-navy-900/95 border-navy-800' : 'bg-white/95 border-gray-200'} backdrop-blur-md`}>
@@ -384,5 +401,6 @@ export default function BookPage() {
         </div>
       </div>
     </div>
+     </>
   );
 }
