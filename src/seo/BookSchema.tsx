@@ -5,6 +5,10 @@ interface BookSchemaProps {
   description: string;
   image: string;
   url: string;
+  isbn: string;
+  language: string;
+  amazonUrl: string;
+  author?: string;
 }
 
 export default function BookSchema({
@@ -12,31 +16,38 @@ export default function BookSchema({
   description,
   image,
   url,
+  isbn,
+  language,
+  amazonUrl,
+  author = "जावेद कुलकर्णी",
 }: BookSchemaProps) {
   const schema = {
     "@context": "https://schema.org",
     "@type": "Book",
 
     name: title,
+    description: description,
+    url: url,
+    image: `https://javedkulkarni.com${image}`,
+
+    isbn: isbn,
+    inLanguage: language,
+
+    bookFormat: "https://schema.org/Paperback",
 
     author: {
       "@type": "Person",
-      name: "जावेद कुलकर्णी",
-      url: "https://javedkulkarni.com"
+      name: author,
+      url: "https://javedkulkarni.com",
     },
-
-    image: image,
-
-    description: description,
-
-    url: url,
-
-    inLanguage: "mr",
 
     publisher: {
       "@type": "Person",
-      name: "जावेद कुलकर्णी"
-    }
+      name: author,
+      url: "https://javedkulkarni.com",
+    },
+
+    sameAs: amazonUrl,
   };
 
   return (

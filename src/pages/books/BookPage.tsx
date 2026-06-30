@@ -22,7 +22,7 @@ import {
   Instagram,
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
-import { getBookBySlug, getRelatedBooks, books as allBooks, INSTAGRAM_AUTHOR_URL } from '../../data/books';
+import { getBookBySlug, getRelatedBooks, INSTAGRAM_AUTHOR_URL } from '../../data/books';
 
 export default function BookPage() {
   const { slug } = useParams<{ slug: string }>();
@@ -86,12 +86,15 @@ export default function BookPage() {
       url={`https://javedkulkarni.com/books/${book.slug}`}
     />
 
-    <BookSchema
-      title={book.title}
-      description={book.description}
-      image={book.cover}
-      url={`https://javedkulkarni.com/books/${book.slug}`}
-    />
+<BookSchema
+  title={book.title}
+  description={book.description}
+  image={book.cover}
+  url={`https://javedkulkarni.com/books/${book.slug}`}
+  isbn={book.isbn}
+  language={book.language}
+  amazonUrl={book.amazonUrl}
+/>
     <div className={`min-h-screen ${bg} transition-colors duration-300`}>
       {/* Top bar */}
       <div className={`sticky top-0 z-40 border-b ${darkMode ? 'bg-navy-900/95 border-navy-800' : 'bg-white/95 border-gray-200'} backdrop-blur-md`}>
