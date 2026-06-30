@@ -88,6 +88,13 @@ const featuredBookHighlights = [
   'सायबर युद्ध',
 ];
 
+const readerTrustCards = [
+  { emoji: '📚', value: '8+', label: 'Published Books' },
+  { emoji: '✍️', value: '100+', label: 'Articles & Blogs' },
+  { emoji: '🛒', value: 'Amazon', label: 'Published Author' },
+  { emoji: '❤️', value: 'Growing Reader Community', label: 'विश्वासार्ह वाचक समुदाय' },
+];
+
 function MainWebsite() {
   const [darkMode, setDarkMode] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -640,6 +647,73 @@ function MainWebsite() {
               </div>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* Reader Trust Section */}
+      <section
+        aria-labelledby="reader-trust-heading"
+        className={`py-20 lg:py-28 ${darkMode ? 'bg-navy-800/50' : 'bg-gray-50'}`}
+      >
+        <div className="section-container">
+          <header className="text-center mb-14 lg:mb-16 animate-fade-in">
+            <h2
+              id="reader-trust-heading"
+              className={`text-3xl sm:text-4xl lg:text-5xl font-display font-semibold leading-snug mb-5 ${
+                darkMode ? 'text-white' : 'text-navy-800'
+              }`}
+            >
+              विश्वास... शब्दांचा नाही,
+              <br className="hidden sm:block" />
+              <span className={darkMode ? 'text-gold-400' : 'text-gold-600'}> तर वाचकांचा.</span>
+            </h2>
+            <p className={`text-lg sm:text-xl max-w-3xl mx-auto leading-relaxed ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+              प्रत्येक पुस्तक, प्रत्येक लेख आणि प्रत्येक संवाद हा वाचकांच्या विश्वासामुळेच अर्थपूर्ण ठरतो.
+            </p>
+          </header>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-7">
+            {readerTrustCards.map((card, i) => (
+              <article
+                key={card.label}
+                className={`group flex flex-col items-center text-center p-6 sm:p-8 rounded-2xl border-2 transition-all duration-500 ease-out hover:-translate-y-[6px] animate-fade-in ${
+                  darkMode
+                    ? 'bg-navy-800 border-gold-500/30 shadow-[0_8px_30px_rgb(0,0,0,0.3)] hover:shadow-[0_24px_60px_rgba(218,165,32,0.18)]'
+                    : 'bg-white border-gold-400/40 shadow-[0_8px_30px_rgb(0,0,0,0.06)] hover:shadow-[0_24px_60px_rgba(26,46,93,0.18)]'
+                }`}
+                style={{ animationDelay: `${i * 100}ms` }}
+              >
+                <span className="text-3xl mb-4" aria-hidden="true">
+                  {card.emoji}
+                </span>
+                <p
+                  className={`text-2xl sm:text-3xl font-bold mb-2 leading-tight ${
+                    darkMode ? 'text-white group-hover:text-gold-400' : 'text-navy-800 group-hover:text-navy-600'
+                  } transition-colors duration-300`}
+                >
+                  {card.value}
+                </p>
+                <p className={`text-sm font-medium ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                  {card.label}
+                </p>
+              </article>
+            ))}
+          </div>
+
+          <figure className="mt-16 lg:mt-20 max-w-3xl mx-auto text-center animate-fade-in animation-delay-400">
+            <blockquote
+              className={`text-xl sm:text-2xl font-display font-semibold leading-relaxed ${
+                darkMode ? 'text-white' : 'text-navy-800'
+              }`}
+            >
+              "प्रत्येक वाचक हा माझ्या लेखन प्रवासातील सहप्रवासी आहे."
+            </blockquote>
+            <figcaption
+              className={`mt-5 text-base font-medium ${darkMode ? 'text-gold-400' : 'text-gold-600'}`}
+            >
+              — जावेद कुलकर्णी
+            </figcaption>
+          </figure>
         </div>
       </section>
 
