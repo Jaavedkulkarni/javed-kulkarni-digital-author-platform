@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useBlog } from '../../context/BlogContext';
+import { PublicAuthNav } from '../reader/PublicAuthNav';
 import { Moon, Sun, Menu, X, Search, BookOpen, ExternalLink, ArrowUp } from 'lucide-react';
 
 interface BlogLayoutProps {
@@ -92,6 +93,9 @@ export function BlogLayout({ children }: BlogLayoutProps) {
 
             {/* Actions */}
             <div className="flex items-center gap-3">
+              <div className="hidden lg:block">
+                <PublicAuthNav darkMode={darkMode} />
+              </div>
               <button
                 onClick={() => setSearchOpen(!searchOpen)}
                 className={`p-2.5 rounded-lg transition-all duration-200 ${
@@ -173,6 +177,9 @@ export function BlogLayout({ children }: BlogLayoutProps) {
                   {item.label}
                 </Link>
               ))}
+              <div className={`pt-3 border-t ${darkMode ? 'border-navy-800' : 'border-gray-200'}`}>
+                <PublicAuthNav darkMode={darkMode} onNavigate={() => setMobileMenuOpen(false)} className="flex-col items-stretch !gap-2 px-2" />
+              </div>
             </div>
           </div>
         )}

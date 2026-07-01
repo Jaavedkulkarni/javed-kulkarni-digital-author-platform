@@ -375,9 +375,9 @@ export function BlogHome() {
                 )}
               </div>
 
-              {/* Newsletter */}
+              {/* वाचक क्लब */}
               <div className="p-6 rounded-xl bg-gradient-to-br from-gold-400 to-gold-600">
-                <h3 className="text-lg font-bold text-navy-900 mb-1">न्यूझलेटर</h3>
+                <h3 className="text-lg font-bold text-navy-900 mb-1">वाचक क्लब</h3>
                 <p className="text-navy-800/80 text-sm mb-4">
                   नवीन लेख आणि अपडेट्स सरळ तुमच्या ईमेलमध्ये.
                 </p>

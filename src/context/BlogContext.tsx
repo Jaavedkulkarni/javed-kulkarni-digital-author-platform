@@ -266,7 +266,7 @@ export function BlogProvider({ children }: { children: ReactNode }) {
         if (err.code === '23505') return { success: false, message: 'हा ईमेल आधीच सब्स्क्राईब केला आहे.' };
         throw err;
       }
-      return { success: true, message: 'बधाई! आपण यशस्वीरित्या सब्स्क्राईब केले.' };
+      return { success: true, message: 'वाचक क्लबमध्ये यशस्वीरित्या सामील झालात!' };
     } catch {
       return { success: false, message: 'काहीतरी चूक झाली. कृपया पुन्हा प्रयत्न करा.' };
     }

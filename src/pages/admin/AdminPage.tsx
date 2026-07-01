@@ -1,4 +1,5 @@
 import { AdminLogin } from './AdminLogin';
+import { AdminReaderBlocked } from './AdminReaderBlocked';
 import { AdminDashboard } from './AdminDashboard';
 import { ArticleManager } from './ArticleManager';
 import { BookManager } from './BookManager';
@@ -14,11 +15,16 @@ import { ProductManager } from './ProductManager';
 import { ProductProvider } from '../../context/ProductContext';
 import { BookProvider } from '../../context/BookContext';
 import { useAdmin } from '../../context/AdminContext';
+import { isAdminUser, isReaderUser } from '../../lib/authRoles';
 
 export function AdminPage() {
-  const { isAuthenticated, currentView } = useAdmin();
+  const { isAuthenticated, user, logout, currentView } = useAdmin();
 
-  if (!isAuthenticated) {
+  if (isAuthenticated && isReaderUser(user)) {
+    return <AdminReaderBlocked onLogout={logout} />;
+  }
+
+  if (!isAuthenticated || !isAdminUser(user)) {
     return <AdminLogin />;
   }
 

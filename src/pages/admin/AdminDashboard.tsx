@@ -152,7 +152,7 @@ export function AdminDashboard() {
       action: () => setCurrentView('categories'),
     },
     {
-      label: 'Subscribers',
+      label: 'वाचक क्लब',
       value: stats.totalSubscribers,
       icon: Mail,
       iconColor: 'text-gold-400',

@@ -34,7 +34,7 @@ const menuItems = [
   { id: 'tags', label: 'Tags', icon: Tags },
   { id: 'media', label: 'Media', icon: Image },
   { id: 'comments', label: 'Comments', icon: MessageSquare },
-  { id: 'subscribers', label: 'Newsletter', icon: Mail },
+  { id: 'subscribers', label: 'वाचक क्लब', icon: Mail },
   { id: 'settings', label: 'Settings', icon: Settings },
 ] as const;
 

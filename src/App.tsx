@@ -33,7 +33,9 @@ import {
   Facebook,
 } from 'lucide-react';
 import { BlogProvider } from './context/BlogContext';
+import { ReaderProvider } from './context/ReaderContext';
 import { AdminProvider } from './context/AdminContext';
+import { PublicAuthNav } from './components/reader/PublicAuthNav';
 import {
   getHomepageInitialData,
   loadHomepageBookData,
@@ -44,6 +46,7 @@ const BlogHome = lazy(() => import('./pages/blog/BlogHome'));
 const BlogDynamicPage = lazy(() => import('./pages/blog/BlogDynamicPage'));
 const SearchPage = lazy(() => import('./pages/blog/SearchPage').then(m => ({ default: m.SearchPage })));
 const AdminPage = lazy(() => import('./pages/admin/AdminPage'));
+const ReaderApp = lazy(() => import('./pages/reader/ReaderApp'));
 const BookPage = lazy(() => import('./pages/books/BookPage'));
 const BookCategoryPage = lazy(() => import('./pages/books/BookCategoryPage'));
 const SampleReaderPage = lazy(() => import('./pages/books/SampleReaderPage'));
@@ -221,6 +224,9 @@ function MainWebsite() {
             </div>
 
             <div className="flex items-center gap-3">
+              <div className="hidden lg:block">
+                <PublicAuthNav darkMode={darkMode} />
+              </div>
               <button
                 onClick={() => setDarkMode(!darkMode)}
                 className={`p-2.5 rounded-lg transition-all duration-200 ${
@@ -294,6 +300,9 @@ function MainWebsite() {
                   </button>
                 )
               ))}
+              <div className="pt-3 border-t border-navy-200 dark:border-navy-800">
+                <PublicAuthNav darkMode={darkMode} onNavigate={() => setMobileMenuOpen(false)} className="flex-col items-stretch !gap-2" />
+              </div>
             </div>
           </div>
         )}
@@ -1475,6 +1484,7 @@ function MainWebsite() {
 function App() {
   return (
     <BlogProvider>
+      <ReaderProvider>
       <Suspense fallback={
         <div className="min-h-screen bg-navy-900 flex items-center justify-center">
           <div className="text-center">
@@ -1504,10 +1514,14 @@ function App() {
             }
           />
 
+          {/* Reader Routes */}
+          <Route path="/reader/*" element={<ReaderApp />} />
+
           {/* Main Website */}
           <Route path="*" element={<MainWebsite />} />
         </Routes>
       </Suspense>
+      </ReaderProvider>
     </BlogProvider>
   );
 }
