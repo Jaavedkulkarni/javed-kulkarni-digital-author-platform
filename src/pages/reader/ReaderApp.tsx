@@ -1,7 +1,10 @@
+import { useEffect } from 'react';
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { useReader } from '../../context/ReaderContext';
 import { isAdminUser } from '../../lib/authRoles';
 import { storeReaderProtectedReturn } from '../../lib/authRedirect';
+import { useAuthModal } from '../../context/AuthModalContext';
+import { PublicSiteLayout } from '../../components/layout/PublicSiteLayout';
 import { ReaderSignIn } from './ReaderSignIn';
 import { ReaderSignUp } from './ReaderSignUp';
 import { ReaderForgotPassword } from './ReaderForgotPassword';
@@ -14,42 +17,64 @@ import {
   ReaderProfilePage,
   ReaderHistoryPage,
   ReaderSettingsPage,
+  ReaderMembershipPage,
 } from './ReaderDashboardPages';
 import { Link } from 'react-router-dom';
 import { ShieldAlert } from 'lucide-react';
 
 function ReaderProtected({ children }: { children: React.ReactNode }) {
   const { isReaderAuthenticated, loading, user } = useReader();
+  const { openAuthModal } = useAuthModal();
   const location = useLocation();
+
+  useEffect(() => {
+    if (loading || isReaderAuthenticated) return;
+    storeReaderProtectedReturn(location.pathname, location.search);
+    openAuthModal('sign-in');
+  }, [loading, isReaderAuthenticated, location.pathname, location.search, openAuthModal]);
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-navy-900 flex items-center justify-center">
-        <div className="w-10 h-10 border-4 border-gold-400 border-t-transparent rounded-full animate-spin" />
-      </div>
+      <PublicSiteLayout memberArea>
+        <div className="flex items-center justify-center py-24">
+          <div className="w-10 h-10 border-4 border-gold-400 border-t-transparent rounded-full animate-spin" />
+        </div>
+      </PublicSiteLayout>
     );
   }
 
   if (user && isAdminUser(user) && !isReaderAuthenticated) {
     return (
-      <div className="min-h-screen bg-navy-900 flex items-center justify-center p-4">
-        <div className="max-w-md w-full bg-navy-800 border border-navy-700 rounded-xl p-8 text-center">
+      <PublicSiteLayout title="Admin Account" memberArea>
+        <div className="max-w-md mx-auto bg-navy-800 border border-navy-700 rounded-xl p-8 text-center">
           <ShieldAlert className="w-12 h-12 text-gold-400 mx-auto mb-4" />
           <h1 className="text-xl font-bold text-white mb-2">Admin Account</h1>
           <p className="text-gray-400 text-sm mb-6">
-            You are signed in with an admin account. Please use the admin CMS instead of the reader dashboard.
+            You are signed in with an admin account. Please use the admin CMS instead of the reader member area.
           </p>
           <Link to="/admin" className="inline-block px-4 py-2 rounded-lg bg-gold-500 text-navy-900 font-semibold hover:bg-gold-400">
             Go to Admin CMS
           </Link>
         </div>
-      </div>
+      </PublicSiteLayout>
     );
   }
 
   if (!isReaderAuthenticated) {
-    storeReaderProtectedReturn(location.pathname, location.search);
-    return <Navigate to="/reader/sign-in" replace />;
+    return (
+      <PublicSiteLayout title="Sign in required" memberArea>
+        <div className="max-w-md mx-auto text-center py-12">
+          <p className="text-gray-400 text-sm mb-4">Please sign in to access this page.</p>
+          <button
+            type="button"
+            onClick={() => openAuthModal('sign-in')}
+            className="px-4 py-2 rounded-lg bg-gold-500 text-navy-900 font-semibold hover:bg-gold-400"
+          >
+            Sign In
+          </button>
+        </div>
+      </PublicSiteLayout>
+    );
   }
 
   return <>{children}</>;
@@ -76,6 +101,7 @@ export function ReaderApp() {
       <Route path="profile" element={<ReaderProtected><ReaderProfilePage /></ReaderProtected>} />
       <Route path="history" element={<ReaderProtected><ReaderHistoryPage /></ReaderProtected>} />
       <Route path="settings" element={<ReaderProtected><ReaderSettingsPage /></ReaderProtected>} />
+      <Route path="membership" element={<ReaderProtected><ReaderMembershipPage /></ReaderProtected>} />
       <Route path="*" element={<Navigate to="/reader/library" replace />} />
     </Routes>
   );

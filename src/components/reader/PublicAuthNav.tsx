@@ -1,16 +1,14 @@
 import { useState, useRef, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useReader } from '../../context/ReaderContext';
-import { storeReaderReturnTo } from '../../lib/authRedirect';
+import { useAuthModal } from '../../context/AuthModalContext';
+import { consumeLastPublicPage, isPublicPath } from '../../lib/authRedirect';
 import {
-  LogOut,
-  User,
-  BookOpen,
-  Heart,
-  History,
-  Settings,
-  ChevronDown,
-} from 'lucide-react';
+  getAuthenticatedMenuItems,
+  resolveNavRole,
+  type SiteNavItem,
+} from '../../lib/siteNavigation';
+import { ChevronDown } from 'lucide-react';
 
 interface PublicAuthNavProps {
   darkMode?: boolean;
@@ -19,7 +17,10 @@ interface PublicAuthNavProps {
 }
 
 export function PublicAuthNav({ darkMode = false, className = '', onNavigate }: PublicAuthNavProps) {
-  const { isReaderAuthenticated, signOut, profile, loading } = useReader();
+  const { isReaderAuthenticated, signOut, profile, loading, user } = useReader();
+  const { openAuthModal } = useAuthModal();
+  const location = useLocation();
+  const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -39,32 +40,56 @@ export function PublicAuthNav({ darkMode = false, className = '', onNavigate }: 
     return () => document.removeEventListener('mousedown', handleClick);
   }, []);
 
-  const goToSignIn = () => {
-    storeReaderReturnTo();
-    onNavigate?.();
-  };
-
-  const goToSignUp = () => {
-    storeReaderReturnTo();
-    onNavigate?.();
-  };
-
   const handleLogout = async () => {
     setOpen(false);
+    const onPublicPage = isPublicPath(location.pathname);
+    const destination = onPublicPage ? null : consumeLastPublicPage('/');
     await signOut();
     onNavigate?.();
+    if (destination && location.pathname !== destination.split('?')[0]) {
+      navigate(destination, { replace: true });
+    }
   };
 
   const menuLinkCls = `flex items-center gap-2 px-3 py-2 text-sm rounded-lg transition-colors ${
     darkMode ? 'text-gray-300 hover:bg-navy-800 hover:text-white' : 'text-navy-700 hover:bg-navy-50'
   }`;
 
+  const renderMenuItem = (item: SiteNavItem) => {
+    if (item.action === 'logout') {
+      return (
+        <button key={item.id} type="button" onClick={handleLogout} className={`${menuLinkCls} w-full text-left text-red-400`}>
+          <item.icon className="w-4 h-4" /> {item.label}
+        </button>
+      );
+    }
+    if (!item.path) return null;
+    return (
+      <Link
+        key={item.id}
+        to={item.path}
+        onClick={() => { setOpen(false); onNavigate?.(); }}
+        className={menuLinkCls}
+      >
+        <item.icon className="w-4 h-4" /> {item.label}
+      </Link>
+    );
+  };
+
   if (loading) {
     return <div className={`h-9 w-24 rounded-lg bg-navy-700/30 animate-pulse ${className}`} />;
   }
 
-  if (isReaderAuthenticated) {
-    const displayName = profile?.display_name || 'Reader';
+  const navRole = resolveNavRole(user, isReaderAuthenticated);
+  const menuItems = getAuthenticatedMenuItems(navRole);
+
+  if (navRole !== 'guest') {
+    const displayName =
+      navRole === 'reader'
+        ? profile?.display_name || 'Reader'
+        : navRole === 'admin'
+          ? 'Admin'
+          : 'Account';
     const initials = displayName.charAt(0).toUpperCase();
 
     return (
@@ -74,7 +99,7 @@ export function PublicAuthNav({ darkMode = false, className = '', onNavigate }: 
           onClick={() => setOpen(!open)}
           className={`${btnCls} inline-flex items-center gap-2 max-w-[180px]`}
         >
-          {profile?.avatar ? (
+          {profile?.avatar && navRole === 'reader' ? (
             <img src={profile.avatar} alt="" className="w-7 h-7 rounded-full object-cover" />
           ) : (
             <span className="w-7 h-7 rounded-full bg-gold-500/20 text-gold-400 text-xs font-bold flex items-center justify-center">
@@ -91,25 +116,7 @@ export function PublicAuthNav({ darkMode = false, className = '', onNavigate }: 
               darkMode ? 'bg-navy-800 border-navy-700' : 'bg-white border-gray-200'
             }`}
           >
-            <Link to="/reader/library" onClick={() => { setOpen(false); onNavigate?.(); }} className={menuLinkCls}>
-              <BookOpen className="w-4 h-4" /> My Library
-            </Link>
-            <Link to="/reader/wishlist" onClick={() => { setOpen(false); onNavigate?.(); }} className={menuLinkCls}>
-              <Heart className="w-4 h-4" /> Wishlist
-            </Link>
-            <Link to="/reader/profile" onClick={() => { setOpen(false); onNavigate?.(); }} className={menuLinkCls}>
-              <User className="w-4 h-4" /> Profile
-            </Link>
-            <Link to="/reader/history" onClick={() => { setOpen(false); onNavigate?.(); }} className={menuLinkCls}>
-              <History className="w-4 h-4" /> Reading History
-            </Link>
-            <Link to="/reader/settings" onClick={() => { setOpen(false); onNavigate?.(); }} className={menuLinkCls}>
-              <Settings className="w-4 h-4" /> Settings
-            </Link>
-            <div className={`my-1 border-t ${darkMode ? 'border-navy-700' : 'border-gray-200'}`} />
-            <button type="button" onClick={handleLogout} className={`${menuLinkCls} w-full text-left text-red-400`}>
-              <LogOut className="w-4 h-4" /> Logout
-            </button>
+            {menuItems.map(renderMenuItem)}
           </div>
         )}
       </div>
@@ -118,16 +125,16 @@ export function PublicAuthNav({ darkMode = false, className = '', onNavigate }: 
 
   return (
     <div className={`flex items-center gap-1 ${className}`}>
-      <Link to="/reader/sign-in" onClick={goToSignIn} className={btnCls}>
+      <button type="button" onClick={() => { openAuthModal('sign-in'); onNavigate?.(); }} className={btnCls}>
         Sign In
-      </Link>
-      <Link
-        to="/reader/sign-up"
-        onClick={goToSignUp}
+      </button>
+      <button
+        type="button"
+        onClick={() => { openAuthModal('sign-up'); onNavigate?.(); }}
         className="px-3 py-2 rounded-lg font-medium text-sm bg-gold-500 text-navy-900 hover:bg-gold-400 transition-colors"
       >
         Sign Up
-      </Link>
+      </button>
     </div>
   );
 }

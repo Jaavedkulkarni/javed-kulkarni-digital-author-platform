@@ -1,5 +1,6 @@
 const READER_RETURN_KEY = 'returnTo';
 const ADMIN_RETURN_KEY = 'adminReturnTo';
+const LAST_PUBLIC_PAGE_KEY = 'lastPublicPage';
 
 const READER_AUTH_PREFIXES = [
   '/reader/sign-in',
@@ -78,4 +79,43 @@ export function storeReaderProtectedReturn(pathname: string, search = ''): void 
   if (!target.startsWith('/reader/')) return;
   if (READER_AUTH_PREFIXES.some((p) => pathname.startsWith(p))) return;
   sessionStorage.setItem(READER_RETURN_KEY, target);
+}
+
+export function isPublicPath(pathname: string): boolean {
+  if (!pathname || pathname === '/') return true;
+  if (pathname.startsWith('/reader')) return false;
+  if (pathname.startsWith('/admin')) return false;
+  if (READER_AUTH_PREFIXES.some((p) => pathname.startsWith(p))) return false;
+  return true;
+}
+
+export function trackPublicPage(pathname: string, search = ''): void {
+  if (!isPublicPath(pathname)) return;
+  const target = `${pathname}${search}`;
+  if (!isSafeReturnPath(pathname)) return;
+  sessionStorage.setItem(LAST_PUBLIC_PAGE_KEY, target);
+}
+
+export function peekLastPublicPage(): string | null {
+  return sessionStorage.getItem(LAST_PUBLIC_PAGE_KEY);
+}
+
+export function consumeLastPublicPage(fallback = '/'): string {
+  const stored = sessionStorage.getItem(LAST_PUBLIC_PAGE_KEY);
+  if (stored && isSafeReturnPath(stored.split('?')[0])) {
+    return normalizePath(stored);
+  }
+  return fallback;
+}
+
+/** After auth success: stay on page when already there, otherwise navigate to return target. */
+export function resolvePostAuthNavigation(fallback = '/'): { shouldNavigate: boolean; target: string } {
+  const target = consumeReaderReturnTo(fallback);
+  const current = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+  const normalizedTarget = target.split('#')[0];
+  const normalizedCurrent = current.split('#')[0];
+  return {
+    shouldNavigate: normalizedTarget !== normalizedCurrent,
+    target,
+  };
 }

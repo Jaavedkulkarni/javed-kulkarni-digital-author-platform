@@ -34,6 +34,8 @@ import {
 } from 'lucide-react';
 import { BlogProvider } from './context/BlogContext';
 import { ReaderProvider } from './context/ReaderContext';
+import { AuthModalProvider } from './context/AuthModalContext';
+import { AuthRouteEffects } from './components/auth/AuthRouteEffects';
 import { AdminProvider } from './context/AdminContext';
 import { PublicAuthNav } from './components/reader/PublicAuthNav';
 import {
@@ -1485,6 +1487,8 @@ function App() {
   return (
     <BlogProvider>
       <ReaderProvider>
+      <AuthModalProvider>
+      <AuthRouteEffects />
       <Suspense fallback={
         <div className="min-h-screen bg-navy-900 flex items-center justify-center">
           <div className="text-center">
@@ -1521,6 +1525,7 @@ function App() {
           <Route path="*" element={<MainWebsite />} />
         </Routes>
       </Suspense>
+      </AuthModalProvider>
       </ReaderProvider>
     </BlogProvider>
   );

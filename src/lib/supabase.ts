@@ -7,7 +7,14 @@ if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error('Missing Supabase environment variables');
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    detectSessionInUrl: true,
+    flowType: 'pkce',
+    persistSession: true,
+    autoRefreshToken: true,
+  },
+});
 
 // Helper to get user IP for likes/bookmarks
 export async function getUserIP(): Promise<string> {
