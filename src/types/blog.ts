@@ -91,4 +91,4 @@ export interface PaginatedResult<T> {
   total_pages: number;
 }
 
-export type AdminView = 'dashboard' | 'articles' | 'create' | 'edit' | 'categories' | 'tags' | 'media' | 'comments' | 'subscribers' | 'settings';
+export type AdminView = 'dashboard' | 'articles' | 'create' | 'edit' | 'categories' | 'tags' | 'media' | 'comments' | 'subscribers' | 'settings' | 'books' | 'book-create' | 'book-edit' | 'book-categories';

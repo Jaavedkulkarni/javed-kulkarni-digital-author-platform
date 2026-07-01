@@ -1,14 +1,15 @@
-import React from 'react';
-import { useAdmin } from '../../context/AdminContext';
 import { AdminLogin } from './AdminLogin';
 import { AdminDashboard } from './AdminDashboard';
 import { ArticleManager } from './ArticleManager';
+import { BookManager } from './BookManager';
 import { CommentManager } from './CommentManager';
 import { SubscriberManager } from './SubscriberManager';
 import { MediaLibrary } from './MediaLibrary';
 import { CategoryManager } from './CategoryManager';
 import { TagManager } from './TagManager';
 import { SettingsPage } from './SettingsPage';
+import { BookProvider } from '../../context/BookContext';
+import { useAdmin } from '../../context/AdminContext';
 
 export function AdminPage() {
   const { isAuthenticated, currentView } = useAdmin();
@@ -17,28 +18,38 @@ export function AdminPage() {
     return <AdminLogin />;
   }
 
-  switch (currentView) {
-    case 'dashboard':
-      return <AdminDashboard />;
-    case 'articles':
-    case 'create':
-    case 'edit':
-      return <ArticleManager />;
-    case 'comments':
-      return <CommentManager />;
-    case 'subscribers':
-      return <SubscriberManager />;
-    case 'categories':
-      return <CategoryManager />;
-    case 'tags':
-      return <TagManager />;
-    case 'media':
-      return <MediaLibrary />;
-    case 'settings':
-      return <SettingsPage />;
-    default:
-      return <AdminDashboard />;
-  }
+  return (
+    <BookProvider>
+      {(() => {
+        switch (currentView) {
+          case 'dashboard':
+            return <AdminDashboard />;
+          case 'articles':
+          case 'create':
+          case 'edit':
+            return <ArticleManager />;
+          case 'books':
+          case 'book-create':
+          case 'book-edit':
+            return <BookManager />;
+          case 'comments':
+            return <CommentManager />;
+          case 'subscribers':
+            return <SubscriberManager />;
+          case 'categories':
+            return <CategoryManager />;
+          case 'tags':
+            return <TagManager />;
+          case 'media':
+            return <MediaLibrary />;
+          case 'settings':
+            return <SettingsPage />;
+          default:
+            return <AdminDashboard />;
+        }
+      })()}
+    </BookProvider>
+  );
 }
 
 export default AdminPage;

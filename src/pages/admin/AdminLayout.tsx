@@ -3,6 +3,7 @@ import { useAdmin } from '../../context/AdminContext';
 import {
   LayoutDashboard,
   BookOpen,
+  Library,
   FolderOpen,
   Tags,
   Image,
@@ -25,6 +26,7 @@ interface AdminLayoutProps {
 const menuItems = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { id: 'articles', label: 'लेख', icon: BookOpen },
+  { id: 'books', label: 'पुस्तके', icon: Library },
   { id: 'categories', label: 'श्रेणी', icon: FolderOpen },
   { id: 'tags', label: 'Tags', icon: Tags },
   { id: 'media', label: 'Media', icon: Image },
@@ -78,18 +80,22 @@ export function AdminLayout({ children, title }: AdminLayoutProps) {
           <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider px-3 mb-3">
             Main
           </p>
-          {menuItems.slice(0, 2).map((item) => (
+          {menuItems.slice(0, 3).map((item) => (
             <NavItem
               key={item.id}
               item={item}
-              active={currentView === item.id || (item.id === 'articles' && (currentView === 'create' || currentView === 'edit'))}
+              active={
+                currentView === item.id ||
+                (item.id === 'articles' && (currentView === 'create' || currentView === 'edit')) ||
+                (item.id === 'books' && (currentView === 'book-create' || currentView === 'book-edit'))
+              }
               onClick={() => setCurrentView(item.id as any)}
             />
           ))}
           <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider px-3 mb-3 mt-5">
             Content
           </p>
-          {menuItems.slice(2, 6).map((item) => (
+          {menuItems.slice(3, 7).map((item) => (
             <NavItem
               key={item.id}
               item={item}
@@ -100,7 +106,7 @@ export function AdminLayout({ children, title }: AdminLayoutProps) {
           <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider px-3 mb-3 mt-5">
             Settings
           </p>
-          {menuItems.slice(5).map((item) => (
+          {menuItems.slice(7).map((item) => (
             <NavItem
               key={item.id}
               item={item}
