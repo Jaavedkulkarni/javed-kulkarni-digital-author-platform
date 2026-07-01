@@ -1,6 +1,7 @@
-import { useState } from 'react';
-import { Link, Navigate, useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useReader } from '../../context/ReaderContext';
+import { consumeReaderReturnTo, storeReaderReturnTo } from '../../lib/authRedirect';
 import { ReaderAuthShell, inputCls } from './ReaderAuthShell';
 import { Mail, Lock, Eye, EyeOff, AlertCircle } from 'lucide-react';
 
@@ -13,9 +14,11 @@ export function ReaderSignIn() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  if (isReaderAuthenticated) {
-    return <Navigate to="/reader" replace />;
-  }
+  useEffect(() => {
+    if (isReaderAuthenticated) {
+      navigate(consumeReaderReturnTo('/'), { replace: true });
+    }
+  }, [isReaderAuthenticated, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,11 +27,15 @@ export function ReaderSignIn() {
     const result = await signIn(email, password);
     setLoading(false);
     if (result.success) {
-      navigate('/reader');
+      navigate(consumeReaderReturnTo('/'), { replace: true });
     } else {
       setError(result.error ?? 'Sign in failed.');
     }
   };
+
+  if (isReaderAuthenticated) {
+    return null;
+  }
 
   return (
     <ReaderAuthShell title="Sign In" subtitle="वाचक खात्यात प्रवेश करा">
@@ -57,7 +64,7 @@ export function ReaderSignIn() {
           </div>
         </div>
         <div className="text-right">
-          <Link to="/reader/forgot-password" className="text-sm text-gold-400 hover:text-gold-300">Forgot password?</Link>
+          <Link to="/reader/forgot-password" onClick={() => storeReaderReturnTo()} className="text-sm text-gold-400 hover:text-gold-300">Forgot password?</Link>
         </div>
         <button type="submit" disabled={loading} className="w-full py-3 rounded-lg bg-gold-500 text-navy-900 font-semibold hover:bg-gold-400 disabled:opacity-50">
           {loading ? 'Signing in...' : 'Sign In'}
@@ -65,7 +72,7 @@ export function ReaderSignIn() {
       </form>
       <p className="mt-6 text-center text-gray-500 text-sm">
         New reader?{' '}
-        <Link to="/reader/sign-up" className="text-gold-400 hover:text-gold-300">Sign Up</Link>
+        <Link to="/reader/sign-up" onClick={() => storeReaderReturnTo()} className="text-gold-400 hover:text-gold-300">Sign Up</Link>
       </p>
     </ReaderAuthShell>
   );

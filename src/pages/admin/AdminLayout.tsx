@@ -19,7 +19,9 @@ import {
   Layers,
   ShoppingBag,
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { adminPathFromView } from '../../lib/adminPaths';
+import type { AdminView } from '../../types/blog';
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -46,6 +48,17 @@ const productMenuItems = [
 
 export function AdminLayout({ children, title }: AdminLayoutProps) {
   const { currentView, setCurrentView, sidebarOpen, toggleSidebar, logout, isAuthenticated } = useAdmin();
+  const navigate = useNavigate();
+
+  const goToView = (view: AdminView) => {
+    setCurrentView(view);
+    navigate(adminPathFromView(view));
+  };
+
+  const handleLogout = async () => {
+    await logout();
+    navigate('/admin/login', { replace: true });
+  };
 
   if (!isAuthenticated) return <>{children}</>;
 
@@ -101,7 +114,7 @@ export function AdminLayout({ children, title }: AdminLayoutProps) {
                 (item.id === 'articles' && (currentView === 'create' || currentView === 'edit')) ||
                 (item.id === 'books' && (currentView === 'book-create' || currentView === 'book-edit'))
               }
-              onClick={() => setCurrentView(item.id as any)}
+              onClick={() => goToView(item.id as AdminView)}
             />
           ))}
           <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider px-3 mb-3 mt-5">
@@ -112,7 +125,7 @@ export function AdminLayout({ children, title }: AdminLayoutProps) {
               key={item.id}
               item={item}
               active={currentView === item.id}
-              onClick={() => setCurrentView(item.id as any)}
+              onClick={() => goToView(item.id as AdminView)}
             />
           ))}
           <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider px-3 mb-3 mt-5">
@@ -127,7 +140,7 @@ export function AdminLayout({ children, title }: AdminLayoutProps) {
                 (item.id === 'products' &&
                   (currentView === 'product-create' || currentView === 'product-edit'))
               }
-              onClick={() => setCurrentView(item.id as any)}
+              onClick={() => goToView(item.id as AdminView)}
             />
           ))}
           <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider px-3 mb-3 mt-5">
@@ -138,7 +151,7 @@ export function AdminLayout({ children, title }: AdminLayoutProps) {
               key={item.id}
               item={item}
               active={currentView === item.id}
-              onClick={() => setCurrentView(item.id as any)}
+              onClick={() => goToView(item.id as AdminView)}
             />
           ))}
         </nav>
@@ -154,7 +167,7 @@ export function AdminLayout({ children, title }: AdminLayoutProps) {
             View Blog
           </Link>
           <button
-            onClick={logout}
+            onClick={handleLogout}
             className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-red-400 hover:text-white hover:bg-red-500/10 transition-colors"
           >
             <LogOut className="w-4 h-4" />
@@ -183,7 +196,7 @@ export function AdminLayout({ children, title }: AdminLayoutProps) {
 
           <div className="ml-auto flex items-center gap-3">
             <button
-              onClick={() => setCurrentView('create' as any)}
+              onClick={() => goToView('create')}
               className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-gold-500 hover:bg-gold-400 text-navy-900 font-semibold text-sm rounded-lg transition-colors"
             >
               <BookOpen className="w-4 h-4" />

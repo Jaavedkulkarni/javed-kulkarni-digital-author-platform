@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useReader } from '../../context/ReaderContext';
+import { storeReaderReturnTo } from '../../lib/authRedirect';
 import { ReaderAuthShell, inputCls } from './ReaderAuthShell';
 import { Mail, AlertCircle, CheckCircle2 } from 'lucide-react';
 
@@ -10,6 +11,10 @@ export function ReaderForgotPassword() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [sent, setSent] = useState(false);
+
+  useEffect(() => {
+    storeReaderReturnTo();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,7 +32,7 @@ export function ReaderForgotPassword() {
         <div className="text-center space-y-4">
           <CheckCircle2 className="w-12 h-12 text-emerald-400 mx-auto" />
           <p className="text-gray-300 text-sm">If an account exists for {email}, you will receive a password reset link shortly.</p>
-          <Link to="/reader/sign-in" className="text-gold-400 hover:text-gold-300 text-sm">Back to Sign In</Link>
+          <Link to="/reader/sign-in" onClick={() => storeReaderReturnTo()} className="text-gold-400 hover:text-gold-300 text-sm">Back to Sign In</Link>
         </div>
       </ReaderAuthShell>
     );
@@ -54,7 +59,7 @@ export function ReaderForgotPassword() {
         </button>
       </form>
       <p className="mt-6 text-center text-gray-500 text-sm">
-        <Link to="/reader/sign-in" className="text-gold-400 hover:text-gold-300">Back to Sign In</Link>
+        <Link to="/reader/sign-in" onClick={() => storeReaderReturnTo()} className="text-gold-400 hover:text-gold-300">Back to Sign In</Link>
       </p>
     </ReaderAuthShell>
   );

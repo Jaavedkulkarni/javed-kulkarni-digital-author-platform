@@ -1,11 +1,13 @@
-import { useState } from 'react';
-import { Link, Navigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useReader } from '../../context/ReaderContext';
+import { consumeReaderReturnTo, storeReaderReturnTo } from '../../lib/authRedirect';
 import { ReaderAuthShell, inputCls } from './ReaderAuthShell';
 import { Mail, Lock, User, AlertCircle, CheckCircle2 } from 'lucide-react';
 
 export function ReaderSignUp() {
   const { signUp, isReaderAuthenticated } = useReader();
+  const navigate = useNavigate();
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -13,9 +15,11 @@ export function ReaderSignUp() {
   const [error, setError] = useState<string | null>(null);
   const [verificationSent, setVerificationSent] = useState(false);
 
-  if (isReaderAuthenticated) {
-    return <Navigate to="/reader" replace />;
-  }
+  useEffect(() => {
+    if (isReaderAuthenticated) {
+      navigate(consumeReaderReturnTo('/'), { replace: true });
+    }
+  }, [isReaderAuthenticated, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,11 +28,19 @@ export function ReaderSignUp() {
     const result = await signUp({ email, password, full_name: fullName, display_name: fullName });
     setLoading(false);
     if (result.success) {
-      setVerificationSent(!!result.needsVerification);
+      if (result.needsVerification) {
+        setVerificationSent(true);
+      } else {
+        navigate(consumeReaderReturnTo('/'), { replace: true });
+      }
     } else {
       setError(result.error ?? 'Sign up failed.');
     }
   };
+
+  if (isReaderAuthenticated) {
+    return null;
+  }
 
   if (verificationSent) {
     return (
@@ -36,7 +48,7 @@ export function ReaderSignUp() {
         <div className="text-center space-y-4">
           <CheckCircle2 className="w-12 h-12 text-emerald-400 mx-auto" />
           <p className="text-gray-300 text-sm">Check your inbox at <strong className="text-white">{email}</strong> and click the link to activate your reader account.</p>
-          <Link to="/reader/sign-in" className="inline-block text-gold-400 hover:text-gold-300 text-sm">Back to Sign In</Link>
+          <Link to="/reader/sign-in" onClick={() => storeReaderReturnTo()} className="inline-block text-gold-400 hover:text-gold-300 text-sm">Back to Sign In</Link>
         </div>
       </ReaderAuthShell>
     );
@@ -78,7 +90,7 @@ export function ReaderSignUp() {
       </form>
       <p className="mt-6 text-center text-gray-500 text-sm">
         Already have an account?{' '}
-        <Link to="/reader/sign-in" className="text-gold-400 hover:text-gold-300">Sign In</Link>
+        <Link to="/reader/sign-in" onClick={() => storeReaderReturnTo()} className="text-gold-400 hover:text-gold-300">Sign In</Link>
       </p>
     </ReaderAuthShell>
   );

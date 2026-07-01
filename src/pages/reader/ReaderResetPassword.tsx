@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 import { useReader } from '../../context/ReaderContext';
+import { consumeReaderReturnTo, storeReaderReturnTo } from '../../lib/authRedirect';
 import { ReaderAuthShell, inputCls } from './ReaderAuthShell';
 import { Lock, AlertCircle, CheckCircle2 } from 'lucide-react';
 
@@ -16,6 +17,7 @@ export function ReaderResetPassword() {
   const [done, setDone] = useState(false);
 
   useEffect(() => {
+    storeReaderReturnTo();
     supabase.auth.getSession().then(({ data: { session } }) => {
       setReady(!!session);
     });
@@ -41,7 +43,7 @@ export function ReaderResetPassword() {
     setLoading(false);
     if (result.success) {
       setDone(true);
-      setTimeout(() => navigate('/reader/sign-in'), 2000);
+      setTimeout(() => navigate(consumeReaderReturnTo('/'), { replace: true }), 1500);
     } else {
       setError(result.error ?? 'Could not reset password.');
     }
@@ -52,7 +54,7 @@ export function ReaderResetPassword() {
       <ReaderAuthShell title="Password Updated">
         <div className="text-center space-y-4">
           <CheckCircle2 className="w-12 h-12 text-emerald-400 mx-auto" />
-          <p className="text-gray-300 text-sm">Your password has been updated. Redirecting to Sign In...</p>
+          <p className="text-gray-300 text-sm">Your password has been updated. Returning you to your previous page...</p>
         </div>
       </ReaderAuthShell>
     );

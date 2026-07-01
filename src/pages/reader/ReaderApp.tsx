@@ -1,6 +1,7 @@
-import { Navigate, Route, Routes } from 'react-router-dom';
+import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { useReader } from '../../context/ReaderContext';
 import { isAdminUser } from '../../lib/authRoles';
+import { storeReaderProtectedReturn } from '../../lib/authRedirect';
 import { ReaderSignIn } from './ReaderSignIn';
 import { ReaderSignUp } from './ReaderSignUp';
 import { ReaderForgotPassword } from './ReaderForgotPassword';
@@ -19,6 +20,7 @@ import { ShieldAlert } from 'lucide-react';
 
 function ReaderProtected({ children }: { children: React.ReactNode }) {
   const { isReaderAuthenticated, loading, user } = useReader();
+  const location = useLocation();
 
   if (loading) {
     return (
@@ -46,7 +48,8 @@ function ReaderProtected({ children }: { children: React.ReactNode }) {
   }
 
   if (!isReaderAuthenticated) {
-    return <Navigate to="/reader/sign-in" replace state={{ from: window.location.pathname }} />;
+    storeReaderProtectedReturn(location.pathname, location.search);
+    return <Navigate to="/reader/sign-in" replace />;
   }
 
   return <>{children}</>;
@@ -73,7 +76,7 @@ export function ReaderApp() {
       <Route path="profile" element={<ReaderProtected><ReaderProfilePage /></ReaderProtected>} />
       <Route path="history" element={<ReaderProtected><ReaderHistoryPage /></ReaderProtected>} />
       <Route path="settings" element={<ReaderProtected><ReaderSettingsPage /></ReaderProtected>} />
-      <Route path="*" element={<Navigate to="/reader" replace />} />
+      <Route path="*" element={<Navigate to="/reader/library" replace />} />
     </Routes>
   );
 }

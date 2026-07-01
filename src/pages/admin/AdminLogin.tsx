@@ -1,19 +1,24 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAdmin } from '../../context/AdminContext';
-import { supabase } from '../../lib/supabase';
+import { isAdminUser } from '../../lib/authRoles';
+import { consumeAdminReturnTo } from '../../lib/authRedirect';
 import { Mail, Lock, Eye, EyeOff, AlertCircle } from 'lucide-react';
 
 export function AdminLogin() {
-  const { isAuthenticated, login } = useAdmin();
+  const { isAuthenticated, user, login } = useAdmin();
+  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  if (isAuthenticated) {
-    return null;
-  }
+  useEffect(() => {
+    if (isAuthenticated && isAdminUser(user)) {
+      navigate(consumeAdminReturnTo('/admin'), { replace: true });
+    }
+  }, [isAuthenticated, user, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,12 +26,18 @@ export function AdminLogin() {
     setLoading(true);
 
     const result = await login(email, password);
-    if (!result.success) {
+    if (result.success) {
+      navigate(consumeAdminReturnTo('/admin'), { replace: true });
+    } else {
       setError(result.error || 'Login failed');
     }
 
     setLoading(false);
   };
+
+  if (isAuthenticated && isAdminUser(user)) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-navy-900 flex items-center justify-center p-4">
