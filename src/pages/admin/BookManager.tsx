@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAdmin } from '../../context/AdminContext';
 import { useBooks } from '../../context/BookContext';
+import { getProductTypeBySlug } from '../../lib/productTypeService';
 import { supabase } from '../../lib/supabase';
 import { AdminLayout } from './AdminLayout';
 import { AdminWarning } from './AdminWarning';
@@ -55,9 +56,16 @@ export function BookManager() {
   const [booksTableEmpty, setBooksTableEmpty] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [editingBook, setEditingBook] = useState<Book | null>(null);
+  const [bookTypeId, setBookTypeId] = useState<string>('');
 
   const totalPages = Math.ceil(total / PAGE_SIZE);
   const isEditorOpen = currentView === 'book-create' || currentView === 'book-edit';
+
+  useEffect(() => {
+    getProductTypeBySlug('book').then((type) => {
+      if (type) setBookTypeId(type.id);
+    });
+  }, []);
 
   useEffect(() => {
     setCategoriesLoading(true);
@@ -100,6 +108,7 @@ export function BookManager() {
         status: filterStatus as 'all' | 'draft' | 'published',
         category_id: filterCategory || undefined,
         language: filterLanguage || undefined,
+        product_type_id: bookTypeId || undefined,
         sort_by: 'created_at',
         sort_order: 'desc',
       });
@@ -112,7 +121,7 @@ export function BookManager() {
     } finally {
       setLoading(false);
     }
-  }, [getBooks, page, searchQuery, filterStatus, filterCategory, filterLanguage]);
+  }, [getBooks, page, searchQuery, filterStatus, filterCategory, filterLanguage, bookTypeId]);
 
   useEffect(() => {
     if (!isEditorOpen) loadBooks();

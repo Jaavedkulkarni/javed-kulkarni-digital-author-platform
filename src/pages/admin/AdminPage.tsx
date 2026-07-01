@@ -8,6 +8,10 @@ import { MediaLibrary } from './MediaLibrary';
 import { CategoryManager } from './CategoryManager';
 import { TagManager } from './TagManager';
 import { SettingsPage } from './SettingsPage';
+import { ProductTypeManager } from './ProductTypeManager';
+import { FormatManager } from './FormatManager';
+import { ProductManager } from './ProductManager';
+import { ProductProvider } from '../../context/ProductContext';
 import { BookProvider } from '../../context/BookContext';
 import { useAdmin } from '../../context/AdminContext';
 
@@ -19,7 +23,8 @@ export function AdminPage() {
   }
 
   return (
-    <BookProvider>
+    <ProductProvider>
+      <BookProvider>
       {(() => {
         switch (currentView) {
           case 'dashboard':
@@ -42,13 +47,22 @@ export function AdminPage() {
             return <TagManager />;
           case 'media':
             return <MediaLibrary />;
+          case 'products':
+          case 'product-create':
+          case 'product-edit':
+            return <ProductManager />;
+          case 'product-types':
+            return <ProductTypeManager />;
+          case 'formats':
+            return <FormatManager />;
           case 'settings':
             return <SettingsPage />;
           default:
             return <AdminDashboard />;
         }
       })()}
-    </BookProvider>
+      </BookProvider>
+    </ProductProvider>
   );
 }
 

@@ -15,6 +15,9 @@ import {
   LogOut,
   ExternalLink,
   MessageSquare,
+  Package,
+  Layers,
+  ShoppingBag,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -35,12 +38,21 @@ const menuItems = [
   { id: 'settings', label: 'Settings', icon: Settings },
 ] as const;
 
+const productMenuItems = [
+  { id: 'products', label: 'Products', icon: ShoppingBag },
+  { id: 'product-types', label: 'Product Types', icon: Package },
+  { id: 'formats', label: 'Formats', icon: Layers },
+] as const;
+
 export function AdminLayout({ children, title }: AdminLayoutProps) {
   const { currentView, setCurrentView, sidebarOpen, toggleSidebar, logout, isAuthenticated } = useAdmin();
 
   if (!isAuthenticated) return <>{children}</>;
 
-  const activeLabel = menuItems.find((item) => item.id === currentView)?.label ?? 'Dashboard';
+  const activeLabel =
+    menuItems.find((item) => item.id === currentView)?.label ??
+    productMenuItems.find((item) => item.id === currentView)?.label ??
+    'Dashboard';
 
   return (
     <div className="min-h-screen bg-[#0f1117] flex">
@@ -100,6 +112,21 @@ export function AdminLayout({ children, title }: AdminLayoutProps) {
               key={item.id}
               item={item}
               active={currentView === item.id}
+              onClick={() => setCurrentView(item.id as any)}
+            />
+          ))}
+          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider px-3 mb-3 mt-5">
+            Products
+          </p>
+          {productMenuItems.map((item) => (
+            <NavItem
+              key={item.id}
+              item={item}
+              active={
+                currentView === item.id ||
+                (item.id === 'products' &&
+                  (currentView === 'product-create' || currentView === 'product-edit'))
+              }
               onClick={() => setCurrentView(item.id as any)}
             />
           ))}

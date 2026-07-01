@@ -40,6 +40,8 @@ export interface Book {
   related_slugs: string[];
   featured_highlights: string[];
   sort_order: number;
+  product_type_id: string | null;
+  format_ids?: string[];
   created_at: string;
   updated_at: string;
   category?: BookCategory | null;
@@ -82,12 +84,15 @@ export interface BookFormData {
   meta_description: string;
   og_image: string;
   author_name: string;
+  product_type_id: string;
+  format_ids: string[];
 }
 
 export interface BookFilters {
   search?: string;
   status?: BookStatus | 'all';
   category_id?: string;
+  product_type_id?: string;
   language?: string;
   sort_by?: 'created_at' | 'publication_date';
   sort_order?: 'asc' | 'desc';
