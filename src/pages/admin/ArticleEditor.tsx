@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAdmin } from '../../context/AdminContext';
 import { supabase } from '../../lib/supabase';
 import { AdminLayout } from './AdminLayout';
+import { MediaPicker } from '../../components/admin/MediaPicker';
 import { RichTextEditor } from '../../components/editor/RichTextEditor';
 import { Category, Tag } from '../../types/blog';
 import {
@@ -12,7 +13,6 @@ import {
   Star,
   Plus,
   X,
-  ImageIcon,
   Search,
   AlertCircle,
   CheckCircle2,
@@ -599,30 +599,15 @@ export function ArticleEditor({ article, onSaved, onCancel }: ArticleEditorProps
           {/* Featured Image */}
           <div className="bg-navy-800 border border-navy-700 rounded-xl p-5">
             <SectionLabel>Featured Image</SectionLabel>
-            <input
-              type="url"
-              value={form.featured_image}
-              onChange={(e) => setField('featured_image', e.target.value)}
-              placeholder="https://..."
-              className={`${inputCls} mt-3`}
-            />
-            {form.featured_image ? (
-              <div className="mt-3 aspect-video rounded-lg overflow-hidden bg-navy-700 relative group">
-                <img src={form.featured_image} alt="Featured" className="w-full h-full object-cover" />
-                <button
-                  type="button"
-                  onClick={() => setField('featured_image', '')}
-                  className="absolute top-2 right-2 p-1 rounded-full bg-black/60 text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/80"
-                >
-                  <X className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            ) : (
-              <div className="mt-3 aspect-video rounded-lg bg-navy-700 border-2 border-dashed border-navy-600 flex flex-col items-center justify-center gap-2">
-                <ImageIcon className="w-8 h-8 text-navy-500" />
-                <p className="text-xs text-gray-500">URL द्वारे प्रतिमा जोडा</p>
-              </div>
-            )}
+            <div className="mt-3">
+              <MediaPicker
+                value={form.featured_image}
+                onChange={(url) => setField('featured_image', url)}
+                acceptKinds={['image']}
+                previewAspect="video"
+                emptyLabel="Upload or choose a featured image from Media Library."
+              />
+            </div>
           </div>
 
           {/* Author */}

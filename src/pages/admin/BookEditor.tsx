@@ -2,6 +2,9 @@ import { useState, useEffect, type ReactNode } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useBooks } from '../../context/BookContext';
 import { AdminLayout } from './AdminLayout';
+import { AdminWarning } from './AdminWarning';
+import { MediaPicker } from '../../components/admin/MediaPicker';
+import { MEDIA_PATHS } from '../../config/media';
 import { RichTextEditor } from '../../components/editor/RichTextEditor';
 import { Book, BookCategory, BookFormData } from '../../types/book';
 import { ChevronLeft, Star, Sparkles, Save, Send, AlertCircle, CheckCircle2 } from 'lucide-react';
@@ -102,18 +105,26 @@ export function BookEditor({ book, onCancel, onSaved }: BookEditorProps) {
   });
 
   const [categories, setCategories] = useState<BookCategory[]>([]);
+  const [categoriesLoading, setCategoriesLoading] = useState(true);
   const [slugManual, setSlugManual] = useState(!!book);
   const [bookId, setBookId] = useState<string | null>(book?.id ?? null);
   const [saving, setSaving] = useState(false);
   const [saveMsg, setSaveMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   useEffect(() => {
+    setCategoriesLoading(true);
     supabase
       .from('book_categories')
       .select('*')
       .order('sort_order', { ascending: true })
-      .then(({ data }) => {
-        if (data) setCategories(data);
+      .then(({ data, error }) => {
+        if (error) {
+          console.error('Error loading book categories:', error);
+          setCategories([]);
+        } else {
+          setCategories(data ?? []);
+        }
+        setCategoriesLoading(false);
       });
   }, []);
 
@@ -246,6 +257,13 @@ export function BookEditor({ book, onCancel, onSaved }: BookEditorProps) {
           </button>
         </div>
       </div>
+
+      {!categoriesLoading && categories.length === 0 && (
+        <AdminWarning
+          title="Book categories missing"
+          message='The book_categories table is empty. Run the Supabase migration "006_create_books_schema.sql" to seed categories before assigning books.'
+        />
+      )}
 
       <div className="grid xl:grid-cols-[1fr_300px] gap-6">
         <div className="space-y-5 min-w-0">
@@ -450,18 +468,25 @@ export function BookEditor({ book, onCancel, onSaved }: BookEditorProps) {
 
           <div className="bg-navy-800 border border-navy-700 rounded-xl p-5">
             <SectionLabel>श्रेणी (Category)</SectionLabel>
-            <select
-              value={form.category_id}
-              onChange={(e) => setField('category_id', e.target.value)}
-              className={`${selectCls} mt-3`}
-            >
-              <option value="">-- श्रेणी निवडा --</option>
-              {categories.map((cat) => (
-                <option key={cat.id} value={cat.id}>
-                  {cat.name}
-                </option>
-              ))}
-            </select>
+            {!categoriesLoading && categories.length === 0 ? (
+              <p className="mt-3 text-sm text-amber-300/90">
+                No categories available. Apply the books schema migration first.
+              </p>
+            ) : (
+              <select
+                value={form.category_id}
+                onChange={(e) => setField('category_id', e.target.value)}
+                className={`${selectCls} mt-3`}
+                disabled={categoriesLoading || categories.length === 0}
+              >
+                <option value="">-- श्रेणी निवडा --</option>
+                {categories.map((cat) => (
+                  <option key={cat.id} value={cat.id}>
+                    {cat.name}
+                  </option>
+                ))}
+              </select>
+            )}
           </div>
 
           <div className="bg-navy-800 border border-navy-700 rounded-xl p-5 space-y-4">
@@ -473,32 +498,21 @@ export function BookEditor({ book, onCancel, onSaved }: BookEditorProps) {
             >
               <option value="मराठी">मराठी</option>
               <option value="English">English</option>
-              <option value="Hindi">Hindi</option>
             </select>
           </div>
 
           <div className="bg-navy-800 border border-navy-700 rounded-xl p-5">
             <SectionLabel>Cover Image</SectionLabel>
-            <input
-              type="url"
-              value={form.cover_image}
-              onChange={(e) => setField('cover_image', e.target.value)}
-              placeholder="https://..."
-              className={`${inputCls} mt-3`}
-            />
-            {form.cover_image ? (
-              <div className="mt-3 relative aspect-[2/3] rounded-lg overflow-hidden bg-navy-700 border border-navy-600">
-                <img
-                  src={form.cover_image}
-                  alt="Cover preview"
-                  className="w-full h-full object-contain bg-white p-2"
-                />
-              </div>
-            ) : (
-              <div className="mt-3 aspect-[2/3] rounded-lg bg-navy-700 border border-dashed border-navy-600 flex items-center justify-center text-gray-500 text-xs">
-                Cover preview
-              </div>
-            )}
+            <div className="mt-3">
+              <MediaPicker
+                value={form.cover_image}
+                onChange={(url) => setField('cover_image', url)}
+                acceptKinds={['image']}
+                uploadFolder={MEDIA_PATHS.covers}
+                previewAspect="book"
+                emptyLabel="Upload or choose a cover from Media Library."
+              />
+            </div>
           </div>
         </div>
       </div>

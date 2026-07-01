@@ -1,6 +1,17 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { AdminLayout } from './AdminLayout';
-import { supabase } from '../../lib/supabase';
+import { MediaPreview } from '../../components/admin/MediaPicker';
+import { getAcceptString } from '../../config/media';
+import {
+  deleteMediaAsset,
+  filterMediaAssets,
+  formatMediaSize,
+  isImageAsset,
+  isPdfAsset,
+  listMediaAssets,
+  uploadMediaFile,
+  type MediaAsset,
+} from '../../lib/mediaService';
 import {
   Upload,
   Search,
@@ -11,27 +22,12 @@ import {
   AlertCircle,
   ZoomIn,
   FileText,
-  ImageOff,
   HardDrive,
   SlidersHorizontal,
 } from 'lucide-react';
 import { format } from 'date-fns';
 
-// ─── Constants ───────────────────────────────────────────────────────────────
-
-const BUCKET = 'media';
-
-// ─── Types ───────────────────────────────────────────────────────────────────
-
-interface MediaFile {
-  name: string;
-  id: string;
-  created_at: string;
-  updated_at: string;
-  size: number;
-  mimetype: string;
-  publicUrl: string;
-}
+type SortMode = 'newest' | 'oldest' | 'name' | 'size';
 
 interface UploadItem {
   uid: string;
@@ -40,39 +36,15 @@ interface UploadItem {
   error?: string;
 }
 
-type SortMode = 'newest' | 'oldest' | 'name' | 'size';
-
-// ─── Helpers ─────────────────────────────────────────────────────────────────
-
-function isImage(mime: string) {
-  return mime?.startsWith('image/');
-}
-
-function fmtSize(bytes: number) {
-  if (!bytes) return '—';
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1_048_576) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / 1_048_576).toFixed(1)} MB`;
-}
-
-function sanitizeFilename(name: string) {
-  const ext = name.split('.').pop() ?? '';
-  const base = name
-    .replace(/\.[^.]+$/, '')
-    .replace(/[^a-zA-Z0-9-_]/g, '_')
-    .slice(0, 50);
-  return `${Date.now()}_${base}.${ext}`;
-}
-
-// ─── Main Component ──────────────────────────────────────────────────────────
+const UPLOAD_KINDS = ['image', 'pdf'] as const;
 
 export function MediaLibrary() {
-  const [files, setFiles] = useState<MediaFile[]>([]);
+  const [files, setFiles] = useState<MediaAsset[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploads, setUploads] = useState<UploadItem[]>([]);
   const [search, setSearch] = useState('');
   const [sort, setSort] = useState<SortMode>('newest');
-  const [preview, setPreview] = useState<MediaFile | null>(null);
+  const [preview, setPreview] = useState<MediaAsset | null>(null);
   const [dragOver, setDragOver] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -80,37 +52,18 @@ export function MediaLibrary() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dragCounter = useRef(0);
 
-  // ── Load files ──────────────────────────────────────────────────────────────
-
   const loadFiles = useCallback(async () => {
     setLoading(true);
-    const { data, error } = await supabase.storage.from(BUCKET).list('', {
-      limit: 1000,
-      sortBy: { column: 'created_at', order: 'desc' },
-    });
-    if (!error && data) {
-      const mapped: MediaFile[] = data
-        .filter((f) => f.name !== '.emptyFolderPlaceholder' && f.name !== '')
-        .map((f) => {
-          const { data: urlData } = supabase.storage.from(BUCKET).getPublicUrl(f.name);
-          return {
-            name: f.name,
-            id: f.id ?? f.name,
-            created_at: f.created_at ?? new Date().toISOString(),
-            updated_at: f.updated_at ?? new Date().toISOString(),
-            size: (f.metadata as any)?.size ?? 0,
-            mimetype: (f.metadata as any)?.mimetype ?? '',
-            publicUrl: urlData.publicUrl,
-          };
-        });
-      setFiles(mapped);
+    try {
+      setFiles(await listMediaAssets());
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }, []);
 
-  useEffect(() => { loadFiles(); }, [loadFiles]);
-
-  // ── Drag and drop ───────────────────────────────────────────────────────────
+  useEffect(() => {
+    loadFiles();
+  }, [loadFiles]);
 
   const onDragEnter = (e: React.DragEvent) => {
     e.preventDefault();
@@ -120,18 +73,21 @@ export function MediaLibrary() {
   const onDragLeave = (e: React.DragEvent) => {
     e.preventDefault();
     dragCounter.current--;
-    if (dragCounter.current <= 0) { dragCounter.current = 0; setDragOver(false); }
+    if (dragCounter.current <= 0) {
+      dragCounter.current = 0;
+      setDragOver(false);
+    }
   };
-  const onDragOver = (e: React.DragEvent) => { e.preventDefault(); };
+  const onDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+  };
   const onDrop = (e: React.DragEvent) => {
     e.preventDefault();
     dragCounter.current = 0;
     setDragOver(false);
-    const dropped = Array.from(e.dataTransfer.files).filter((f) => f.type.startsWith('image/'));
+    const dropped = Array.from(e.dataTransfer.files);
     if (dropped.length) uploadFiles(dropped);
   };
-
-  // ── Upload ──────────────────────────────────────────────────────────────────
 
   const uploadFiles = async (filesToUpload: File[]) => {
     const batch: UploadItem[] = filesToUpload.map((f) => ({
@@ -144,16 +100,17 @@ export function MediaLibrary() {
     for (let i = 0; i < filesToUpload.length; i++) {
       const file = filesToUpload[i];
       const uid = batch[i].uid;
-      const path = sanitizeFilename(file.name);
-
-      const { error } = await supabase.storage.from(BUCKET).upload(path, file, {
-        cacheControl: '3600',
-        upsert: false,
-      });
-
-      setUploads((prev) =>
-        prev.map((u) => u.uid === uid ? { ...u, done: true, error: error?.message } : u)
-      );
+      try {
+        await uploadMediaFile(file);
+        setUploads((prev) =>
+          prev.map((u) => (u.uid === uid ? { ...u, done: true } : u))
+        );
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : 'Upload failed';
+        setUploads((prev) =>
+          prev.map((u) => (u.uid === uid ? { ...u, done: true, error: message } : u))
+        );
+      }
     }
 
     await loadFiles();
@@ -171,42 +128,35 @@ export function MediaLibrary() {
     }
   };
 
-  // ── Delete ──────────────────────────────────────────────────────────────────
-
-  const handleDelete = async (file: MediaFile) => {
-    if (!confirm(`"${file.name}" हटवायचे आहे का? हे पूर्वत होणार नाही.`)) return;
+  const handleDelete = async (file: MediaAsset) => {
+    if (!confirm(`"${file.path}" हटवायचे आहे का? हे पूर्ववत होणार नाही.`)) return;
     setDeletingId(file.id);
-    const { error } = await supabase.storage.from(BUCKET).remove([file.name]);
-    if (!error) {
+    try {
+      await deleteMediaAsset(file.path);
       setFiles((prev) => prev.filter((f) => f.id !== file.id));
       if (preview?.id === file.id) setPreview(null);
+    } finally {
+      setDeletingId(null);
     }
-    setDeletingId(null);
   };
 
-  // ── Copy URL ────────────────────────────────────────────────────────────────
-
-  const copyUrl = (file: MediaFile) => {
+  const copyUrl = (file: MediaAsset) => {
     navigator.clipboard.writeText(file.publicUrl).catch(() => {});
     setCopiedId(file.id);
     setTimeout(() => setCopiedId(null), 2200);
   };
 
-  // ── Filter + sort ───────────────────────────────────────────────────────────
-
-  const displayed = files
-    .filter((f) => f.name.toLowerCase().includes(search.toLowerCase()))
-    .sort((a, b) => {
-      if (sort === 'newest') return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-      if (sort === 'oldest') return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
-      if (sort === 'size') return b.size - a.size;
-      return a.name.localeCompare(b.name);
-    });
+  const filtered = filterMediaAssets(files, search);
+  const displayed = [...filtered].sort((a, b) => {
+    if (sort === 'newest') return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+    if (sort === 'oldest') return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+    if (sort === 'size') return b.size - a.size;
+    return a.name.localeCompare(b.name);
+  });
 
   const totalSize = files.reduce((s, f) => s + f.size, 0);
-  const imageCount = files.filter((f) => isImage(f.mimetype)).length;
-
-  // ── Render ──────────────────────────────────────────────────────────────────
+  const imageCount = files.filter((f) => isImageAsset(f)).length;
+  const pdfCount = files.filter((f) => isPdfAsset(f)).length;
 
   return (
     <AdminLayout title="Media Library">
@@ -217,7 +167,6 @@ export function MediaLibrary() {
         onDragOver={onDragOver}
         onDrop={onDrop}
       >
-        {/* ── Drag overlay ──────────────────────────────────────────────── */}
         {dragOver && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-navy-950/85 backdrop-blur-sm pointer-events-none">
             <div className="flex flex-col items-center gap-5 pointer-events-none">
@@ -225,42 +174,43 @@ export function MediaLibrary() {
                 <Upload className="w-10 h-10 text-gold-400" />
               </div>
               <p className="text-2xl font-bold text-white">Files सोडा</p>
-              <p className="text-gray-400">Images येथे drop करा</p>
+              <p className="text-gray-400">Images and PDFs drop करा</p>
             </div>
           </div>
         )}
 
-        {/* ── Header ────────────────────────────────────────────────────── */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
           <div>
             <h1 className="text-2xl font-bold text-white">Media Library</h1>
             <div className="flex items-center gap-4 mt-1">
               <span className="text-gray-500 text-sm flex items-center gap-1.5">
                 <HardDrive className="w-3.5 h-3.5" />
-                {fmtSize(totalSize)}
+                {formatMediaSize(totalSize)}
               </span>
               <span className="text-gray-600 text-xs">·</span>
-              <span className="text-gray-500 text-sm">{imageCount} images · {files.length} files</span>
+              <span className="text-gray-500 text-sm">
+                {imageCount} images · {pdfCount} PDFs · {files.length} files
+              </span>
             </div>
           </div>
           <button
+            type="button"
             onClick={() => fileInputRef.current?.click()}
             className="inline-flex items-center gap-2 px-4 py-2.5 bg-gold-500 hover:bg-gold-400 text-navy-900 font-semibold text-sm rounded-lg transition-colors shadow-lg shadow-gold-500/20 flex-shrink-0"
           >
             <Upload className="w-4 h-4" />
-            Upload Images
+            Upload Media
           </button>
           <input
             ref={fileInputRef}
             type="file"
             multiple
-            accept="image/*"
+            accept={getAcceptString([...UPLOAD_KINDS])}
             onChange={onFileInput}
             className="hidden"
           />
         </div>
 
-        {/* ── Filters ───────────────────────────────────────────────────── */}
         <div className="bg-navy-800 border border-navy-700 rounded-xl p-4 mb-5 flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
@@ -273,6 +223,7 @@ export function MediaLibrary() {
             />
             {search && (
               <button
+                type="button"
                 onClick={() => setSearch('')}
                 className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white"
               >
@@ -295,7 +246,6 @@ export function MediaLibrary() {
           </div>
         </div>
 
-        {/* ── Upload progress ────────────────────────────────────────────── */}
         {uploads.length > 0 && (
           <div className="mb-5 space-y-2">
             {uploads.map((u) => (
@@ -305,8 +255,8 @@ export function MediaLibrary() {
                   u.error
                     ? 'bg-red-500/8 border-red-500/20 text-red-400'
                     : u.done
-                    ? 'bg-emerald-500/8 border-emerald-500/20 text-emerald-400'
-                    : 'bg-navy-800 border-navy-700 text-gray-300'
+                      ? 'bg-emerald-500/8 border-emerald-500/20 text-emerald-400'
+                      : 'bg-navy-800 border-navy-700 text-gray-300'
                 }`}
               >
                 {u.error ? (
@@ -323,12 +273,10 @@ export function MediaLibrary() {
           </div>
         )}
 
-        {/* ── Drop hint ─────────────────────────────────────────────────── */}
         {files.length === 0 && !loading && (
           <DropZoneHint onUpload={() => fileInputRef.current?.click()} />
         )}
 
-        {/* ── Loading skeleton ───────────────────────────────────────────── */}
         {loading && (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
             {Array.from({ length: 18 }).map((_, i) => (
@@ -337,12 +285,12 @@ export function MediaLibrary() {
           </div>
         )}
 
-        {/* ── Empty search result ────────────────────────────────────────── */}
         {!loading && files.length > 0 && displayed.length === 0 && (
           <div className="flex flex-col items-center justify-center py-24 text-center">
-            <ImageOff className="w-12 h-12 text-navy-600 mb-4" />
+            <FileText className="w-12 h-12 text-navy-600 mb-4" />
             <p className="text-gray-400 font-medium">"{search}" साठी कोणताही file सापडला नाही.</p>
             <button
+              type="button"
               onClick={() => setSearch('')}
               className="mt-3 text-sm text-gold-400 hover:text-gold-300 transition-colors"
             >
@@ -351,7 +299,6 @@ export function MediaLibrary() {
           </div>
         )}
 
-        {/* ── File grid ─────────────────────────────────────────────────── */}
         {!loading && displayed.length > 0 && (
           <>
             <p className="text-xs text-gray-600 mb-3 tabular-nums">
@@ -374,7 +321,6 @@ export function MediaLibrary() {
         )}
       </div>
 
-      {/* ── Preview modal ──────────────────────────────────────────────────── */}
       {preview && (
         <PreviewModal
           file={preview}
@@ -389,8 +335,6 @@ export function MediaLibrary() {
   );
 }
 
-// ─── File Card ───────────────────────────────────────────────────────────────
-
 function FileCard({
   file,
   copied,
@@ -399,7 +343,7 @@ function FileCard({
   onCopy,
   onDelete,
 }: {
-  file: MediaFile;
+  file: MediaAsset;
   copied: boolean;
   deleting: boolean;
   onPreview: () => void;
@@ -412,8 +356,7 @@ function FileCard({
         deleting ? 'opacity-40 pointer-events-none' : ''
       }`}
     >
-      {/* Thumbnail */}
-      {isImage(file.mimetype) ? (
+      {isImageAsset(file) ? (
         <img
           src={file.publicUrl}
           alt={file.name}
@@ -423,15 +366,11 @@ function FileCard({
       ) : (
         <div className="w-full h-full flex flex-col items-center justify-center gap-2 bg-navy-750">
           <FileText className="w-10 h-10 text-navy-500" />
-          <span className="text-xs text-navy-500 uppercase font-mono">
-            {file.name.split('.').pop()}
-          </span>
+          <span className="text-xs text-navy-500 uppercase font-mono">{file.kind}</span>
         </div>
       )}
 
-      {/* Hover overlay */}
       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/0 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex flex-col justify-between p-2">
-        {/* Action buttons */}
         <div className="flex justify-end gap-1">
           <ActionBtn onClick={onPreview} title="Preview">
             <ZoomIn className="w-3.5 h-3.5" />
@@ -443,14 +382,12 @@ function FileCard({
             <Trash2 className="w-3.5 h-3.5" />
           </ActionBtn>
         </div>
-        {/* Filename */}
         <div className="mt-auto">
           <p className="text-white text-xs font-medium truncate leading-tight">{file.name}</p>
-          <p className="text-gray-400 text-xs mt-0.5">{fmtSize(file.size)}</p>
+          <p className="text-gray-400 text-xs mt-0.5">{formatMediaSize(file.size)}</p>
         </div>
       </div>
 
-      {/* Copied flash */}
       {copied && (
         <div className="absolute inset-0 border-2 border-emerald-400 rounded-xl pointer-events-none transition-opacity" />
       )}
@@ -475,21 +412,22 @@ function ActionBtn({
     <button
       type="button"
       title={title}
-      onClick={(e) => { e.stopPropagation(); onClick(e); }}
+      onClick={(e) => {
+        e.stopPropagation();
+        onClick(e);
+      }}
       className={`p-1.5 rounded-lg transition-colors ${
         active
           ? 'bg-emerald-500/20 text-emerald-400'
           : danger
-          ? 'bg-white/10 text-white hover:bg-red-500/40 hover:text-red-200'
-          : 'bg-white/10 text-white hover:bg-white/25'
+            ? 'bg-white/10 text-white hover:bg-red-500/40 hover:text-red-200'
+            : 'bg-white/10 text-white hover:bg-white/25'
       }`}
     >
       {children}
     </button>
   );
 }
-
-// ─── Preview Modal ───────────────────────────────────────────────────────────
 
 function PreviewModal({
   file,
@@ -499,37 +437,33 @@ function PreviewModal({
   onDelete,
   onClose,
 }: {
-  file: MediaFile;
+  file: MediaAsset;
   copied: boolean;
   deleting: boolean;
   onCopy: () => void;
   onDelete: () => void;
   onClose: () => void;
 }) {
-  // Close on Escape
-  React.useEffect(() => {
-    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
   }, [onClose]);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      {/* Backdrop */}
-      <div
-        className="absolute inset-0 bg-black/80 backdrop-blur-sm"
-        onClick={onClose}
-      />
+      <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={onClose} />
 
-      {/* Panel */}
       <div className="relative w-full max-w-3xl bg-navy-800 border border-navy-700 rounded-2xl overflow-hidden shadow-2xl flex flex-col max-h-[92vh]">
-        {/* Header */}
         <div className="flex items-center gap-3 px-5 py-4 border-b border-navy-700 flex-shrink-0">
           <div className="flex-1 min-w-0">
-            <p className="text-white font-semibold truncate">{file.name}</p>
-            <p className="text-gray-500 text-xs mt-0.5 font-mono">{file.mimetype || '—'}</p>
+            <p className="text-white font-semibold truncate">{file.path}</p>
+            <p className="text-gray-500 text-xs mt-0.5 font-mono">{file.mimetype || file.kind}</p>
           </div>
           <button
+            type="button"
             onClick={onClose}
             className="p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-navy-700 transition-colors flex-shrink-0"
           >
@@ -537,14 +471,13 @@ function PreviewModal({
           </button>
         </div>
 
-        {/* Image area */}
         <div className="flex-1 overflow-hidden bg-[#0a0d14] flex items-center justify-center min-h-0 p-6">
-          {isImage(file.mimetype) ? (
-            <img
-              src={file.publicUrl}
+          {isImageAsset(file) || isPdfAsset(file) ? (
+            <MediaPreview
+              url={file.publicUrl}
               alt={file.name}
-              className="max-w-full max-h-full object-contain rounded-lg"
-              style={{ maxHeight: '55vh' }}
+              className={isPdfAsset(file) ? 'w-full h-[55vh]' : 'max-w-full max-h-full rounded-lg'}
+              contain={!isPdfAsset(file)}
             />
           ) : (
             <div className="flex flex-col items-center gap-4 py-16">
@@ -554,12 +487,10 @@ function PreviewModal({
           )}
         </div>
 
-        {/* Footer */}
         <div className="px-5 py-4 border-t border-navy-700 space-y-4 flex-shrink-0">
-          {/* Metadata grid */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <MetaItem label="File Size" value={fmtSize(file.size)} />
-            <MetaItem label="Type" value={file.mimetype?.split('/')[1]?.toUpperCase() || '—'} />
+            <MetaItem label="File Size" value={formatMediaSize(file.size)} />
+            <MetaItem label="Type" value={file.kind.toUpperCase()} />
             <MetaItem
               label="Uploaded"
               value={file.created_at ? format(new Date(file.created_at), 'd MMM yyyy') : '—'}
@@ -570,7 +501,6 @@ function PreviewModal({
             />
           </div>
 
-          {/* URL row */}
           <div className="flex gap-2">
             <div className="flex-1 relative min-w-0">
               <input
@@ -581,6 +511,7 @@ function PreviewModal({
               />
             </div>
             <button
+              type="button"
               onClick={onCopy}
               className={`flex-shrink-0 inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
                 copied
@@ -592,6 +523,7 @@ function PreviewModal({
               {copied ? 'Copied!' : 'Copy URL'}
             </button>
             <button
+              type="button"
               onClick={onDelete}
               disabled={deleting}
               className="flex-shrink-0 inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-red-500/10 text-red-400 border border-red-500/20 text-sm font-medium hover:bg-red-500/20 transition-colors disabled:opacity-50"
@@ -606,8 +538,6 @@ function PreviewModal({
   );
 }
 
-// ─── Drop Zone (empty state) ─────────────────────────────────────────────────
-
 function DropZoneHint({ onUpload }: { onUpload: () => void }) {
   return (
     <div
@@ -617,16 +547,14 @@ function DropZoneHint({ onUpload }: { onUpload: () => void }) {
       <div className="w-20 h-20 rounded-2xl bg-navy-800 border border-navy-700 group-hover:border-gold-500/30 flex items-center justify-center mb-5 transition-colors">
         <Upload className="w-9 h-9 text-navy-500 group-hover:text-gold-400 transition-colors" />
       </div>
-      <p className="text-white font-semibold text-lg mb-2">Images Upload करा</p>
+      <p className="text-white font-semibold text-lg mb-2">Media Upload करा</p>
       <p className="text-gray-500 text-sm text-center max-w-xs">
         Files येथे Drag & Drop करा किंवा क्लिक करून निवडा
       </p>
-      <p className="text-gray-600 text-xs mt-3">JPG, PNG, GIF, WebP, SVG, AVIF</p>
+      <p className="text-gray-600 text-xs mt-3">Images · PDF (EPUB, Audio, Video coming soon)</p>
     </div>
   );
 }
-
-// ─── MetaItem ────────────────────────────────────────────────────────────────
 
 function MetaItem({ label, value }: { label: string; value: string }) {
   return (

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { AdminLayout } from './AdminLayout';
 import { supabase } from '../../lib/supabase';
+import { uploadMediaFile } from '../../lib/mediaService';
 import {
   Save,
   User,
@@ -55,15 +56,6 @@ function empty(): SiteSettings {
 const inputCls =
   'w-full px-3 py-2 rounded-lg bg-navy-700 border border-navy-600 text-white placeholder-gray-500 focus:border-gold-400 focus:outline-none text-sm';
 
-function sanitizeName(name: string) {
-  const ext = name.split('.').pop() ?? '';
-  const base = name
-    .replace(/\.[^.]+$/, '')
-    .replace(/[^a-zA-Z0-9-_]/g, '_')
-    .slice(0, 40);
-  return `${Date.now()}_${base}.${ext}`;
-}
-
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export function SettingsPage() {
@@ -109,15 +101,12 @@ export function SettingsPage() {
 
   const uploadImage = async (file: File, field: keyof SiteSettings) => {
     setUploading((prev) => ({ ...prev, [field]: true }));
-    const path = sanitizeName(file.name);
-    const { error } = await supabase.storage
-      .from('media')
-      .upload(path, file, { cacheControl: '3600', upsert: false });
-    if (!error) {
-      const { data } = supabase.storage.from('media').getPublicUrl(path);
-      set(field, data.publicUrl);
+    try {
+      const asset = await uploadMediaFile(file);
+      set(field, asset.publicUrl);
+    } finally {
+      setUploading((prev) => ({ ...prev, [field]: false }));
     }
-    setUploading((prev) => ({ ...prev, [field]: false }));
   };
 
   // ── Save ────────────────────────────────────────────────────────────────────

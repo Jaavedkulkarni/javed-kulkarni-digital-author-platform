@@ -3,6 +3,7 @@ import { useAdmin } from '../../context/AdminContext';
 import { useBooks } from '../../context/BookContext';
 import { supabase } from '../../lib/supabase';
 import { AdminLayout } from './AdminLayout';
+import { AdminWarning } from './AdminWarning';
 import { BookEditor } from './BookEditor';
 import { Book, BookListItem } from '../../types/book';
 import {
@@ -34,7 +35,7 @@ const STATUS_LABELS: Record<string, string> = {
   draft: 'ड्राफ्ट',
 };
 
-const LANGUAGE_OPTIONS = ['मराठी', 'English', 'Hindi'];
+const LANGUAGE_OPTIONS = ['मराठी', 'English'];
 
 export function BookManager() {
   const { currentView, setCurrentView } = useAdmin();
@@ -50,6 +51,8 @@ export function BookManager() {
   const [filterCategory, setFilterCategory] = useState('');
   const [filterLanguage, setFilterLanguage] = useState('');
   const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
+  const [categoriesLoading, setCategoriesLoading] = useState(true);
+  const [booksTableEmpty, setBooksTableEmpty] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [editingBook, setEditingBook] = useState<Book | null>(null);
 
@@ -57,14 +60,35 @@ export function BookManager() {
   const isEditorOpen = currentView === 'book-create' || currentView === 'book-edit';
 
   useEffect(() => {
+    setCategoriesLoading(true);
     supabase
       .from('book_categories')
       .select('id, name')
       .order('sort_order', { ascending: true })
-      .then(({ data }) => {
-        if (data) setCategories(data);
+      .then(({ data, error }) => {
+        if (error) {
+          console.error('Error loading book categories:', error);
+          setCategories([]);
+        } else {
+          setCategories(data ?? []);
+        }
+        setCategoriesLoading(false);
       });
   }, []);
+
+  useEffect(() => {
+    supabase
+      .from('books')
+      .select('id', { count: 'exact', head: true })
+      .then(({ count, error }) => {
+        if (error) {
+          console.error('Error checking books table:', error);
+          setBooksTableEmpty(false);
+          return;
+        }
+        setBooksTableEmpty((count ?? 0) === 0);
+      });
+  }, [books, total]);
 
   const loadBooks = useCallback(async () => {
     setLoading(true);
@@ -140,6 +164,10 @@ export function BookManager() {
     setDeletingId(null);
   };
 
+  const hasActiveFilters =
+    !!searchQuery || filterStatus !== 'all' || !!filterCategory || !!filterLanguage;
+  const showSeedWarning = booksTableEmpty && !hasActiveFilters && !loading;
+
   if (isEditorOpen) {
     return <BookEditor book={editingBook} onCancel={handleCancel} onSaved={handleSaved} />;
   }
@@ -160,6 +188,20 @@ export function BookManager() {
           नवीन पुस्तक
         </button>
       </div>
+
+      {showSeedWarning && (
+        <AdminWarning
+          title="Books table is empty"
+          message='No books were found in Supabase. Apply migration "006_create_books_schema.sql" to create the books schema and seed the initial catalogue. The public site falls back to static data until books exist here.'
+        />
+      )}
+
+      {!categoriesLoading && categories.length === 0 && (
+        <AdminWarning
+          title="Book categories missing"
+          message='The book_categories table is empty. Run the Supabase migration "006_create_books_schema.sql" to seed categories.'
+        />
+      )}
 
       <div className="bg-navy-800 border border-navy-700 rounded-xl p-4 mb-5 flex flex-col lg:flex-row gap-3">
         <form onSubmit={handleSearch} className="flex-1 flex gap-2">
@@ -248,11 +290,13 @@ export function BookManager() {
           <div className="text-center py-20">
             <BookOpen className="w-12 h-12 text-navy-600 mx-auto mb-3" />
             <p className="text-gray-500 font-medium">
-              {searchQuery || filterStatus !== 'all' || filterCategory || filterLanguage
+              {hasActiveFilters
                 ? 'कोणतेही निकाल आढळले नाही.'
-                : 'अजून कोणतीही पुस्तके नाहीत.'}
+                : showSeedWarning
+                  ? 'Migration seed data not found. See the warning above.'
+                  : 'अजून कोणतीही पुस्तके नाहीत.'}
             </p>
-            {!searchQuery && filterStatus === 'all' && !filterCategory && !filterLanguage && (
+            {!hasActiveFilters && !showSeedWarning && (
               <button
                 type="button"
                 onClick={handleCreateNew}

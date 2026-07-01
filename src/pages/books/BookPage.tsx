@@ -23,13 +23,18 @@ import {
   Instagram,
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
-import { getBookBySlug, getRelatedBooks, INSTAGRAM_AUTHOR_URL } from '../../data/books';
+import { loadBookBySlug, loadRelatedBooks } from '../../lib/publicBooks';
+import { INSTAGRAM_AUTHOR_URL } from '../../data/books';
+import type { Book } from '../../data/books';
 
 export default function BookPage() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const [copied, setCopied] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
+  const [book, setBook] = useState<Book | undefined>();
+  const [relatedBooks, setRelatedBooks] = useState<Book[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     setDarkMode(document.documentElement.classList.contains('dark'));
@@ -44,7 +49,32 @@ export default function BookPage() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [slug]);
 
-  const book = getBookBySlug(slug ?? '');
+  useEffect(() => {
+    let cancelled = false;
+
+    (async () => {
+      setLoading(true);
+      const loaded = await loadBookBySlug(slug ?? '');
+      if (cancelled) return;
+
+      setBook(loaded);
+      if (loaded) {
+        const related = await loadRelatedBooks(loaded.relatedSlugs);
+        if (!cancelled) setRelatedBooks(related);
+      } else {
+        setRelatedBooks([]);
+      }
+      setLoading(false);
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [slug]);
+
+  if (loading) {
+    return null;
+  }
 
   if (!book) {
     return (
@@ -61,7 +91,6 @@ export default function BookPage() {
     );
   }
 
-  const relatedBooks = getRelatedBooks(book.relatedSlugs);
   const pageUrl = window.location.href;
 
   const handleCopy = () => {

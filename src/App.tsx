@@ -34,7 +34,10 @@ import {
 } from 'lucide-react';
 import { BlogProvider } from './context/BlogContext';
 import { AdminProvider } from './context/AdminContext';
-import { books } from './data/books';
+import {
+  getHomepageInitialData,
+  loadHomepageBookData,
+} from './lib/publicBooks';
 
 // Lazy load blog, book and admin pages
 const BlogHome = lazy(() => import('./pages/blog/BlogHome'));
@@ -59,14 +62,19 @@ const readerCards = [
   { icon: Ghost, text: 'भयकथा व कल्पनारम्य साहित्य वाचकांसाठी', desc: 'रोमांचक कथा' },
 ];
 
-const categories = [
-  { icon: Lightbulb, name: 'आत्मविकास', count: 3, color: 'from-amber-500 to-orange-500', slug: 'atmvikas' },
-  { icon: Baby, name: 'पालकत्व', count: 1, color: 'from-pink-500 to-rose-500', slug: 'parenting' },
-  { icon: MonitorSmartphone, name: 'डिजिटल जीवन', count: 4, color: 'from-cyan-500 to-blue-500', slug: 'digital-life' },
-  { icon: BookOpen, name: 'कथा', count: 2, color: 'from-violet-500 to-purple-500', slug: 'katha' },
-  { icon: Ghost, name: 'भयकथा', count: 1, color: 'from-slate-600 to-gray-800', slug: 'horror' },
-  { icon: MessageCircle, name: 'विनोदी लेखन', count: 1, color: 'from-green-500 to-emerald-500', slug: 'humour' },
-];
+const categoryUiBySlug: Record<
+  string,
+  { icon: typeof Lightbulb; color: string }
+> = {
+  atmvikas: { icon: Lightbulb, color: 'from-amber-500 to-orange-500' },
+  parenting: { icon: Baby, color: 'from-pink-500 to-rose-500' },
+  'digital-life': { icon: MonitorSmartphone, color: 'from-cyan-500 to-blue-500' },
+  katha: { icon: BookOpen, color: 'from-violet-500 to-purple-500' },
+  horror: { icon: Ghost, color: 'from-slate-600 to-gray-800' },
+  humour: { icon: MessageCircle, color: 'from-green-500 to-emerald-500' },
+};
+
+const homepageInitialData = getHomepageInitialData();
 
 const blogCategories = [
   { icon: Heart, name: 'नातेसंबंध', color: 'bg-rose-500' },
@@ -79,15 +87,6 @@ const blogCategories = [
 const navLinks = ['Home', 'About', 'Books', 'Categories', 'Blog', 'Amazon', 'Contact'];
 const navLabels = ['मुख्यपृष्ठ', 'माझ्याविषयी', 'पुस्तके', 'पुस्तक श्रेणी', 'ब्लॉग', 'Amazon', 'संपर्क'];
 
-const featuredBook = books.find((b) => b.slug === 'digital-kaid-mr')!;
-const featuredBookHighlights = [
-  'डिजिटल व्यसन',
-  'सोशल मीडिया',
-  'डेटा गोपनीयता',
-  'कृत्रिम बुद्धिमत्ता',
-  'सायबर युद्ध',
-];
-
 const readerTrustCards = [
   { emoji: '📚', value: '8+', label: 'Published Books' },
   { emoji: '✍️', value: '100+', label: 'Articles & Blogs' },
@@ -99,11 +98,34 @@ function MainWebsite() {
   const [darkMode, setDarkMode] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [homeBooks, setHomeBooks] = useState(homepageInitialData.books);
+  const [featuredBook, setFeaturedBook] = useState(homepageInitialData.featured.book);
+  const [featuredBookHighlights, setFeaturedBookHighlights] = useState(
+    homepageInitialData.featured.highlights
+  );
+  const [homeCategories, setHomeCategories] = useState(homepageInitialData.categories);
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 50);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    loadHomepageBookData().then((data) => {
+      if (cancelled) return;
+
+      setHomeBooks(data.books);
+      setFeaturedBook(data.featured.book);
+      setFeaturedBookHighlights(data.featured.highlights);
+      setHomeCategories(data.categories);
+    });
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   useEffect(() => {
@@ -554,7 +576,7 @@ function MainWebsite() {
                 darkMode ? 'text-white' : 'text-navy-800'
               }`}
             >
-              डिजिटल कैद आणि नव्या युगातील सायबर युद्ध
+              {featuredBook.title}
             </h2>
             <p className={`text-lg sm:text-xl max-w-2xl mx-auto lg:mx-0 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
               आजच्या डिजिटल युगात प्रत्येकाने वाचायलाच हवं असं पुस्तक.
@@ -590,10 +612,7 @@ function MainWebsite() {
               </h3>
 
               <p className={`text-base sm:text-lg leading-relaxed mb-8 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                डिजिटल व्यसन, माहिती युद्ध आणि सायबर सुरक्षेवर आधारित हे पुस्तक आपल्याला दाखवते की
-                आपण नकळतच एका अदृश्य कैदेत कसे अडकतो. सोशल मीडिया, डेटा गोपनीयता आणि कृत्रिम
-                बुद्धिमत्तेच्या युगात स्वतःचे रक्षण कसे करावे — हे प्रत्येक जागरूक वाचकासाठी
-                अत्यावश्यक वाचन आहे.
+                {featuredBook.whyRead}
               </p>
 
               <ul className="space-y-3 mb-10" aria-label="पुस्तकाचे मुख्य विषय">
@@ -805,7 +824,7 @@ function MainWebsite() {
 
           {/* Premium Books Grid — 5 / 3 / 1 */}
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 lg:gap-7">
-            {books.map((book, i) => (
+            {homeBooks.map((book, i) => (
               <article
                 key={book.id}
                 className={`group flex flex-col rounded-[22px] overflow-hidden transition-all duration-500 ease-out transform hover:-translate-y-2 ${
@@ -959,19 +978,10 @@ function MainWebsite() {
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-            {categories.map((cat, i) => {
-              const catBooks = books.filter((b) => {
-                const catNames: Record<string, string[]> = {
-                  'आत्मविकास': ['आत्मविकास', 'Self Development'],
-                  'पालकत्व': ['पालकत्व'],
-                  'डिजिटल जीवन': ['डिजिटल जीवन', 'Technology'],
-                  'कथा': ['कथा'],
-                  'भयकथा': ['भयकथा'],
-                  'विनोदी लेखन': ['विनोदी लेखन'],
-                };
-                return (catNames[cat.name] ?? [cat.name]).includes(b.category);
-              });
-              const preview = catBooks.slice(0, 2).map((b) => b.title);
+            {homeCategories.map((cat, i) => {
+              const ui = categoryUiBySlug[cat.slug];
+              if (!ui) return null;
+              const preview = cat.previewTitles;
               return (
                 <Link
                   key={i}
@@ -983,9 +993,9 @@ function MainWebsite() {
                   }`}
                 >
                   <div
-                    className={`w-12 h-12 rounded-xl bg-gradient-to-br ${cat.color} flex items-center justify-center mb-3 shadow-md transition-transform group-hover:scale-110 flex-shrink-0`}
+                    className={`w-12 h-12 rounded-xl bg-gradient-to-br ${ui.color} flex items-center justify-center mb-3 shadow-md transition-transform group-hover:scale-110 flex-shrink-0`}
                   >
-                    <cat.icon className="w-6 h-6 text-white" />
+                    <ui.icon className="w-6 h-6 text-white" />
                   </div>
                   <h3
                     className={`font-semibold text-sm mb-1 ${darkMode ? 'text-white group-hover:text-gold-400' : 'text-navy-800'} transition-colors`}
@@ -1430,7 +1440,7 @@ function MainWebsite() {
             <div>
               <h4 className="text-white font-semibold mb-4">पुस्तक श्रेणी</h4>
               <ul className="space-y-3">
-                {categories.map((cat, i) => (
+                {homeCategories.map((cat, i) => (
                   <li key={i}>
                     <button
                       onClick={() => scrollToSection('books')}

@@ -1,21 +1,16 @@
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { BookOpen, ShoppingBag, ArrowLeft } from 'lucide-react';
-import { books } from '../../data/books';
-
-const categoryMap: Record<string, { label: string; categories: string[] }> = {
-  atmvikas: { label: 'आत्मविकास', categories: ['आत्मविकास', 'Self Development'] },
-  parenting: { label: 'पालकत्व', categories: ['पालकत्व'] },
-  'digital-life': { label: 'डिजिटल जीवन', categories: ['डिजिटल जीवन', 'Technology'] },
-  katha: { label: 'कथा', categories: ['कथा'] },
-  horror: { label: 'भयकथा', categories: ['भयकथा'] },
-  humour: { label: 'विनोदी लेखन', categories: ['विनोदी लेखन'] },
-};
+import { loadBooksByCategorySlug } from '../../lib/publicBooks';
+import type { Book } from '../../data/books';
 
 export default function BookCategoryPage() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const [darkMode, setDarkMode] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [meta, setMeta] = useState<{ label: string } | null>(null);
+  const [filteredBooks, setFilteredBooks] = useState<Book[]>([]);
 
   useEffect(() => {
     setDarkMode(document.documentElement.classList.contains('dark'));
@@ -30,10 +25,32 @@ export default function BookCategoryPage() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [slug]);
 
-  const meta = slug ? categoryMap[slug] : null;
-  const filteredBooks = meta
-    ? books.filter((b) => meta.categories.includes(b.category))
-    : [];
+  useEffect(() => {
+    let cancelled = false;
+
+    (async () => {
+      setLoading(true);
+      const result = slug ? await loadBooksByCategorySlug(slug) : null;
+      if (cancelled) return;
+
+      if (result) {
+        setMeta({ label: result.label });
+        setFilteredBooks(result.books);
+      } else {
+        setMeta(null);
+        setFilteredBooks([]);
+      }
+      setLoading(false);
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [slug]);
+
+  if (loading) {
+    return null;
+  }
 
   if (!meta) {
     return (
