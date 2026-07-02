@@ -11,6 +11,8 @@ import { MemberEmailAuthForm, SocialAuthButtons } from '../components/reader/aut
 import { ReaderForgotPasswordForm } from '../components/reader/auth/ReaderForgotPasswordForm';
 import { useReader } from './ReaderContext';
 import { storeReaderReturnTo, resolvePostAuthNavigation } from '../lib/authRedirect';
+import { isProviderNotEnabledError, oauthUnavailableMessage } from '../lib/oauthConfig';
+import type { OAuthProvider } from '../lib/oauthConfig';
 
 export type AuthModalView = 'members-login' | 'email' | 'forgot-password';
 
@@ -30,10 +32,12 @@ export function AuthModalProvider({ children }: { children: ReactNode }) {
   const { signInWithOAuth } = useReader();
   const [view, setView] = useState<AuthModalView | null>(null);
   const [oauthLoading, setOauthLoading] = useState(false);
+  const [oauthError, setOauthError] = useState<string | null>(null);
 
   const closeAuthModal = useCallback(() => {
     setView(null);
     setOauthLoading(false);
+    setOauthError(null);
   }, []);
 
   const completeAuthSuccess = useCallback(() => {
@@ -53,12 +57,18 @@ export function AuthModalProvider({ children }: { children: ReactNode }) {
     openAuthModal('members-login');
   }, [openAuthModal]);
 
-  const handleOAuth = async (provider: 'google' | 'azure' | 'facebook') => {
+  const handleOAuth = async (provider: OAuthProvider) => {
     storeReaderReturnTo();
+    setOauthError(null);
     setOauthLoading(true);
     const result = await signInWithOAuth(provider);
     if (!result.success) {
       setOauthLoading(false);
+      if (result.error && isProviderNotEnabledError(result.error)) {
+        setOauthError(oauthUnavailableMessage(provider));
+      } else {
+        setOauthError(result.error ?? 'Social sign-in failed. Please try again.');
+      }
     }
   };
 
@@ -88,7 +98,7 @@ export function AuthModalProvider({ children }: { children: ReactNode }) {
               <p className="text-gray-400 text-sm text-center">
                 Sign in to your member account or create one in a few steps.
               </p>
-              <SocialAuthButtons onOAuth={handleOAuth} loading={oauthLoading} />
+              <SocialAuthButtons onOAuth={handleOAuth} loading={oauthLoading} oauthError={oauthError} />
               <div className="relative py-2">
                 <div className="absolute inset-0 flex items-center">
                   <div className="w-full border-t border-navy-600" />

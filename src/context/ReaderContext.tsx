@@ -9,6 +9,7 @@ import {
 import type { Session, User } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 import { isReaderUser } from '../lib/authRoles';
+import { getUserRole } from '../lib/authRoles';
 import {
   ensureReaderProfile,
   fetchReaderProfile,
@@ -35,6 +36,20 @@ interface ReaderContextType {
 const ReaderContext = createContext<ReaderContextType | undefined>(undefined);
 
 const SITE_URL = typeof window !== 'undefined' ? window.location.origin : '';
+const OAUTH_INTENT_KEY = 'readerOAuthIntent';
+
+async function ensureReaderRole(user: User): Promise<User> {
+  if (getUserRole(user) === 'reader') return user;
+  const { data, error } = await supabase.auth.updateUser({
+    data: {
+      role: 'reader',
+      full_name: user.user_metadata?.full_name ?? user.user_metadata?.name,
+      display_name: user.user_metadata?.display_name ?? user.user_metadata?.name,
+    },
+  });
+  if (error || !data.user) return user;
+  return data.user;
+}
 
 export function ReaderProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
@@ -71,10 +86,17 @@ export function ReaderProvider({ children }: { children: ReactNode }) {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, s) => {
+    } = supabase.auth.onAuthStateChange(async (event, s) => {
+      let nextUser = s?.user ?? null;
+
+      if (nextUser && sessionStorage.getItem(OAUTH_INTENT_KEY) === '1') {
+        sessionStorage.removeItem(OAUTH_INTENT_KEY);
+        nextUser = await ensureReaderRole(nextUser);
+      }
+
       setSession(s);
-      setUser(s?.user ?? null);
-      loadProfile(s?.user ?? null);
+      setUser(nextUser);
+      loadProfile(nextUser);
     });
 
     return () => subscription.unsubscribe();
@@ -121,14 +143,22 @@ export function ReaderProvider({ children }: { children: ReactNode }) {
 
   const signInWithOAuth = async (provider: 'google' | 'azure' | 'facebook') => {
     try {
-      const redirectTo = `${SITE_URL}${window.location.pathname}${window.location.search}`;
+      sessionStorage.setItem(OAUTH_INTENT_KEY, '1');
+      const redirectTo = `${SITE_URL}/`;
       const { error } = await supabase.auth.signInWithOAuth({
         provider,
-        options: { redirectTo },
+        options: {
+          redirectTo,
+          queryParams: provider === 'google' ? { access_type: 'offline', prompt: 'consent' } : undefined,
+        },
       });
-      if (error) return { success: false, error: error.message };
+      if (error) {
+        sessionStorage.removeItem(OAUTH_INTENT_KEY);
+        return { success: false, error: error.message };
+      }
       return { success: true };
     } catch {
+      sessionStorage.removeItem(OAUTH_INTENT_KEY);
       return { success: false, error: 'Social sign-in failed. Please try again.' };
     }
   };

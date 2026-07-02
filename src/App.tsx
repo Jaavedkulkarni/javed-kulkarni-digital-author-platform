@@ -520,6 +520,7 @@ function MainWebsite() {
                 <li><Link to="/shipping" className="text-gray-400 hover:text-gold-400 transition-colors">Shipping Policy</Link></li>
                 <li><Link to="/cookies" className="text-gray-400 hover:text-gold-400 transition-colors">Cookie Policy</Link></li>
                 <li><a href="#contact" className="text-gray-400 hover:text-gold-400 transition-colors">Contact</a></li>
+                <li><Link to="/admin/login" className="text-gray-500 hover:text-gold-400 transition-colors text-xs">Admin Login</Link></li>
               </ul>
             </div>
           </div>

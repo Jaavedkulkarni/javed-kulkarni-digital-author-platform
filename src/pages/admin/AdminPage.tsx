@@ -1,5 +1,4 @@
-import { useEffect } from 'react';
-import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
+import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { AdminLogin } from './AdminLogin';
 import { AdminReaderBlocked } from './AdminReaderBlocked';
 import { AdminDashboard } from './AdminDashboard';
@@ -19,10 +18,11 @@ import { BookProvider } from '../../context/BookContext';
 import { useAdmin } from '../../context/AdminContext';
 import { isAdminUser, isReaderUser } from '../../lib/authRoles';
 import { storeAdminReturnTo } from '../../lib/authRedirect';
-import { adminPathFromView, adminViewFromPath } from '../../lib/adminPaths';
+import { adminViewFromPath } from '../../lib/adminPaths';
 
 function AdminCmsContent() {
-  const { currentView } = useAdmin();
+  const location = useLocation();
+  const currentView = adminViewFromPath(location.pathname);
 
   switch (currentView) {
     case 'dashboard':
@@ -61,25 +61,8 @@ function AdminCmsContent() {
 }
 
 function AdminProtected() {
-  const { isAuthenticated, user, logout, currentView, setCurrentView } = useAdmin();
+  const { isAuthenticated, user, logout } = useAdmin();
   const location = useLocation();
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    if (!isAuthenticated || !isAdminUser(user)) return;
-    const viewFromUrl = adminViewFromPath(location.pathname);
-    if (viewFromUrl !== currentView) {
-      setCurrentView(viewFromUrl);
-    }
-  }, [location.pathname, isAuthenticated, user, setCurrentView, currentView]);
-
-  useEffect(() => {
-    if (!isAuthenticated || !isAdminUser(user)) return;
-    const expectedPath = adminPathFromView(currentView);
-    if (location.pathname !== expectedPath) {
-      navigate(expectedPath, { replace: true });
-    }
-  }, [currentView, isAuthenticated, user, navigate, location.pathname]);
 
   if (isAuthenticated && isReaderUser(user)) {
     return <AdminReaderBlocked onLogout={logout} />;

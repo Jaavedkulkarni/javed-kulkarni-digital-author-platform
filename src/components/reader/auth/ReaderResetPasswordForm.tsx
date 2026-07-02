@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../../lib/supabase';
 import { useReader } from '../../../context/ReaderContext';
 import { resolvePostAuthNavigation } from '../../../lib/authRedirect';
-import { processAuthCallback } from '../../../lib/authCallback';
+import { detectAuthCallbackType } from '../../../lib/authCallback';
 import { inputCls } from '../../../pages/reader/ReaderAuthShell';
 import { Lock, AlertCircle, CheckCircle2 } from 'lucide-react';
 
@@ -25,34 +25,45 @@ export function ReaderResetPasswordForm({ onSuccess, compact }: ResetPasswordFor
 
   useEffect(() => {
     let cancelled = false;
+    const hasRecoveryCallback = detectAuthCallbackType() === 'recovery';
 
-    async function initRecoverySession() {
-      const callbackType = await processAuthCallback();
-      if (cancelled) return;
-
+    async function waitForRecoverySession() {
       const { data: { session } } = await supabase.auth.getSession();
+      if (cancelled) return;
       if (session) {
         setReady(true);
         return;
       }
 
-      if (callbackType === 'recovery') {
-        setInitError('Could not establish a recovery session. Please request a new reset link.');
+      if (!hasRecoveryCallback) {
+        setInitError('Open the reset link from your email to set a new password.');
+        return;
       }
+
+      const timeout = window.setTimeout(() => {
+        if (!cancelled) {
+          setInitError('Could not establish a recovery session. Please request a new reset link.');
+        }
+      }, 8000);
+
+      const { data: { subscription } } = supabase.auth.onAuthStateChange((event, nextSession) => {
+        if (event === 'PASSWORD_RECOVERY' || nextSession) {
+          window.clearTimeout(timeout);
+          setReady(true);
+          setInitError(null);
+        }
+      });
+
+      return () => {
+        window.clearTimeout(timeout);
+        subscription.unsubscribe();
+      };
     }
 
-    initRecoverySession();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'PASSWORD_RECOVERY' || session) {
-        setReady(true);
-        setInitError(null);
-      }
-    });
-
+    const cleanupPromise = waitForRecoverySession();
     return () => {
       cancelled = true;
-      subscription.unsubscribe();
+      void cleanupPromise.then((cleanup) => cleanup?.());
     };
   }, []);
 
@@ -93,9 +104,8 @@ export function ReaderResetPasswordForm({ onSuccess, compact }: ResetPasswordFor
     return (
       <div className="text-center space-y-4">
         <CheckCircle2 className="w-12 h-12 text-emerald-400 mx-auto" />
-        <p className="text-gray-300 text-sm">
-          Password updated. You are signed in. Returning you to where you left off...
-        </p>
+        <p className="text-gray-300 text-sm font-medium">Password updated successfully.</p>
+        <p className="text-gray-500 text-xs">You are signed in. Returning you to where you left off...</p>
       </div>
     );
   }

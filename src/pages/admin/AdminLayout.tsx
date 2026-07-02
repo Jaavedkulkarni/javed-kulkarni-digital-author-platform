@@ -19,8 +19,8 @@ import {
   Layers,
   ShoppingBag,
 } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
-import { adminPathFromView } from '../../lib/adminPaths';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { adminPathFromView, adminViewFromPath } from '../../lib/adminPaths';
 import type { AdminView } from '../../types/blog';
 
 interface AdminLayoutProps {
@@ -47,11 +47,12 @@ const productMenuItems = [
 ] as const;
 
 export function AdminLayout({ children, title }: AdminLayoutProps) {
-  const { currentView, setCurrentView, sidebarOpen, toggleSidebar, logout, isAuthenticated } = useAdmin();
+  const { sidebarOpen, toggleSidebar, logout, isAuthenticated } = useAdmin();
   const navigate = useNavigate();
+  const location = useLocation();
+  const currentView = adminViewFromPath(location.pathname);
 
   const goToView = (view: AdminView) => {
-    setCurrentView(view);
     navigate(adminPathFromView(view));
   };
 

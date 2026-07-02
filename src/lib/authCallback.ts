@@ -11,18 +11,41 @@ function parseSearchParams(): URLSearchParams {
   return new URLSearchParams(window.location.search);
 }
 
+function typeFromParams(hash: URLSearchParams, search: URLSearchParams): AuthCallbackType {
+  const hashType = hash.get('type');
+  if (hashType === 'recovery') return 'recovery';
+  if (hashType === 'signup' || hashType === 'email') return 'signup';
+  if (hashType === 'magiclink') return 'magiclink';
+
+  const searchType = search.get('type');
+  if (searchType === 'recovery') return 'recovery';
+  if (searchType === 'signup' || searchType === 'email') return 'signup';
+  if (searchType === 'magiclink') return 'magiclink';
+
+  return null;
+}
+
+function typeFromPath(pathname: string): AuthCallbackType | null {
+  if (pathname.includes('/reader/reset-password')) return 'recovery';
+  if (pathname.includes('/reader/verify-email')) return 'signup';
+  if (pathname.includes('/reader/sign-in')) return 'magiclink';
+  return null;
+}
+
 /** Detect Supabase auth tokens in the current URL (hash or PKCE code). */
-export function detectAuthCallbackType(): AuthCallbackType {
+export function detectAuthCallbackType(pathname = window.location.pathname): AuthCallbackType {
   const hash = parseHashParams();
   const search = parseSearchParams();
 
-  const hashType = hash.get('type');
-  if (hashType === 'recovery') return 'recovery';
-  if (hashType === 'signup') return 'signup';
-  if (hashType === 'magiclink') return 'magiclink';
+  const explicitType = typeFromParams(hash, search);
+  if (explicitType) return explicitType;
 
-  if (search.get('type') === 'recovery') return 'recovery';
-  if (search.get('code')) return 'recovery';
+  const hasCode = !!search.get('code');
+  const hasTokens = !!(hash.get('access_token') && hash.get('refresh_token'));
+
+  if (hasCode || hasTokens) {
+    return typeFromPath(pathname) ?? null;
+  }
 
   return null;
 }

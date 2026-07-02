@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Heart, ShoppingBag, BookOpen } from 'lucide-react';
 import type { Book } from '../../data/books';
@@ -7,23 +7,48 @@ interface FeaturedBookHeroProps {
   book: Book;
   highlights: string[];
   darkMode: boolean;
-  /** Optional carousel — additional featured titles */
   books?: Book[];
 }
+
+const AUTOPLAY_MS = 5500;
 
 export function FeaturedBookHero({ book, highlights, darkMode, books = [] }: FeaturedBookHeroProps) {
   const slides = books.length > 0 ? books : [book];
   const [index, setIndex] = useState(0);
+  const [paused, setPaused] = useState(false);
+  const resumeTimer = useRef<number | null>(null);
   const current = slides[index] ?? book;
   const hasCarousel = slides.length > 1;
 
-  const prev = () => setIndex((i) => (i - 1 + slides.length) % slides.length);
-  const next = () => setIndex((i) => (i + 1) % slides.length);
+  const goTo = (next: number) => setIndex((next + slides.length) % slides.length);
+  const prev = () => goTo(index - 1);
+  const next = () => goTo(index + 1);
+
+  const pauseAutoplay = () => {
+    setPaused(true);
+    if (resumeTimer.current) window.clearTimeout(resumeTimer.current);
+    resumeTimer.current = window.setTimeout(() => setPaused(false), AUTOPLAY_MS * 2);
+  };
+
+  useEffect(() => {
+    if (!hasCarousel || paused) return;
+    const timer = window.setInterval(() => {
+      setIndex((i) => (i + 1) % slides.length);
+    }, AUTOPLAY_MS);
+    return () => window.clearInterval(timer);
+  }, [hasCarousel, paused, slides.length]);
+
+  useEffect(() => () => {
+    if (resumeTimer.current) window.clearTimeout(resumeTimer.current);
+  }, []);
 
   return (
     <section
       aria-labelledby="featured-book-heading"
       className={`relative overflow-hidden ${darkMode ? 'bg-navy-900' : 'bg-gradient-to-br from-navy-700 via-navy-800 to-navy-900'}`}
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+      onFocusCapture={pauseAutoplay}
     >
       <div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-gold-400 via-transparent to-transparent pointer-events-none" />
       <div className="section-container relative py-16 lg:py-24">
@@ -63,7 +88,7 @@ export function FeaturedBookHero({ book, highlights, darkMode, books = [] }: Fea
             </div>
             {hasCarousel && (
               <div className="flex items-center gap-3 mt-8">
-                <button type="button" onClick={prev} className="p-2 rounded-lg border border-white/20 hover:bg-white/10" aria-label="Previous featured book">
+                <button type="button" onClick={() => { pauseAutoplay(); prev(); }} className="p-2 rounded-lg border border-white/20 hover:bg-white/10" aria-label="Previous featured book">
                   <ChevronLeft className="w-5 h-5" />
                 </button>
                 <div className="flex gap-2">
@@ -71,13 +96,13 @@ export function FeaturedBookHero({ book, highlights, darkMode, books = [] }: Fea
                     <button
                       key={i}
                       type="button"
-                      onClick={() => setIndex(i)}
+                      onClick={() => { pauseAutoplay(); goTo(i); }}
                       className={`w-2.5 h-2.5 rounded-full transition-colors ${i === index ? 'bg-gold-400' : 'bg-white/30'}`}
                       aria-label={`Featured book ${i + 1}`}
                     />
                   ))}
                 </div>
-                <button type="button" onClick={next} className="p-2 rounded-lg border border-white/20 hover:bg-white/10" aria-label="Next featured book">
+                <button type="button" onClick={() => { pauseAutoplay(); next(); }} className="p-2 rounded-lg border border-white/20 hover:bg-white/10" aria-label="Next featured book">
                   <ChevronRight className="w-5 h-5" />
                 </button>
               </div>
@@ -89,7 +114,7 @@ export function FeaturedBookHero({ book, highlights, darkMode, books = [] }: Fea
               <div className="absolute -inset-6 bg-gold-400/20 rounded-[2rem] blur-2xl" />
               <div className="relative bg-white rounded-[1.5rem] p-5 shadow-2xl border border-gold-400/40">
                 <div className="aspect-[2/3] rounded-xl overflow-hidden">
-                  <img src={current.cover} alt={current.title} className="w-full h-full object-contain" loading="lazy" />
+                  <img src={current.cover} alt={current.title} className="w-full h-full object-contain transition-opacity duration-500" loading="lazy" />
                 </div>
               </div>
             </div>

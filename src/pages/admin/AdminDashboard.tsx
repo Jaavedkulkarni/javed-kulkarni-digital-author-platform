@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { useAdmin } from '../../context/AdminContext';
+import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 import { AdminLayout } from './AdminLayout';
-import { Link } from 'react-router-dom';
+import { adminPathFromView } from '../../lib/adminPaths';
 import {
   BookOpen,
   CheckCircle2,
@@ -53,7 +53,7 @@ const STATUS_LABELS: Record<string, string> = {
 };
 
 export function AdminDashboard() {
-  const { setCurrentView } = useAdmin();
+  const navigate = useNavigate();
   const [stats, setStats] = useState<Stats>({
     totalArticles: 0,
     publishedArticles: 0,
@@ -125,7 +125,7 @@ export function AdminDashboard() {
       icon: BookOpen,
       iconColor: 'text-blue-400',
       iconBg: 'bg-blue-500/10',
-      action: () => setCurrentView('articles'),
+      action: () => navigate(adminPathFromView('articles')),
     },
     {
       label: 'प्रकाशित',
@@ -133,7 +133,7 @@ export function AdminDashboard() {
       icon: CheckCircle2,
       iconColor: 'text-emerald-400',
       iconBg: 'bg-emerald-500/10',
-      action: () => setCurrentView('articles'),
+      action: () => navigate(adminPathFromView('articles')),
     },
     {
       label: 'ड्राफ्ट',
@@ -141,7 +141,7 @@ export function AdminDashboard() {
       icon: FileText,
       iconColor: 'text-yellow-400',
       iconBg: 'bg-yellow-500/10',
-      action: () => setCurrentView('articles'),
+      action: () => navigate(adminPathFromView('articles')),
     },
     {
       label: 'श्रेणी',
@@ -149,7 +149,7 @@ export function AdminDashboard() {
       icon: FolderOpen,
       iconColor: 'text-purple-400',
       iconBg: 'bg-purple-500/10',
-      action: () => setCurrentView('categories'),
+      action: () => navigate(adminPathFromView('categories')),
     },
     {
       label: 'वाचक क्लब',
@@ -157,7 +157,7 @@ export function AdminDashboard() {
       icon: Mail,
       iconColor: 'text-gold-400',
       iconBg: 'bg-gold-500/10',
-      action: () => setCurrentView('subscribers'),
+      action: () => navigate(adminPathFromView('subscribers')),
     },
     {
       label: 'एकूण Views',
@@ -180,7 +180,7 @@ export function AdminDashboard() {
           </p>
         </div>
         <button
-          onClick={() => setCurrentView('create' as any)}
+          onClick={() => navigate(adminPathFromView('create'))}
           className="inline-flex items-center gap-2 px-4 py-2.5 bg-gold-500 hover:bg-gold-400 text-navy-900 font-semibold text-sm rounded-lg transition-colors shadow-lg shadow-gold-500/20"
         >
           <Plus className="w-4 h-4" />
@@ -235,7 +235,7 @@ export function AdminDashboard() {
             <h2 className="text-white font-semibold">अलीकडील लेख</h2>
           </div>
           <button
-            onClick={() => setCurrentView('articles')}
+            onClick={() => navigate(adminPathFromView('articles'))}
             className="flex items-center gap-1 text-xs text-gold-400 hover:text-gold-300 transition-colors font-medium"
           >
             सर्व पहा
@@ -262,7 +262,7 @@ export function AdminDashboard() {
             <BookOpen className="w-12 h-12 text-navy-600 mx-auto mb-3" />
             <p className="text-gray-500 font-medium">अजून कोणतेही लेख नाही</p>
             <button
-              onClick={() => setCurrentView('create' as any)}
+              onClick={() => navigate(adminPathFromView('create'))}
               className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-gold-500/10 text-gold-400 rounded-lg text-sm font-medium hover:bg-gold-500/20 transition-colors"
             >
               <Plus className="w-4 h-4" />
@@ -304,7 +304,7 @@ export function AdminDashboard() {
                           {format(new Date(article.published_at ?? article.created_at), 'd MMM yyyy')}
                         </span>
                       </div>
-                      <ArticleActions article={article} onDelete={handleDelete} deletingId={deletingId} setCurrentView={setCurrentView} />
+                      <ArticleActions article={article} onDelete={handleDelete} deletingId={deletingId} onEdit={() => navigate(adminPathFromView('articles'))} />
                     </div>
                   </div>
 
@@ -341,7 +341,7 @@ export function AdminDashboard() {
 
                     {/* Actions */}
                     <div className="flex items-center justify-end">
-                      <ArticleActions article={article} onDelete={handleDelete} deletingId={deletingId} setCurrentView={setCurrentView} />
+                      <ArticleActions article={article} onDelete={handleDelete} deletingId={deletingId} onEdit={() => navigate(adminPathFromView('articles'))} />
                     </div>
                   </div>
                 </div>
@@ -358,12 +358,12 @@ function ArticleActions({
   article,
   onDelete,
   deletingId,
-  setCurrentView,
+  onEdit,
 }: {
   article: RecentArticle;
   onDelete: (id: string) => void;
   deletingId: string | null;
-  setCurrentView: (v: any) => void;
+  onEdit: () => void;
 }) {
   return (
     <div className="flex items-center gap-1">
@@ -378,7 +378,7 @@ function ArticleActions({
         </Link>
       )}
       <button
-        onClick={() => setCurrentView('articles')}
+        onClick={onEdit}
         className="p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-navy-600 transition-colors"
         title="Edit"
       >
