@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAdmin } from '../../context/AdminContext';
-import { isAdminUser } from '../../lib/authRoles';
+import { useRoles } from '../../context/RoleContext';
 import { consumeAdminReturnTo } from '../../lib/authRedirect';
+import { getPostLoginPath } from '../../lib/roleRedirect';
 
 export function AdminLogin() {
   const { isAuthenticated, user, login } = useAdmin();
+  const { roles, loading: rolesLoading, isStaff } = useRoles();
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -13,10 +15,9 @@ export function AdminLogin() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (isAuthenticated && isAdminUser(user)) {
-      navigate(consumeAdminReturnTo('/admin'), { replace: true });
-    }
-  }, [isAuthenticated, user, navigate]);
+    if (!isAuthenticated || !user || rolesLoading || !isStaff) return;
+    navigate(getPostLoginPath(roles, consumeAdminReturnTo('/admin')), { replace: true });
+  }, [isAuthenticated, user, roles, rolesLoading, isStaff, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,16 +25,14 @@ export function AdminLogin() {
     setLoading(true);
 
     const result = await login(email, password);
-    if (result.success) {
-      navigate(consumeAdminReturnTo('/admin'), { replace: true });
-    } else {
+    if (!result.success) {
       setError(result.error || 'Login failed');
     }
 
     setLoading(false);
   };
 
-  if (isAuthenticated && isAdminUser(user)) {
+  if (isAuthenticated && user && isStaff && !rolesLoading) {
     return null;
   }
 

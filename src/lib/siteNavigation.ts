@@ -13,13 +13,16 @@ import {
   Users,
   PenTool,
   BarChart3,
-  DollarSign,
   Shield,
-  CreditCard,
   FileText,
+  Globe,
+  Mail,
+  Package,
 } from 'lucide-react';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
 import { isReaderUser } from './authRoles';
+import { AUTHOR_PUBLIC_MENU } from './authorPaths';
+import { SUPER_ADMIN_PUBLIC_MENU } from './superAdminPaths';
 
 export interface SiteNavItem {
   id: string;
@@ -28,8 +31,6 @@ export interface SiteNavItem {
   icon: LucideIcon;
   action?: 'logout';
   external?: boolean;
-  /** Reserved for future roles — not rendered until enabled */
-  future?: boolean;
 }
 
 export const PUBLIC_SITE_LINKS = [
@@ -39,7 +40,6 @@ export const PUBLIC_SITE_LINKS = [
   { label: 'Store', path: 'https://www.amazon.in/stores/Javed-Kulkarni/author/B0FP584D9C', external: true },
 ] as const;
 
-/** Horizontal member-area navigation (shown on /reader/* pages) */
 export const MEMBER_AREA_NAV_ITEMS: SiteNavItem[] = [
   { id: 'library', label: 'My Library', path: '/reader/library', icon: BookOpen },
   { id: 'wishlist', label: 'Wishlist', path: '/reader/wishlist', icon: Heart },
@@ -49,47 +49,60 @@ export const MEMBER_AREA_NAV_ITEMS: SiteNavItem[] = [
   { id: 'settings', label: 'Settings', path: '/reader/settings', icon: Settings },
 ];
 
-/** Reader dropdown on public pages — compact subset + logout */
+/** Reader dropdown on public pages */
 export const READER_MENU_ITEMS: SiteNavItem[] = [
-  ...MEMBER_AREA_NAV_ITEMS,
+  { id: 'account', label: 'My Account', path: '/reader/profile', icon: User },
+  { id: 'bookmarks', label: 'Bookmarks', path: '/reader/wishlist', icon: Heart },
+  { id: 'orders', label: 'Orders', path: '/reader/orders', icon: ShoppingBag },
   { id: 'logout', label: 'Logout', icon: LogOut, action: 'logout' },
 ];
 
-/** Admin dropdown when admin visits public site */
 export const ADMIN_MENU_ITEMS: SiteNavItem[] = [
-  { id: 'cms', label: 'CMS', path: '/admin', icon: LayoutDashboard },
-  { id: 'products', label: 'Products', path: '/admin/products', icon: ShoppingBag },
+  { id: 'dashboard', label: 'Dashboard', path: '/admin', icon: LayoutDashboard },
+  { id: 'books', label: 'Books', path: '/admin/books', icon: BookOpen },
+  { id: 'articles', label: 'Articles', path: '/admin/articles', icon: FileText },
   { id: 'media', label: 'Media', path: '/admin/media', icon: Image },
   { id: 'readers', label: 'Readers', path: '/admin/subscribers', icon: Users },
-  { id: 'settings', label: 'Settings', path: '/admin/settings', icon: Settings },
+  { id: 'logout', label: 'Logout', icon: LogOut, action: 'logout' },
 ];
 
-/** Future roles — architecture only */
-export const AUTHOR_MENU_ITEMS: SiteNavItem[] = [
-  { id: 'studio', label: 'Author Studio', path: '/author/studio', icon: PenTool, future: true },
-  { id: 'books', label: 'My Books', path: '/author/books', icon: BookOpen, future: true },
-  { id: 'analytics', label: 'Analytics', path: '/author/analytics', icon: BarChart3, future: true },
-  { id: 'sales', label: 'Sales', path: '/author/sales', icon: DollarSign, future: true },
-];
+export const AUTHOR_MENU_ITEMS: SiteNavItem[] = AUTHOR_PUBLIC_MENU;
 
-export const SUPER_ADMIN_MENU_ITEMS: SiteNavItem[] = [
-  { id: 'system', label: 'System', path: '/super/system', icon: Shield, future: true },
-  { id: 'users', label: 'Users', path: '/super/users', icon: Users, future: true },
-  { id: 'roles', label: 'Roles', path: '/super/roles', icon: Settings, future: true },
-  { id: 'payments', label: 'Payments', path: '/super/payments', icon: CreditCard, future: true },
-  { id: 'logs', label: 'Logs', path: '/super/logs', icon: FileText, future: true },
-];
+export const SUPER_ADMIN_MENU_ITEMS: SiteNavItem[] = SUPER_ADMIN_PUBLIC_MENU;
 
 export type NavRole = 'guest' | 'reader' | 'admin' | 'author' | 'super_admin';
 
-export function resolveNavRole(user: SupabaseUser | null, isReaderAuthenticated: boolean): NavRole {
+export function resolveNavRole(
+  user: SupabaseUser | null,
+  isReaderAuthenticated: boolean,
+  navRoleFromRoles?: NavRole
+): NavRole {
+  if (navRoleFromRoles && navRoleFromRoles !== 'guest') return navRoleFromRoles;
   if (!user) return 'guest';
   if (isReaderAuthenticated && isReaderUser(user)) return 'reader';
   return 'guest';
 }
 
-/** Public header shows reader menu only — admin auth is separate at /admin/login */
 export function getPublicAuthenticatedMenuItems(role: NavRole): SiteNavItem[] {
-  if (role === 'reader') return READER_MENU_ITEMS;
-  return [];
+  switch (role) {
+    case 'super_admin':
+      return SUPER_ADMIN_MENU_ITEMS;
+    case 'admin':
+      return ADMIN_MENU_ITEMS;
+    case 'author':
+      return AUTHOR_MENU_ITEMS;
+    case 'reader':
+      return READER_MENU_ITEMS;
+    default:
+      return [];
+  }
+}
+
+export function getNavDisplayName(role: NavRole, profileName?: string | null, email?: string | null): string {
+  if (profileName) return profileName;
+  if (email) return email.split('@')[0];
+  if (role === 'super_admin') return 'Super Admin';
+  if (role === 'admin') return 'Admin';
+  if (role === 'author') return 'Author';
+  return 'Reader';
 }

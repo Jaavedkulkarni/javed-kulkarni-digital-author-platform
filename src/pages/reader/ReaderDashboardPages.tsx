@@ -75,3 +75,11 @@ export function ReaderMembershipPage() {
     </PublicSiteLayout>
   );
 }
+
+export function ReaderOrdersPage() {
+  return (
+    <PublicSiteLayout title="Orders" memberArea>
+      <ReaderPlaceholder title="Orders" description="Your purchase history and order tracking will appear here." />
+    </PublicSiteLayout>
+  );
+}

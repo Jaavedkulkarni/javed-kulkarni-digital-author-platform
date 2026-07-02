@@ -1,40 +1,75 @@
 import type { User } from '@supabase/supabase-js';
+import type { SystemRole } from '../types/roles';
+import {
+  canManageBlog,
+  canManageBooks,
+  canManageMedia,
+  canManageReaders,
+  canManageSettings,
+  canManageUsers,
+  canManageWebsite,
+  hasPermission,
+  isAdmin,
+  isAuthor,
+  isReader,
+  isSuperAdmin,
+  legacyAdminMetadataNeedsRepair,
+  legacyIsAdminUser,
+  legacyIsReaderUser,
+  resolveLegacyRolesFromUser,
+} from './permissions';
 
-export type AppRole = 'reader' | 'admin';
+export type AppRole = SystemRole;
 
-/** Known admin accounts when no profiles/admin table exists. */
-const ADMIN_EMAILS = ['jaavedkulkarni@gmail.com'];
+export { LEGACY_SUPER_ADMIN_EMAILS as ADMIN_EMAILS, isLegacySuperAdminEmail as isAdminEmail } from './permissions';
 
-export function isAdminEmail(email: string | null | undefined): boolean {
-  if (!email) return false;
-  const normalized = email.trim().toLowerCase();
-  return ADMIN_EMAILS.some((adminEmail) => adminEmail.toLowerCase() === normalized);
+/** Sync role resolution — prefers DB roles via RoleContext when available. */
+export function getUserRolesFromLegacy(user: User | null | undefined): SystemRole[] {
+  return resolveLegacyRolesFromUser(user);
 }
 
-export function getUserRole(user: User | null | undefined): AppRole | null {
-  if (!user) return null;
-  if (isAdminEmail(user.email)) return 'admin';
-
-  const role = user.user_metadata?.role as string | undefined;
-  if (role === 'reader') return 'reader';
-  if (role === 'admin') return 'admin';
+export function getUserRole(user: User | null | undefined): SystemRole | null {
+  const roles = resolveLegacyRolesFromUser(user);
+  if (roles.includes('super_admin')) return 'super_admin';
+  if (roles.includes('admin')) return 'admin';
+  if (roles.includes('author')) return 'author';
+  if (user?.user_metadata?.role === 'reader') return 'reader';
   return null;
 }
 
-/** Legacy Supabase users without role metadata are treated as admins. */
 export function isAdminUser(user: User | null | undefined): boolean {
-  if (!user) return false;
-  if (isAdminEmail(user.email)) return true;
-  const role = getUserRole(user);
-  return role === 'admin' || role === null;
+  return legacyIsAdminUser(user);
 }
 
 export function isReaderUser(user: User | null | undefined): boolean {
-  if (!user || isAdminEmail(user.email)) return false;
-  return getUserRole(user) === 'reader';
+  return legacyIsReaderUser(user);
 }
 
-/** Repair admin metadata if a reader OAuth flow incorrectly stamped role=reader. */
-export function adminMetadataNeedsRepair(user: User): boolean {
-  return isAdminEmail(user.email) && user.user_metadata?.role === 'reader';
+export function isSuperAdminUser(user: User | null | undefined): boolean {
+  if (!user) return false;
+  return resolveLegacyRolesFromUser(user).includes('super_admin');
 }
+
+export function isAuthorUser(user: User | null | undefined): boolean {
+  if (!user) return false;
+  return resolveLegacyRolesFromUser(user).includes('author');
+}
+
+export function adminMetadataNeedsRepair(user: User): boolean {
+  return legacyAdminMetadataNeedsRepair(user);
+}
+
+export {
+  isSuperAdmin,
+  isAuthor,
+  isAdmin,
+  isReader,
+  hasPermission,
+  canManageBooks,
+  canManageBlog,
+  canManageUsers,
+  canManageWebsite,
+  canManageSettings,
+  canManageMedia,
+  canManageReaders,
+} from './permissions';

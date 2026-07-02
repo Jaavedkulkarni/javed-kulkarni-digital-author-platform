@@ -2,7 +2,9 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import type { Session } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 import { AdminView } from '../types/blog';
-import { adminMetadataNeedsRepair, isAdminUser } from '../lib/authRoles';
+import { adminMetadataNeedsRepair } from '../lib/authRoles';
+import { mergeRoles, resolveLegacyRolesFromUser, isStaff } from '../lib/permissions';
+import { fetchUserRoles } from '../lib/roleService';
 
 interface AdminContextType {
   isAuthenticated: boolean;
@@ -54,12 +56,19 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       if (error) {
         return { success: false, error: error.message };
       }
-      if (!data.user || !isAdminUser(data.user)) {
+      if (!data.user) {
+        await supabase.auth.signOut();
+        return { success: false, error: 'Login failed.' };
+      }
+
+      const dbRoles = await fetchUserRoles(data.user.id);
+      const roles = mergeRoles(dbRoles, resolveLegacyRolesFromUser(data.user));
+      if (!isStaff(roles)) {
         await supabase.auth.signOut();
         setIsAuthenticated(false);
         setUser(null);
         setSession(null);
-        return { success: false, error: 'This account does not have admin access.' };
+        return { success: false, error: 'This account does not have staff access.' };
       }
       setUser(data.user);
       setSession(data.session);

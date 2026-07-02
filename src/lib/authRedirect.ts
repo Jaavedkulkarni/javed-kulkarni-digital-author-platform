@@ -29,7 +29,9 @@ export function shouldStoreReaderReturn(pathname: string): boolean {
 }
 
 export function shouldStoreAdminReturn(pathname: string): boolean {
-  if (!pathname.startsWith('/admin')) return false;
+  if (!pathname.startsWith('/admin') && !pathname.startsWith('/super') && !pathname.startsWith('/author')) {
+    return false;
+  }
   return !ADMIN_AUTH_PREFIXES.some((p) => pathname.startsWith(p));
 }
 
@@ -67,7 +69,11 @@ export function consumeReaderReturnTo(fallback = '/'): string {
 export function consumeAdminReturnTo(fallback = '/admin'): string {
   const stored = sessionStorage.getItem(ADMIN_RETURN_KEY);
   sessionStorage.removeItem(ADMIN_RETURN_KEY);
-  if (stored && isSafeReturnPath(stored.split('?')[0]) && stored.startsWith('/admin')) {
+  if (
+    stored &&
+    isSafeReturnPath(stored.split('?')[0]) &&
+    (stored.startsWith('/admin') || stored.startsWith('/super') || stored.startsWith('/author'))
+  ) {
     return stored;
   }
   return fallback;
@@ -85,6 +91,8 @@ export function isPublicPath(pathname: string): boolean {
   if (!pathname || pathname === '/') return true;
   if (pathname.startsWith('/reader')) return false;
   if (pathname.startsWith('/admin')) return false;
+  if (pathname.startsWith('/author')) return false;
+  if (pathname.startsWith('/super')) return false;
   if (READER_AUTH_PREFIXES.some((p) => pathname.startsWith(p))) return false;
   return true;
 }

@@ -1,10 +1,12 @@
 import { useState, useRef, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useReader } from '../../context/ReaderContext';
+import { useRoles } from '../../context/RoleContext';
 import { useAuthModal } from '../../context/AuthModalContext';
 import { useToast } from '../../context/ToastContext';
 import { consumeLastPublicPage, isPublicPath, markLoggingOut, clearLoggingOut } from '../../lib/authRedirect';
 import {
+  getNavDisplayName,
   getPublicAuthenticatedMenuItems,
   resolveNavRole,
   type SiteNavItem,
@@ -18,7 +20,8 @@ interface PublicAuthNavProps {
 }
 
 export function PublicAuthNav({ darkMode = false, className = '', onNavigate }: PublicAuthNavProps) {
-  const { isReaderAuthenticated, signOut, profile, loading, user } = useReader();
+  const { isReaderAuthenticated, signOut, profile, loading: readerLoading, user } = useReader();
+  const { loading: rolesLoading, resolveNavRole: resolveNavRoleFromContext, profile: roleProfile } = useRoles();
   const { openMembersLogin } = useAuthModal();
   const { showToast } = useToast();
   const location = useLocation();
@@ -83,15 +86,19 @@ export function PublicAuthNav({ darkMode = false, className = '', onNavigate }: 
     );
   };
 
-  if (loading) {
+  if (readerLoading || rolesLoading) {
     return <div className={`h-9 w-24 rounded-lg bg-navy-700/30 animate-pulse ${className}`} />;
   }
 
-  const navRole = resolveNavRole(user, isReaderAuthenticated);
+  const navRole = resolveNavRole(user, isReaderAuthenticated, resolveNavRoleFromContext(isReaderAuthenticated));
   const menuItems = getPublicAuthenticatedMenuItems(navRole);
 
-  if (navRole === 'reader') {
-    const displayName = profile?.display_name || 'Reader';
+  if (navRole !== 'guest') {
+    const displayName = getNavDisplayName(
+      navRole,
+      profile?.display_name ?? roleProfile?.full_name,
+      user?.email
+    );
     const initials = displayName.charAt(0).toUpperCase();
 
     return (
@@ -99,7 +106,7 @@ export function PublicAuthNav({ darkMode = false, className = '', onNavigate }: 
         <button
           type="button"
           onClick={() => setOpen(!open)}
-          className={`${btnCls} inline-flex items-center gap-2 max-w-[180px]`}
+          className={`${btnCls} inline-flex items-center gap-2 max-w-[200px]`}
         >
           {profile?.avatar ? (
             <img src={profile.avatar} alt="" className="w-7 h-7 rounded-full object-cover" />
