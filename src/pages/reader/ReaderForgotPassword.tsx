@@ -16,7 +16,7 @@ export function ReaderForgotPassword() {
     <PublicSiteLayout title="Forgot Password">
       <div className="max-w-md mx-auto">
         <ReaderAuthShell title="Forgot Password" subtitle="Reset link will be sent to your email" embedded>
-          <ReaderForgotPasswordForm onBackToSignIn={() => openAuthModal('sign-in')} />
+          <ReaderForgotPasswordForm onBackToSignIn={() => openAuthModal('email')} />
         </ReaderAuthShell>
       </div>
     </PublicSiteLayout>

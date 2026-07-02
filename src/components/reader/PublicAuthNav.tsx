@@ -2,9 +2,10 @@ import { useState, useRef, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useReader } from '../../context/ReaderContext';
 import { useAuthModal } from '../../context/AuthModalContext';
-import { consumeLastPublicPage, isPublicPath } from '../../lib/authRedirect';
+import { useToast } from '../../context/ToastContext';
+import { consumeLastPublicPage, isPublicPath, markLoggingOut, clearLoggingOut } from '../../lib/authRedirect';
 import {
-  getAuthenticatedMenuItems,
+  getPublicAuthenticatedMenuItems,
   resolveNavRole,
   type SiteNavItem,
 } from '../../lib/siteNavigation';
@@ -18,7 +19,8 @@ interface PublicAuthNavProps {
 
 export function PublicAuthNav({ darkMode = false, className = '', onNavigate }: PublicAuthNavProps) {
   const { isReaderAuthenticated, signOut, profile, loading, user } = useReader();
-  const { openAuthModal } = useAuthModal();
+  const { openMembersLogin } = useAuthModal();
+  const { showToast } = useToast();
   const location = useLocation();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
@@ -42,13 +44,18 @@ export function PublicAuthNav({ darkMode = false, className = '', onNavigate }: 
 
   const handleLogout = async () => {
     setOpen(false);
+    markLoggingOut();
     const onPublicPage = isPublicPath(location.pathname);
     const destination = onPublicPage ? null : consumeLastPublicPage('/');
-    await signOut();
-    onNavigate?.();
-    if (destination && location.pathname !== destination.split('?')[0]) {
+
+    if (!onPublicPage && destination) {
       navigate(destination, { replace: true });
     }
+
+    await signOut();
+    clearLoggingOut();
+    showToast('✓ Successfully Logged Out');
+    onNavigate?.();
   };
 
   const menuLinkCls = `flex items-center gap-2 px-3 py-2 text-sm rounded-lg transition-colors ${
@@ -81,15 +88,10 @@ export function PublicAuthNav({ darkMode = false, className = '', onNavigate }: 
   }
 
   const navRole = resolveNavRole(user, isReaderAuthenticated);
-  const menuItems = getAuthenticatedMenuItems(navRole);
+  const menuItems = getPublicAuthenticatedMenuItems(navRole);
 
-  if (navRole !== 'guest') {
-    const displayName =
-      navRole === 'reader'
-        ? profile?.display_name || 'Reader'
-        : navRole === 'admin'
-          ? 'Admin'
-          : 'Account';
+  if (navRole === 'reader') {
+    const displayName = profile?.display_name || 'Reader';
     const initials = displayName.charAt(0).toUpperCase();
 
     return (
@@ -99,7 +101,7 @@ export function PublicAuthNav({ darkMode = false, className = '', onNavigate }: 
           onClick={() => setOpen(!open)}
           className={`${btnCls} inline-flex items-center gap-2 max-w-[180px]`}
         >
-          {profile?.avatar && navRole === 'reader' ? (
+          {profile?.avatar ? (
             <img src={profile.avatar} alt="" className="w-7 h-7 rounded-full object-cover" />
           ) : (
             <span className="w-7 h-7 rounded-full bg-gold-500/20 text-gold-400 text-xs font-bold flex items-center justify-center">
@@ -125,15 +127,12 @@ export function PublicAuthNav({ darkMode = false, className = '', onNavigate }: 
 
   return (
     <div className={`flex items-center gap-1 ${className}`}>
-      <button type="button" onClick={() => { openAuthModal('sign-in'); onNavigate?.(); }} className={btnCls}>
-        Sign In
-      </button>
       <button
         type="button"
-        onClick={() => { openAuthModal('sign-up'); onNavigate?.(); }}
-        className="px-3 py-2 rounded-lg font-medium text-sm bg-gold-500 text-navy-900 hover:bg-gold-400 transition-colors"
+        onClick={() => { openMembersLogin(); onNavigate?.(); }}
+        className="px-4 py-2 rounded-lg font-medium text-sm bg-gold-500 text-navy-900 hover:bg-gold-400 transition-colors"
       >
-        Sign Up
+        Members Login
       </button>
     </div>
   );

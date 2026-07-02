@@ -24,6 +24,7 @@ interface ReaderContextType {
   loading: boolean;
   signUp: (data: ReaderSignupData) => Promise<{ success: boolean; error?: string; needsVerification?: boolean }>;
   signIn: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  signInWithOAuth: (provider: 'google' | 'azure' | 'facebook') => Promise<{ success: boolean; error?: string }>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<{ success: boolean; error?: string }>;
   updatePassword: (password: string) => Promise<{ success: boolean; error?: string }>;
@@ -118,6 +119,20 @@ export function ReaderProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const signInWithOAuth = async (provider: 'google' | 'azure' | 'facebook') => {
+    try {
+      const redirectTo = `${SITE_URL}${window.location.pathname}${window.location.search}`;
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: { redirectTo },
+      });
+      if (error) return { success: false, error: error.message };
+      return { success: true };
+    } catch {
+      return { success: false, error: 'Social sign-in failed. Please try again.' };
+    }
+  };
+
   const signOut = async () => {
     await supabase.auth.signOut();
     setProfile(null);
@@ -174,6 +189,7 @@ export function ReaderProvider({ children }: { children: ReactNode }) {
         loading,
         signUp,
         signIn,
+        signInWithOAuth,
         signOut,
         resetPassword,
         updatePassword,

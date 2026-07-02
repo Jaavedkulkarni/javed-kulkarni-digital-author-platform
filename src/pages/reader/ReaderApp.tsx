@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { useReader } from '../../context/ReaderContext';
 import { isAdminUser } from '../../lib/authRoles';
-import { storeReaderProtectedReturn } from '../../lib/authRedirect';
+import { storeReaderProtectedReturn, isLoggingOut } from '../../lib/authRedirect';
 import { useAuthModal } from '../../context/AuthModalContext';
 import { PublicSiteLayout } from '../../components/layout/PublicSiteLayout';
 import { ReaderSignIn } from './ReaderSignIn';
@@ -24,14 +24,15 @@ import { ShieldAlert } from 'lucide-react';
 
 function ReaderProtected({ children }: { children: React.ReactNode }) {
   const { isReaderAuthenticated, loading, user } = useReader();
-  const { openAuthModal } = useAuthModal();
+  const { openMembersLogin } = useAuthModal();
   const location = useLocation();
 
   useEffect(() => {
     if (loading || isReaderAuthenticated) return;
+    if (isLoggingOut()) return;
     storeReaderProtectedReturn(location.pathname, location.search);
-    openAuthModal('sign-in');
-  }, [loading, isReaderAuthenticated, location.pathname, location.search, openAuthModal]);
+    openMembersLogin();
+  }, [loading, isReaderAuthenticated, location.pathname, location.search, openMembersLogin]);
 
   if (loading) {
     return (
@@ -67,10 +68,10 @@ function ReaderProtected({ children }: { children: React.ReactNode }) {
           <p className="text-gray-400 text-sm mb-4">Please sign in to access this page.</p>
           <button
             type="button"
-            onClick={() => openAuthModal('sign-in')}
+            onClick={() => openMembersLogin()}
             className="px-4 py-2 rounded-lg bg-gold-500 text-navy-900 font-semibold hover:bg-gold-400"
           >
-            Sign In
+            Members Login
           </button>
         </div>
       </PublicSiteLayout>

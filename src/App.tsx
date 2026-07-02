@@ -14,26 +14,18 @@ import {
   ExternalLink,
   User,
   PenTool,
-  Users,
   Heart,
   MessageCircle,
   Sparkles,
-  MonitorSmartphone,
-  Baby,
-  BookHeart,
-  Ghost,
-  Lightbulb,
-  Send,
   ArrowRight,
-  ShoppingBag,
   Award,
-  Globe,
-  Quote,
   Instagram,
   Facebook,
 } from 'lucide-react';
 import { BlogProvider } from './context/BlogContext';
 import { ReaderProvider } from './context/ReaderContext';
+import { ThemeProvider, useTheme } from './context/ThemeContext';
+import { ToastProvider } from './context/ToastContext';
 import { AuthModalProvider } from './context/AuthModalContext';
 import { AuthRouteEffects } from './components/auth/AuthRouteEffects';
 import { AdminProvider } from './context/AdminContext';
@@ -42,8 +34,10 @@ import {
   getHomepageInitialData,
   loadHomepageBookData,
 } from './lib/publicBooks';
+import { HomePageContent } from './components/home/HomePageContent';
 
 // Lazy load blog, book and admin pages
+const LegalPage = lazy(() => import('./pages/LegalPage').then(m => ({ default: m.LegalPage })));
 const BlogHome = lazy(() => import('./pages/blog/BlogHome'));
 const BlogDynamicPage = lazy(() => import('./pages/blog/BlogDynamicPage'));
 const SearchPage = lazy(() => import('./pages/blog/SearchPage').then(m => ({ default: m.SearchPage })));
@@ -58,49 +52,13 @@ const AMAZON_AUTHOR_URL = 'https://www.amazon.in/stores/Javed-Kulkarni/author/B0
 const INSTAGRAM_URL = 'https://instagram.com/authorjavedkulkarni';
 const FACEBOOK_URL = 'https://facebook.com/authorjavedkulkarni';
 
-const readerCards = [
-  { icon: Users, text: 'पालकांसाठी', desc: 'पालकत्वावरील अंतर्दृष्टी' },
-  { icon: PenTool, text: 'विद्यार्थ्यांसाठी', desc: 'शैक्षणिक मार्गदर्शन' },
-  { icon: Lightbulb, text: 'आत्मविकास शोधणाऱ्यांसाठी', desc: 'व्यक्तिगत विकास' },
-  { icon: MonitorSmartphone, text: 'डिजिटल युग समजून घेऊ इच्छिणाऱ्यांसाठी', desc: 'तंत्रज्ञान आणि जीवन' },
-  { icon: BookHeart, text: 'कथा आणि कादंबरी प्रेमींसाठी', desc: 'साहित्यिक सफर' },
-  { icon: Ghost, text: 'भयकथा व कल्पनारम्य साहित्य वाचकांसाठी', desc: 'रोमांचक कथा' },
-];
-
-const categoryUiBySlug: Record<
-  string,
-  { icon: typeof Lightbulb; color: string }
-> = {
-  atmvikas: { icon: Lightbulb, color: 'from-amber-500 to-orange-500' },
-  parenting: { icon: Baby, color: 'from-pink-500 to-rose-500' },
-  'digital-life': { icon: MonitorSmartphone, color: 'from-cyan-500 to-blue-500' },
-  katha: { icon: BookOpen, color: 'from-violet-500 to-purple-500' },
-  horror: { icon: Ghost, color: 'from-slate-600 to-gray-800' },
-  humour: { icon: MessageCircle, color: 'from-green-500 to-emerald-500' },
-};
-
-const homepageInitialData = getHomepageInitialData();
-
-const blogCategories = [
-  { icon: Heart, name: 'नातेसंबंध', color: 'bg-rose-500' },
-  { icon: Users, name: 'पालकत्व', color: 'bg-pink-500' },
-  { icon: MonitorSmartphone, name: 'डिजिटल जीवन', color: 'bg-blue-500' },
-  { icon: Lightbulb, name: 'आत्मविकास', color: 'bg-amber-500' },
-  { icon: Globe, name: 'समाज आणि वास्तव', color: 'bg-teal-500' },
-];
-
 const navLinks = ['Home', 'About', 'Books', 'Categories', 'Blog', 'Amazon', 'Contact'];
 const navLabels = ['मुख्यपृष्ठ', 'माझ्याविषयी', 'पुस्तके', 'पुस्तक श्रेणी', 'ब्लॉग', 'Amazon', 'संपर्क'];
 
-const readerTrustCards = [
-  { emoji: '📚', value: '8+', label: 'Published Books' },
-  { emoji: '✍️', value: '100+', label: 'Articles & Blogs' },
-  { emoji: '🛒', value: 'Amazon', label: 'Published Author' },
-  { emoji: '❤️', value: 'Growing Reader Community', label: 'विश्वासार्ह वाचक समुदाय' },
-];
+const homepageInitialData = getHomepageInitialData();
 
 function MainWebsite() {
-  const [darkMode, setDarkMode] = useState(false);
+  const { darkMode, toggleDarkMode } = useTheme();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [homeBooks, setHomeBooks] = useState(homepageInitialData.books);
@@ -132,14 +90,6 @@ function MainWebsite() {
       cancelled = true;
     };
   }, []);
-
-  useEffect(() => {
-    if (darkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  }, [darkMode]);
 
   const scrollToSection = (id: string) => {
     if (id === 'blog') return;
@@ -230,7 +180,7 @@ function MainWebsite() {
                 <PublicAuthNav darkMode={darkMode} />
               </div>
               <button
-                onClick={() => setDarkMode(!darkMode)}
+                onClick={toggleDarkMode}
                 className={`p-2.5 rounded-lg transition-all duration-200 ${
                   darkMode
                     ? 'bg-navy-800 text-gold-400 hover:bg-navy-700'
@@ -430,927 +380,23 @@ function MainWebsite() {
           </div>
       </section>
 
-      {/* Writing Journey Welcome Section */}
-      <section
-        aria-label="माझ्या लेखन प्रवासात आपले स्वागत"
-        className={`py-20 lg:py-28 ${darkMode ? 'bg-navy-800/50' : 'bg-gray-50'}`}
-      >
-        <div className="section-container">
-          <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
-            {/* Left — Narrative */}
-            <div className="order-2 lg:order-1 text-center lg:text-left">
-              <div
-                className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium mb-6 animate-fade-in ${
-                  darkMode
-                    ? 'bg-gold-400/10 text-gold-400 border border-gold-500/30'
-                    : 'bg-gold-100 text-gold-700 border border-gold-200'
-                }`}
-              >
-                <span aria-hidden="true">✦</span>
-                <span>लेखन प्रवास</span>
-              </div>
-
-              <p
-                className={`text-2xl sm:text-3xl font-bold mb-3 animate-slide-up ${
-                  darkMode ? 'text-gold-400' : 'text-gold-600'
-                }`}
-              >
-                माझ्या लेखन प्रवासात आपले स्वागत
-              </p>
-
-              <h2
-                className={`text-3xl sm:text-4xl lg:text-[2.5rem] font-display font-semibold leading-snug mb-8 animate-slide-up animation-delay-100 ${
-                  darkMode ? 'text-white' : 'text-navy-800'
-                }`}
-              >
-                प्रत्येक पुस्तक एका प्रश्नातून जन्म घेतं.
-              </h2>
-
-              <div className="space-y-5 text-lg leading-relaxed">
-                <p
-                  className={`animate-slide-up animation-delay-200 ${
-                    darkMode ? 'text-gray-300' : 'text-gray-700'
-                  }`}
-                >
-                  माझ्यासाठी लेखन म्हणजे केवळ कथा सांगणे नाही — ते माणसांच्या मनातील प्रश्नांना
-                  आकार देणे, अनुभवांना शब्द देणे आणि जीवनाशी संवाद साधणे आहे. प्रत्येक वाक्य
-                  मागे एक विचार, एक भावना आणि एक हेतू असतो.
-                </p>
-                <p
-                  className={`animate-slide-up animation-delay-300 ${
-                    darkMode ? 'text-gray-300' : 'text-gray-700'
-                  }`}
-                >
-                  पुस्तके वाचकांशी संवाद सुरू करतात — ते विचारांना उजाळा देतात, नव्या दृष्टिकोनाला
-                  जन्म देतात आणि आत्मचिंतनाला वेळ देतात. प्रत्येक पुस्तकाचा एक उद्देश असतो:
-                  वाचकाच्या आयुष्यात काहीतरी सकारात्मक बदल घडवणे.
-                </p>
-                <p
-                  className={`animate-slide-up animation-delay-400 ${
-                    darkMode ? 'text-gray-400' : 'text-gray-600'
-                  }`}
-                >
-                  या प्रवासात आपण माझे सोबती आहात — प्रत्येक वाचक हा माझ्या लेखनाचा भागीदार आहे.
-                  चला, या शब्दांच्या सफरीत एकत्र पुढे जाऊया.
-                </p>
-              </div>
-
-              <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mt-10 animate-scale-in animation-delay-400">
-                <button
-                  type="button"
-                  onClick={() => scrollToSection('books')}
-                  className="btn-primary"
-                >
-                  <BookOpen className="w-5 h-5" aria-hidden="true" />
-                  📚 माझी पुस्तके
-                </button>
-                <Link to="/blog" className="btn-secondary">
-                  <PenTool className="w-5 h-5" aria-hidden="true" />
-                  ✍️ ब्लॉग वाचा
-                </Link>
-              </div>
-            </div>
-
-            {/* Right — Quote Card */}
-            <div className="order-1 lg:order-2 flex justify-center animate-slide-in-right">
-              <div className="relative w-full max-w-md">
-                <div className="absolute -inset-4 bg-gradient-to-br from-gold-400/25 via-navy-500/20 to-gold-600/25 rounded-3xl blur-2xl animate-float" />
-
-                <figure
-                  className={`relative p-8 sm:p-10 rounded-2xl border-2 shadow-2xl ${
-                    darkMode
-                      ? 'bg-gradient-to-br from-navy-800 via-navy-900 to-navy-800 border-gold-500/40 shadow-gold-500/10'
-                      : 'bg-gradient-to-br from-white via-navy-50 to-gold-50/50 border-gold-400/50 shadow-navy-500/10'
-                  }`}
-                >
-                  <Quote
-                    className={`absolute -top-5 left-8 w-10 h-10 p-2 rounded-full shadow-lg animate-float ${
-                      darkMode
-                        ? 'bg-gradient-to-br from-gold-400 to-gold-600 text-navy-900'
-                        : 'bg-gradient-to-br from-gold-400 to-gold-500 text-navy-900'
-                    }`}
-                    aria-hidden="true"
-                  />
-
-                  <blockquote
-                    className={`pt-6 text-xl sm:text-2xl font-display font-semibold leading-relaxed text-center ${
-                      darkMode ? 'text-white' : 'text-navy-800'
-                    }`}
-                  >
-                    "जिथे शब्द संपतात,
-                    <br />
-                    तिथे विचार सुरू होतात."
-                  </blockquote>
-
-                  <figcaption
-                    className={`mt-6 text-center text-base font-medium ${
-                      darkMode ? 'text-gold-400' : 'text-gold-600'
-                    }`}
-                  >
-                    — जावेद कुलकर्णी
-                  </figcaption>
-                </figure>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Featured Book Section */}
-      <section
-        aria-labelledby="featured-book-heading"
-        className={`py-20 lg:py-28 relative overflow-hidden ${darkMode ? 'bg-navy-900' : 'bg-white'}`}
-      >
-        <div
-          className="absolute top-1/2 right-0 -translate-y-1/2 w-full max-w-2xl h-96 bg-gradient-to-bl from-gold-400/15 via-navy-500/10 to-transparent rounded-full blur-3xl pointer-events-none"
-          aria-hidden="true"
-        />
-        <div
-          className="absolute bottom-0 left-0 w-full max-w-xl h-80 bg-gradient-to-tr from-navy-500/10 via-gold-400/10 to-transparent rounded-full blur-3xl pointer-events-none"
-          aria-hidden="true"
-        />
-
-        <div className="section-container relative">
-          <header className="text-center lg:text-left mb-12 lg:mb-16 animate-fade-in">
-            <p
-              className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium mb-5 ${
-                darkMode
-                  ? 'bg-gold-400/10 text-gold-400 border border-gold-500/30'
-                  : 'bg-gold-100 text-gold-700 border border-gold-200'
-              }`}
-            >
-              📖 या महिन्याचं विशेष पुस्तक
-            </p>
-            <h2
-              id="featured-book-heading"
-              className={`text-3xl sm:text-4xl lg:text-5xl font-bold mb-4 ${
-                darkMode ? 'text-white' : 'text-navy-800'
-              }`}
-            >
-              {featuredBook.title}
-            </h2>
-            <p className={`text-lg sm:text-xl max-w-2xl mx-auto lg:mx-0 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-              आजच्या डिजिटल युगात प्रत्येकाने वाचायलाच हवं असं पुस्तक.
-            </p>
-          </header>
-
-          <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
-            {/* Left — Book Cover */}
-            <div className="flex justify-center animate-fade-in">
-              <div className="relative group w-full max-w-sm">
-                <div className="absolute -inset-4 bg-gradient-to-br from-gold-400/20 via-navy-400/15 to-gold-600/20 rounded-3xl blur-2xl opacity-80 group-hover:opacity-100 transition-opacity duration-500" />
-                <div
-                  className={`relative rounded-[22px] overflow-hidden border-4 border-gold-400/50 bg-white p-[18px] shadow-[0_24px_60px_rgba(26,46,93,0.15)] transition-transform duration-500 ease-out group-hover:scale-[1.02] ${
-                    darkMode ? 'shadow-[0_24px_60px_rgba(218,165,32,0.12)]' : ''
-                  }`}
-                >
-                  <div className="relative w-full overflow-hidden rounded-lg" style={{ aspectRatio: '2 / 3' }}>
-                    <img
-                      src={featuredBook.cover}
-                      alt={featuredBook.title}
-                      loading="lazy"
-                      className="w-full h-full object-contain transition-transform duration-700 ease-out group-hover:scale-[1.03]"
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Right — Book Details */}
-            <div className="relative animate-fade-in animation-delay-100">
-              <h3 className={`text-2xl sm:text-3xl font-bold mb-5 ${darkMode ? 'text-white' : 'text-navy-800'}`}>
-                {featuredBook.title}
-              </h3>
-
-              <p className={`text-base sm:text-lg leading-relaxed mb-8 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                {featuredBook.whyRead}
-              </p>
-
-              <ul className="space-y-3 mb-10" aria-label="पुस्तकाचे मुख्य विषय">
-                {featuredBookHighlights.map((point) => (
-                  <li
-                    key={point}
-                    className={`flex items-center gap-3 text-base font-medium ${
-                      darkMode ? 'text-gray-200' : 'text-navy-700'
-                    }`}
-                  >
-                    <span
-                      className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
-                        darkMode
-                          ? 'bg-gold-400/20 text-gold-400'
-                          : 'bg-gold-100 text-gold-700'
-                      }`}
-                      aria-hidden="true"
-                    >
-                      ✓
-                    </span>
-                    {point}
-                  </li>
-                ))}
-              </ul>
-
-              <div className="flex flex-col sm:flex-row gap-4">
-                <a
-                  href={featuredBook.amazonUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="btn-secondary"
-                >
-                  🛒 Amazon वर खरेदी करा
-                </a>
-                <Link to={`/sample/${featuredBook.slug}`} className="btn-primary">
-                  📖 मोफत नमुना वाचा
-                </Link>
-              </div>
-
-              <div className="mt-8">
-                <span
-                  className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold ${
-                    darkMode
-                      ? 'bg-navy-800 text-gold-400 border border-gold-500/30'
-                      : 'bg-navy-50 text-navy-700 border border-navy-200'
-                  }`}
-                >
-                  <Award className="w-4 h-4 text-green-500" aria-hidden="true" />
-                  Amazon Published
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Reader Trust Section */}
-      <section
-        aria-labelledby="reader-trust-heading"
-        className={`py-20 lg:py-28 ${darkMode ? 'bg-navy-800/50' : 'bg-gray-50'}`}
-      >
-        <div className="section-container">
-          <header className="text-center mb-14 lg:mb-16 animate-fade-in">
-            <h2
-              id="reader-trust-heading"
-              className={`text-3xl sm:text-4xl lg:text-5xl font-display font-semibold leading-snug mb-5 ${
-                darkMode ? 'text-white' : 'text-navy-800'
-              }`}
-            >
-              विश्वास... शब्दांचा नाही,
-              <br className="hidden sm:block" />
-              <span className={darkMode ? 'text-gold-400' : 'text-gold-600'}> तर वाचकांचा.</span>
-            </h2>
-            <p className={`text-lg sm:text-xl max-w-3xl mx-auto leading-relaxed ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-              प्रत्येक पुस्तक, प्रत्येक लेख आणि प्रत्येक संवाद हा वाचकांच्या विश्वासामुळेच अर्थपूर्ण ठरतो.
-            </p>
-          </header>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-7">
-            {readerTrustCards.map((card, i) => (
-              <article
-                key={card.label}
-                className={`group flex flex-col items-center text-center p-6 sm:p-8 rounded-2xl border-2 transition-all duration-500 ease-out hover:-translate-y-[6px] animate-fade-in ${
-                  darkMode
-                    ? 'bg-navy-800 border-gold-500/30 shadow-[0_8px_30px_rgb(0,0,0,0.3)] hover:shadow-[0_24px_60px_rgba(218,165,32,0.18)]'
-                    : 'bg-white border-gold-400/40 shadow-[0_8px_30px_rgb(0,0,0,0.06)] hover:shadow-[0_24px_60px_rgba(26,46,93,0.18)]'
-                }`}
-                style={{ animationDelay: `${i * 100}ms` }}
-              >
-                <span className="text-3xl mb-4" aria-hidden="true">
-                  {card.emoji}
-                </span>
-                <p
-                  className={`text-2xl sm:text-3xl font-bold mb-2 leading-tight ${
-                    darkMode ? 'text-white group-hover:text-gold-400' : 'text-navy-800 group-hover:text-navy-600'
-                  } transition-colors duration-300`}
-                >
-                  {card.value}
-                </p>
-                <p className={`text-sm font-medium ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                  {card.label}
-                </p>
-              </article>
-            ))}
-          </div>
-
-          <figure className="mt-16 lg:mt-20 max-w-3xl mx-auto text-center animate-fade-in animation-delay-400">
-            <blockquote
-              className={`text-xl sm:text-2xl font-display font-semibold leading-relaxed ${
-                darkMode ? 'text-white' : 'text-navy-800'
-              }`}
-            >
-              "प्रत्येक वाचक हा माझ्या लेखन प्रवासातील सहप्रवासी आहे."
-            </blockquote>
-            <figcaption
-              className={`mt-5 text-base font-medium ${darkMode ? 'text-gold-400' : 'text-gold-600'}`}
-            >
-              — जावेद कुलकर्णी
-            </figcaption>
-          </figure>
-        </div>
-      </section>
-
-      {/* Tagline Section */}
-      <section className="py-16 bg-gradient-to-r from-navy-500 via-navy-600 to-navy-700 relative overflow-hidden">
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48Y2lyY2xlIGN4PSIyMCIgY3k9IjIwIiByPSIxIiBmaWxsPSJyZ2JhKDI1NSwyNTUsMjU1LDAuMSkiLz48L3N2Zz4=')] opacity-30" />
-        <div className="section-container relative">
-          <div className="text-center">
-            <Quote className="w-12 h-12 mx-auto text-gold-400/50 mb-4" />
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-display font-semibold text-white leading-relaxed">
-              "जिथे शब्द नाही, तर हृदय बोलतं."
-            </h2>
-            <p className="mt-4 text-gold-200 text-lg">— जावेद कुलकर्णी</p>
-          </div>
-        </div>
-      </section>
-
-      {/* About Section */}
-      <section id="about" className={`py-20 lg:py-28 ${darkMode ? 'bg-navy-800/50' : 'bg-gray-50'}`}>
-        <div className="section-container">
-          <div className="max-w-4xl mx-auto">
-            <div className="text-center mb-12">
-              <h2
-                className={`inline-block text-3xl sm:text-4xl font-bold mb-4 ${
-                  darkMode ? 'text-white' : 'text-navy-800'
-                }`}
-              >
-                माझ्याविषयी
-              </h2>
-              <div className="w-20 h-1 bg-gradient-to-r from-gold-400 to-gold-600 mx-auto rounded-full" />
-            </div>
-
-            <div
-              className={`p-8 sm:p-12 rounded-2xl ${
-                darkMode ? 'bg-navy-800' : 'bg-white'
-              } shadow-xl border ${darkMode ? 'border-navy-700' : 'border-gray-100'}`}
-            >
-              <div className="space-y-6 text-lg leading-relaxed">
-                {[
-                  'मी जावेद कुलकर्णी.',
-                  'लेखन ही माझ्यासाठी केवळ अभिव्यक्ती नसून माणसांच्या मनाशी जोडणारी एक यात्रा आहे.',
-                  'नातेसंबंध, पालकत्व, आत्मविकास, डिजिटल युगातील आव्हाने, सामाजिक वास्तव आणि कल्पनारम्य विश्व या विविध विषयांवर मी सातत्याने लेखन करत आहे.',
-                  'माझ्या प्रत्येक पुस्तकामागे एक विचार, एक अनुभव आणि वाचकांच्या आयुष्यात सकारात्मक बदल घडवण्याची प्रामाणिक इच्छा आहे.',
-                  'शब्दांच्या माध्यमातून विचारांची दारे उघडण्याचा आणि वाचकांना स्वतःकडे नव्याने पाहण्याचा हा माझा प्रयत्न आहे.',
-                ].map((text, i) => (
-                  <p
-                    key={i}
-                    className={`animate-slide-up ${
-                      i === 0
-                        ? `font-semibold text-xl ${darkMode ? 'text-gold-400' : 'text-navy-700'}`
-                        : darkMode
-                          ? 'text-gray-300'
-                          : 'text-gray-700'
-                    }`}
-                    style={{ animationDelay: `${i * 100}ms` }}
-                  >
-                    {text}
-                  </p>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      
-      </section>
-
-      {/* Featured Books Section */}
-      <section id="books" className={`py-20 lg:py-28 ${darkMode ? 'bg-navy-900' : 'bg-gray-50'}`}>
-        <div className="section-container">
-          <div className="text-center mb-14">
-            <span className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-medium mb-4 ${
-              darkMode ? 'bg-navy-800 text-gold-400' : 'bg-navy-100 text-navy-600'
-            }`}>
-              <BookOpen className="w-4 h-4" />
-              प्रकाशित पुस्तके
-            </span>
-            <h2
-              className={`text-3xl sm:text-4xl lg:text-5xl font-bold mb-4 ${
-                darkMode ? 'text-white' : 'text-navy-800'
-              }`}
-            >
-              माझी पुस्तके
-            </h2>
-            <p className={`text-base sm:text-lg max-w-2xl mx-auto ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-              विचार, अनुभव आणि शब्दांची सफर — प्रत्येक पुस्तक एक नवा आयाम.
-            </p>
-            <div className="w-20 h-1 bg-gradient-to-r from-gold-400 to-gold-600 mx-auto rounded-full mt-6" />
-          </div>
-
-          {/* Premium Books Grid — 5 / 3 / 1 */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 lg:gap-7">
-            {homeBooks.map((book, i) => (
-              <article
-                key={book.id}
-                className={`group flex flex-col rounded-[22px] overflow-hidden transition-all duration-500 ease-out transform hover:-translate-y-2 ${
-                  darkMode
-                    ? 'bg-navy-800 shadow-[0_8px_30px_rgb(0,0,0,0.3)] hover:shadow-[0_24px_60px_rgba(218,165,32,0.18)] border border-navy-700/50'
-                    : 'bg-white shadow-[0_8px_30px_rgb(0,0,0,0.06)] hover:shadow-[0_24px_60px_rgba(26,46,93,0.18)] border border-gray-100'
-                }`}
-                style={{ animationDelay: `${i * 80}ms` }}
-              >
-                {/* Book Cover — object-contain, 2/3, white bg, 18px padding */}
-                <div className="relative bg-white p-[18px]">
-                  <div className="relative w-full overflow-hidden rounded-lg" style={{ aspectRatio: '2 / 3' }}>
-                  <img
-                    src={book.cover}
-                    alt={book.title}
-                    loading="lazy"
-                    className="w-full h-full object-contain transition-transform duration-700 ease-out group-hover:scale-[1.04]"
-                  />
-                  </div>
-                  {/* Category Badge */}
-                  <span
-                    className={`absolute top-[26px] left-[26px] px-3 py-1 rounded-full text-xs font-semibold backdrop-blur-md ${
-                      darkMode
-                        ? 'bg-navy-900/70 text-gold-400 border border-gold-500/30'
-                        : 'bg-navy-700 text-white border border-gold-400/50 shadow-sm'
-                    }`}
-                  >
-                    {book.category}
-                  </span>
-                </div>
-
-                {/* Book Info */}
-                <div className="flex flex-col flex-1 p-5 pt-4">
-                  <h3
-                    className={`font-bold text-base leading-snug mb-2 line-clamp-2 transition-colors duration-300 ${
-                      darkMode ? 'text-white group-hover:text-gold-400' : 'text-navy-800 group-hover:text-navy-600'
-                    }`}
-                  >
-                    {book.title}
-                  </h3>
-                  <p className={`text-sm leading-relaxed line-clamp-3 mb-5 flex-1 ${
-                    darkMode ? 'text-gray-400' : 'text-gray-600'
-                  }`}>
-                    {book.description}
-                  </p>
-
-                  {/* Buttons */}
-                  <div className="flex flex-col gap-2.5 mt-auto">
-                    <Link
-                      to={`/books/${book.slug}`}
-                      className={`w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-300 ${
-                        darkMode
-                          ? 'bg-navy-700 text-white hover:bg-navy-600'
-                          : 'bg-navy-100 text-navy-700 hover:bg-navy-200'
-                      }`}
-                    >
-                      <BookOpen className="w-4 h-4" />
-                      अधिक वाचा
-                    </Link>
-                    <a
-                      href={book.amazonUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold bg-gradient-to-r from-gold-400 to-gold-500 text-navy-900 hover:from-gold-500 hover:to-gold-600 transition-all duration-300 shadow-sm hover:shadow-md"
-                    >
-                      <ShoppingBag className="w-4 h-4" />
-                      Amazon वर
-                    </a>
-                  </div>
-                </div>
-              </article>
-            ))}
-          </div>
-
-          {/* View All Button */}
-          <div className="text-center mt-14">
-            <a
-              href={AMAZON_AUTHOR_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn-primary"
-            >
-              <BookOpen className="w-5 h-5" />
-              सर्व पुस्तके पहा
-              <ArrowRight className="w-4 h-4" />
-            </a>
-          </div>
-        </div>
-      </section>
-
-      {/* Reader Journey Section */}
-      <section
-        className={`py-20 lg:py-28 ${darkMode ? 'bg-navy-800/50' : 'bg-gray-50'}`}
-        id="categories"
-      >
-        <div className="section-container">
-          <div className="text-center mb-12">
-            <h2
-              className={`inline-block text-3xl sm:text-4xl font-bold mb-4 ${
-                darkMode ? 'text-white' : 'text-navy-800'
-              }`}
-            >
-              माझं लेखन कोणासाठी?
-            </h2>
-            <div className="w-20 h-1 bg-gradient-to-r from-gold-400 to-gold-600 mx-auto rounded-full" />
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {readerCards.map((card, i) => (
-              <div
-                key={i}
-                className={`group p-6 rounded-2xl transition-all duration-300 hover:scale-[1.02] ${
-                  darkMode
-                    ? 'bg-navy-800 hover:bg-navy-700'
-                    : 'bg-white hover:bg-gradient-to-br hover:from-gold-50 hover:to-white shadow-lg hover:shadow-xl'
-                } ${darkMode ? 'border border-navy-700' : ''}`}
-              >
-                <div
-                  className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 transition-transform group-hover:scale-110 ${
-                    darkMode ? 'bg-gold-400/20 text-gold-400' : 'bg-gold-100 text-gold-600'
-                  }`}
-                >
-                  <card.icon className="w-6 h-6" />
-                </div>
-                <h3
-                  className={`font-semibold text-lg mb-2 ${darkMode ? 'text-white' : 'text-navy-800'}`}
-                >
-                  {card.text}
-                </h3>
-                <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                  {card.desc}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Book Categories Section */}
-      <section className={`py-20 lg:py-28 ${darkMode ? 'bg-navy-900' : 'bg-white'}`}>
-        <div className="section-container">
-          <div className="text-center mb-12">
-            <h2
-              className={`inline-block text-3xl sm:text-4xl font-bold mb-4 ${
-                darkMode ? 'text-white' : 'text-navy-800'
-              }`}
-            >
-              पुस्तक श्रेणी
-            </h2>
-            <div className="w-20 h-1 bg-gradient-to-r from-gold-400 to-gold-600 mx-auto rounded-full" />
-          </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-            {homeCategories.map((cat, i) => {
-              const ui = categoryUiBySlug[cat.slug];
-              if (!ui) return null;
-              const preview = cat.previewTitles;
-              return (
-                <Link
-                  key={i}
-                  to={`/books/category/${cat.slug}`}
-                  className={`group flex flex-col p-5 rounded-2xl transition-all duration-300 hover:scale-[1.03] hover:-translate-y-1 ${
-                    darkMode
-                      ? 'bg-navy-800 hover:bg-navy-700 border border-navy-700 hover:border-gold-500/40'
-                      : 'bg-gray-50 hover:bg-white shadow hover:shadow-xl border border-transparent hover:border-gold-200'
-                  }`}
-                >
-                  <div
-                    className={`w-12 h-12 rounded-xl bg-gradient-to-br ${ui.color} flex items-center justify-center mb-3 shadow-md transition-transform group-hover:scale-110 flex-shrink-0`}
-                  >
-                    <ui.icon className="w-6 h-6 text-white" />
-                  </div>
-                  <h3
-                    className={`font-semibold text-sm mb-1 ${darkMode ? 'text-white group-hover:text-gold-400' : 'text-navy-800'} transition-colors`}
-                  >
-                    {cat.name}
-                  </h3>
-                  <p
-                    className={`text-xs mb-2 ${darkMode ? 'text-gold-500' : 'text-gold-600'} font-medium`}
-                  >
-                    {cat.count} {cat.count === 1 ? 'पुस्तक' : 'पुस्तके'}
-                  </p>
-                  {preview.length > 0 && (
-                    <ul className={`space-y-1 ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>
-                      {preview.map((title, j) => (
-                        <li key={j} className="text-xs leading-snug line-clamp-1 flex items-start gap-1">
-                          <span className="flex-shrink-0 mt-0.5">•</span>
-                          <span className="line-clamp-1">{title}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </Link>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-
-      {/* Amazon Author Section */}
-      <section className="py-20 bg-gradient-to-r from-gold-400 via-gold-500 to-gold-600 relative overflow-hidden">
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48Y2lyY2xlIGN4PSIyMCIgY3k9IjIwIiByPSIxIiBmaWxsPSJyZ2JhKDI1NSwyNTUsMjU1LDAuMTUpIi8+PC9zdmc+')] opacity-50" />
-        <div className="section-container relative">
-          <div className="max-w-3xl mx-auto text-center">
-            <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-navy-900 flex items-center justify-center">
-              <BookOpen className="w-8 h-8 text-gold-400" />
-            </div>
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-navy-900 mb-6">
-              Amazon वर माझी सर्व पुस्तके
-            </h2>
-            <p className="text-navy-800/80 text-lg mb-8">
-              माझी सर्व प्रकाशित पुस्तके Amazon Author Page वर उपलब्ध आहेत.
-            </p>
-            <a
-              href="https://www.amazon.in/stores/Javed-Kulkarni/author/B0FP584D9C"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-8 py-4 bg-navy-900 text-gold-400 font-semibold rounded-lg hover:bg-navy-800 transition-all shadow-lg hover:shadow-xl transform hover:scale-[1.02]"
-            >
-              <ExternalLink className="w-5 h-5" />
-              Amazon Author Page
-            </a>
-          </div>
-        </div>
-      </section>
-
-      {/* Featured Quote Section */}
-      <section
-        className={`py-24 lg:py-32 ${darkMode ? 'bg-navy-900' : 'bg-white'} relative overflow-hidden`}
-      >
-        <div className="section-container relative">
-          <div className="max-w-4xl mx-auto text-center">
-            <Quote className="w-16 h-16 mx-auto text-gold-400/30 mb-8" />
-            <blockquote
-              className={`text-2xl sm:text-3xl lg:text-4xl font-display leading-relaxed ${
-                darkMode ? 'text-white' : 'text-navy-800'
-              }`}
-            >
-              "शब्द हे केवळ अक्षरांचे समूह नसतात,
-              <br />
-              ते माणसांच्या मनापर्यंत पोहोचणारे पूल असतात."
-            </blockquote>
-            <cite className="block mt-8 text-lg text-gold-500">— जावेद कुलकर्णी</cite>
-          </div>
-        </div>
-      </section>
-
-      {/* Blog Section */}
-      <section id="blog-link" className={`py-20 lg:py-28 ${darkMode ? 'bg-navy-800/50' : 'bg-gray-50'}`}>
-        <div className="section-container">
-          <div className="text-center mb-12">
-            <h2
-              className={`inline-block text-3xl sm:text-4xl font-bold mb-4 ${
-                darkMode ? 'text-white' : 'text-navy-800'
-              }`}
-            >
-              ताजे लेख
-            </h2>
-            <div className="w-20 h-1 bg-gradient-to-r from-gold-400 to-gold-600 mx-auto rounded-full" />
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
-            {blogCategories.map((cat, i) => (
-              <Link
-                key={i}
-                to="/blog"
-                className={`group p-6 rounded-2xl transition-all duration-300 hover:scale-[1.02] ${
-                  darkMode
-                    ? 'bg-navy-800 hover:bg-navy-700'
-                    : 'bg-white shadow-lg hover:shadow-xl'
-                } ${darkMode ? 'border border-navy-700' : ''}`}
-              >
-                <div
-                  className={`w-14 h-14 rounded-xl ${cat.color} flex items-center justify-center mb-4 transition-transform group-hover:scale-110`}
-                >
-                  <cat.icon className="w-7 h-7 text-white" />
-                </div>
-                <h3
-                  className={`font-semibold text-lg mb-3 ${darkMode ? 'text-white' : 'text-navy-800'}`}
-                >
-                  {cat.name}
-                </h3>
-                <span className="flex items-center gap-2 text-gold-500 text-sm hover:text-gold-600 transition-colors">
-                  Explore
-                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                </span>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Contact Section */}
-      <section id="contact" className={`py-20 lg:py-28 ${darkMode ? 'bg-navy-900' : 'bg-white'}`}>
-        <div className="section-container">
-          <div className="text-center mb-12">
-            <h2
-              className={`inline-block text-3xl sm:text-4xl font-bold mb-4 ${
-                darkMode ? 'text-white' : 'text-navy-800'
-              }`}
-            >
-              संपर्क
-            </h2>
-            <div className="w-20 h-1 bg-gradient-to-r from-gold-400 to-gold-600 mx-auto rounded-full" />
-          </div>
-
-          <div className="grid lg:grid-cols-2 gap-12 max-w-5xl mx-auto">
-            {/* Contact Form */}
-            <div
-              className={`p-8 rounded-2xl ${
-                darkMode ? 'bg-navy-800' : 'bg-gray-50'
-              } ${darkMode ? 'border border-navy-700' : ''}`}
-            >
- <form className="space-y-6" autoComplete="on">
-  <div>
-    <label
-      htmlFor="name"
-      className={`block text-sm font-medium mb-2 ${
-        darkMode ? "text-gray-300" : "text-navy-700"
-      }`}
-    >
-      नाव
-    </label>
-
-    <input
-      type="text"
-      id="name"
-      name="name"
-      autoComplete="name"
-      className={`w-full px-4 py-3 rounded-lg transition-colors ${
-        darkMode
-          ? "bg-navy-700 border-navy-600 text-white placeholder-gray-400 focus:border-gold-400"
-          : "bg-white border-gray-300 text-navy-800 placeholder-gray-400 focus:border-navy-500"
-      } border focus:outline-none focus:ring-2 focus:ring-gold-400/20`}
-      placeholder="तुमचे नाव"
-      required
-    />
-  </div>
-
-  <div>
-    <label
-      htmlFor="email"
-      className={`block text-sm font-medium mb-2 ${
-        darkMode ? "text-gray-300" : "text-navy-700"
-      }`}
-    >
-      ईमेल
-    </label>
-
-    <input
-      type="email"
-      id="email"
-      name="email"
-      autoComplete="email"
-      className={`w-full px-4 py-3 rounded-lg transition-colors ${
-        darkMode
-          ? "bg-navy-700 border-navy-600 text-white placeholder-gray-400 focus:border-gold-400"
-          : "bg-white border-gray-300 text-navy-800 placeholder-gray-400 focus:border-navy-500"
-      } border focus:outline-none focus:ring-2 focus:ring-gold-400/20`}
-      placeholder="तुमचा ईमेल"
-      required
-    />
-  </div>
-
-  <div>
-    <label
-      htmlFor="message"
-      className={`block text-sm font-medium mb-2 ${
-        darkMode ? "text-gray-300" : "text-navy-700"
-      }`}
-    >
-      संदेश
-    </label>
-
-    <textarea
-      id="message"
-      name="message"
-      autoComplete="off"
-      rows={5}
-      className={`w-full px-4 py-3 rounded-lg transition-colors resize-none ${
-        darkMode
-          ? "bg-navy-700 border-navy-600 text-white placeholder-gray-400 focus:border-gold-400"
-          : "bg-white border-gray-300 text-navy-800 placeholder-gray-400 focus:border-navy-500"
-      } border focus:outline-none focus:ring-2 focus:ring-gold-400/20`}
-      placeholder="तुमचा संदेश..."
-      required
-    />
-  </div>
-
-  <button type="submit" className="btn-primary w-full">
-    <Send className="w-5 h-5" />
-    संदेश पाठवा
-  </button>
-</form>
-            </div>
-
-            {/* Contact Info */}
-            <div className="space-y-8">
-              <div
-                className={`p-8 rounded-2xl ${
-                  darkMode ? 'bg-navy-800' : 'bg-gradient-to-br from-navy-500 to-navy-700'
-                } ${darkMode ? 'border border-navy-700' : ''}`}
-              >
-                <h3
-                  className={`text-xl font-semibold mb-6 ${darkMode ? 'text-white' : 'text-white'}`}
-                >
-                  संपर्क माहिती
-                </h3>
-
-                <div className="space-y-6">
-                  <div className="flex items-start gap-4">
-                    <div className="w-12 h-12 rounded-lg bg-gold-400/20 flex items-center justify-center flex-shrink-0">
-                      <Mail className="w-6 h-6 text-gold-400" />
-                    </div>
-                    <div>
-                      <p className="text-gray-400 text-sm mb-1">ईमेल</p>
-                      <a
-                        href="mailto:jaavedkulkarni@gmail.com"
-                        className="text-white font-medium hover:text-gold-400 transition-colors"
-                      >
-                        jaavedkulkarni@gmail.com
-                      </a>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-4">
-                    <div className="w-12 h-12 rounded-lg bg-gold-400/20 flex items-center justify-center flex-shrink-0">
-                      <ExternalLink className="w-6 h-6 text-gold-400" />
-                    </div>
-                    <div>
-                      <p className="text-gray-400 text-sm mb-1">Amazon Author Page</p>
-                      <a
-                        href="https://www.amazon.in/stores/Javed-Kulkarni/author/B0FP584D9C"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-white font-medium hover:text-gold-400 transition-colors"
-                      >
-                        Amazon वर पाहा
-                      </a>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Quick Links */}
-              <div
-                className={`p-8 rounded-2xl ${
-                  darkMode ? 'bg-navy-800 border border-navy-700' : 'bg-white shadow-lg'
-                }`}
-              >
-                <h3
-                  className={`text-xl font-semibold mb-6 ${darkMode ? 'text-white' : 'text-navy-800'}`}
-                >
-                  Quick Links
-                </h3>
-                <div className="grid grid-cols-2 gap-3">
-                  {navLinks.slice(0, -1).map((link, i) => (
-                    link === 'Blog' ? (
-                      <Link
-                        key={link}
-                        to="/blog"
-                        className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
-                          darkMode
-                            ? 'text-gray-300 hover:text-white hover:bg-navy-700'
-                            : 'text-navy-600 hover:text-navy-800 hover:bg-gray-100'
-                        }`}
-                      >
-                        <ArrowRight className="w-4 h-4" />
-                        {navLabels[i]}
-                      </Link>
-                    ) : link === 'Amazon' ? (
-                      <a
-                        key={link}
-                        href={AMAZON_AUTHOR_URL}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
-                          darkMode
-                            ? 'text-gray-300 hover:text-white hover:bg-navy-700'
-                            : 'text-navy-600 hover:text-navy-800 hover:bg-gray-100'
-                        }`}
-                      >
-                        <ArrowRight className="w-4 h-4" />
-                        {navLabels[i]}
-                      </a>
-                    ) : (
-                      <button
-                        key={link}
-                        onClick={() => scrollToSection(link)}
-                        className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
-                          darkMode
-                            ? 'text-gray-300 hover:text-white hover:bg-navy-700'
-                            : 'text-navy-600 hover:text-navy-800 hover:bg-gray-100'
-                        }`}
-                      >
-                        <ArrowRight className="w-4 h-4" />
-                        {navLabels[i]}
-                      </button>
-                    )
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+      <HomePageContent
+        darkMode={darkMode}
+        featuredBook={featuredBook}
+        featuredBookHighlights={featuredBookHighlights}
+        homeBooks={homeBooks}
+        homeCategories={homeCategories}
+      />
 
       {/* Footer */}
       <footer
+        id="contact"
         className={`py-16 ${
           darkMode ? 'bg-navy-900 border-t border-navy-800' : 'bg-navy-800'
         }`}
       >
         <div className="section-container">
-          <div className="grid lg:grid-cols-4 gap-12">
+          <div className="grid lg:grid-cols-5 gap-12">
             {/* Brand */}
             <div className="lg:col-span-2">
               <div className="flex items-center gap-3 mb-4">
@@ -1454,13 +500,26 @@ function MainWebsite() {
                 {homeCategories.map((cat, i) => (
                   <li key={i}>
                     <button
-                      onClick={() => scrollToSection('books')}
+                      onClick={() => scrollToSection('Categories')}
                       className="text-gray-400 hover:text-gold-400 transition-colors"
                     >
                       {cat.name}
                     </button>
                   </li>
                 ))}
+              </ul>
+            </div>
+
+            {/* Legal */}
+            <div>
+              <h4 className="text-white font-semibold mb-4">Legal</h4>
+              <ul className="space-y-3 text-sm">
+                <li><Link to="/privacy" className="text-gray-400 hover:text-gold-400 transition-colors">Privacy Policy</Link></li>
+                <li><Link to="/terms" className="text-gray-400 hover:text-gold-400 transition-colors">Terms &amp; Conditions</Link></li>
+                <li><Link to="/refund" className="text-gray-400 hover:text-gold-400 transition-colors">Refund Policy</Link></li>
+                <li><Link to="/shipping" className="text-gray-400 hover:text-gold-400 transition-colors">Shipping Policy</Link></li>
+                <li><Link to="/cookies" className="text-gray-400 hover:text-gold-400 transition-colors">Cookie Policy</Link></li>
+                <li><a href="#contact" className="text-gray-400 hover:text-gold-400 transition-colors">Contact</a></li>
               </ul>
             </div>
           </div>
@@ -1485,6 +544,8 @@ function MainWebsite() {
 
 function App() {
   return (
+    <ThemeProvider>
+    <ToastProvider>
     <BlogProvider>
       <ReaderProvider>
       <AuthModalProvider>
@@ -1508,6 +569,13 @@ function App() {
           <Route path="/books/:slug" element={<BookPage />} />
           <Route path="/sample/:slug" element={<SampleReaderPage />} />
 
+          {/* Legal Pages */}
+          <Route path="/privacy" element={<LegalPage page="privacy" />} />
+          <Route path="/terms" element={<LegalPage page="terms" />} />
+          <Route path="/refund" element={<LegalPage page="refund" />} />
+          <Route path="/shipping" element={<LegalPage page="shipping" />} />
+          <Route path="/cookies" element={<LegalPage page="cookies" />} />
+
           {/* Admin Routes */}
           <Route
             path="/admin/*"
@@ -1528,6 +596,8 @@ function App() {
       </AuthModalProvider>
       </ReaderProvider>
     </BlogProvider>
+    </ToastProvider>
+    </ThemeProvider>
   );
 }
 

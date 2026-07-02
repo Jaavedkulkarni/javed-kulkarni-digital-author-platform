@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useSearchParams } from 'react-router-dom';
 import { useBlog } from '../../context/BlogContext';
+import { useTheme } from '../../context/ThemeContext';
 import { BlogLayout } from '../../components/blog/BlogLayout';
 import { Article, PaginatedResult } from '../../types/blog';
 import {
@@ -27,7 +28,8 @@ const CATEGORY_EMOJIS: Record<string, string> = {
 
 export function CategoryPage() {
   const { slug } = useParams<{ slug: string }>();
-  const { darkMode, categories, fetchArticlesByCategory } = useBlog();
+  const { darkMode } = useTheme();
+  const { categories, fetchArticlesByCategory } = useBlog();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const category = categories.find((c) => c.slug === slug);

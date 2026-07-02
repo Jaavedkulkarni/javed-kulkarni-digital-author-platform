@@ -119,3 +119,17 @@ export function resolvePostAuthNavigation(fallback = '/'): { shouldNavigate: boo
     target,
   };
 }
+
+const LOGGING_OUT_KEY = 'loggingOut';
+
+export function markLoggingOut(): void {
+  sessionStorage.setItem(LOGGING_OUT_KEY, '1');
+}
+
+export function clearLoggingOut(): void {
+  sessionStorage.removeItem(LOGGING_OUT_KEY);
+}
+
+export function isLoggingOut(): boolean {
+  return sessionStorage.getItem(LOGGING_OUT_KEY) === '1';
+}

@@ -25,8 +25,6 @@ interface BlogContextType {
   subscribeNewsletter: (email: string) => Promise<{ success: boolean; message: string }>;
   addComment: (articleId: string, name: string, email: string, content: string, parentId?: string) => Promise<Comment | null>;
   fetchComments: (articleId: string) => Promise<Comment[]>;
-  darkMode: boolean;
-  toggleDarkMode: () => void;
 }
 
 const BlogContext = createContext<BlogContextType | undefined>(undefined);
@@ -36,21 +34,6 @@ export function BlogProvider({ children }: { children: ReactNode }) {
   const [categoriesLoaded, setCategoriesLoaded] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [darkMode, setDarkMode] = useState(() => {
-    const saved = localStorage.getItem('darkMode');
-    return saved ? JSON.parse(saved) : false;
-  });
-
-  useEffect(() => {
-    localStorage.setItem('darkMode', JSON.stringify(darkMode));
-    if (darkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  }, [darkMode]);
-
-  const toggleDarkMode = () => setDarkMode((prev: boolean) => !prev);
 
   const fetchCategories = async () => {
     try {
@@ -332,8 +315,6 @@ export function BlogProvider({ children }: { children: ReactNode }) {
     subscribeNewsletter,
     addComment,
     fetchComments,
-    darkMode,
-    toggleDarkMode,
   };
 
   return <BlogContext.Provider value={value}>{children}</BlogContext.Provider>;

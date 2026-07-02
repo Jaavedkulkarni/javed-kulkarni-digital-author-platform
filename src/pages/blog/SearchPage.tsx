@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { useBlog } from '../../context/BlogContext';
+import { useTheme } from '../../context/ThemeContext';
 import { BlogLayout } from '../../components/blog/BlogLayout';
 import { Article, PaginatedResult } from '../../types/blog';
 import { Search, Clock, Eye, Calendar, BookOpen, X } from 'lucide-react';
 import { format } from 'date-fns';
 
 export function SearchPage() {
-  const { darkMode, searchArticles } = useBlog();
+  const { darkMode } = useTheme();
+  const { searchArticles } = useBlog();
   const [searchParams, setSearchParams] = useSearchParams();
   const [results, setResults] = useState<PaginatedResult<Article>>({
     data: [],

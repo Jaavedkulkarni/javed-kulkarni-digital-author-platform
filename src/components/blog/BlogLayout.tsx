@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useBlog } from '../../context/BlogContext';
+import { useTheme } from '../../context/ThemeContext';
 import { PublicAuthNav } from '../reader/PublicAuthNav';
 import { Moon, Sun, Menu, X, Search, BookOpen, ExternalLink, ArrowUp } from 'lucide-react';
 
@@ -9,7 +10,8 @@ interface BlogLayoutProps {
 }
 
 export function BlogLayout({ children }: BlogLayoutProps) {
-  const { darkMode, toggleDarkMode, categories } = useBlog();
+  const { categories } = useBlog();
+  const { darkMode, toggleDarkMode } = useTheme();
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
   const [searchOpen, setSearchOpen] = React.useState(false);
   const [searchQuery, setSearchQuery] = React.useState('');
@@ -28,7 +30,6 @@ export function BlogLayout({ children }: BlogLayoutProps) {
       label: cat.name,
       path: `/blog/${cat.slug}`,
     })),
-    { label: 'Admin', path: '/admin' },
   ];
 
   const isBlogActive = location.pathname === '/blog' || location.pathname.startsWith('/blog/');

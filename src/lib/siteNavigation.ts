@@ -19,7 +19,7 @@ import {
   FileText,
 } from 'lucide-react';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
-import { getUserRole, isAdminUser, isReaderUser } from './authRoles';
+import { isReaderUser } from './authRoles';
 
 export interface SiteNavItem {
   id: string;
@@ -39,14 +39,19 @@ export const PUBLIC_SITE_LINKS = [
   { label: 'Store', path: 'https://www.amazon.in/stores/Javed-Kulkarni/author/B0FP584D9C', external: true },
 ] as const;
 
-/** Reader dropdown items (active) */
-export const READER_MENU_ITEMS: SiteNavItem[] = [
+/** Horizontal member-area navigation (shown on /reader/* pages) */
+export const MEMBER_AREA_NAV_ITEMS: SiteNavItem[] = [
   { id: 'library', label: 'My Library', path: '/reader/library', icon: BookOpen },
   { id: 'wishlist', label: 'Wishlist', path: '/reader/wishlist', icon: Heart },
   { id: 'history', label: 'Reading History', path: '/reader/history', icon: History },
-  { id: 'profile', label: 'Profile', path: '/reader/profile', icon: User },
   { id: 'membership', label: 'Membership', path: '/reader/membership', icon: Crown },
+  { id: 'profile', label: 'Profile', path: '/reader/profile', icon: User },
   { id: 'settings', label: 'Settings', path: '/reader/settings', icon: Settings },
+];
+
+/** Reader dropdown on public pages — compact subset + logout */
+export const READER_MENU_ITEMS: SiteNavItem[] = [
+  ...MEMBER_AREA_NAV_ITEMS,
   { id: 'logout', label: 'Logout', icon: LogOut, action: 'logout' },
 ];
 
@@ -80,23 +85,11 @@ export type NavRole = 'guest' | 'reader' | 'admin' | 'author' | 'super_admin';
 export function resolveNavRole(user: SupabaseUser | null, isReaderAuthenticated: boolean): NavRole {
   if (!user) return 'guest';
   if (isReaderAuthenticated && isReaderUser(user)) return 'reader';
-  if (isAdminUser(user)) return 'admin';
-  const role = getUserRole(user);
-  if (role === 'reader') return 'reader';
   return 'guest';
 }
 
-export function getAuthenticatedMenuItems(role: NavRole): SiteNavItem[] {
-  switch (role) {
-    case 'reader':
-      return READER_MENU_ITEMS;
-    case 'admin':
-      return ADMIN_MENU_ITEMS;
-    case 'author':
-      return AUTHOR_MENU_ITEMS.filter((item) => !item.future);
-    case 'super_admin':
-      return SUPER_ADMIN_MENU_ITEMS.filter((item) => !item.future);
-    default:
-      return [];
-  }
+/** Public header never shows admin/author menus — those live in CMS only */
+export function getPublicAuthenticatedMenuItems(role: NavRole): SiteNavItem[] {
+  if (role === 'reader') return READER_MENU_ITEMS;
+  return [];
 }

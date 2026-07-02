@@ -7,16 +7,17 @@ import {
 } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Modal } from '../components/ui/Modal';
-import { ReaderSignInForm } from '../components/reader/auth/ReaderSignInForm';
-import { ReaderSignUpForm } from '../components/reader/auth/ReaderSignUpForm';
+import { MemberEmailAuthForm, SocialAuthButtons } from '../components/reader/auth/MemberAuthModalContent';
 import { ReaderForgotPasswordForm } from '../components/reader/auth/ReaderForgotPasswordForm';
+import { useReader } from './ReaderContext';
 import { storeReaderReturnTo, resolvePostAuthNavigation } from '../lib/authRedirect';
 
-export type AuthModalView = 'sign-in' | 'sign-up' | 'forgot-password';
+export type AuthModalView = 'members-login' | 'email' | 'forgot-password';
 
 interface AuthModalContextType {
   isOpen: boolean;
   view: AuthModalView | null;
+  openMembersLogin: () => void;
   openAuthModal: (view: AuthModalView) => void;
   closeAuthModal: () => void;
   completeAuthSuccess: () => void;
@@ -24,18 +25,15 @@ interface AuthModalContextType {
 
 const AuthModalContext = createContext<AuthModalContextType | undefined>(undefined);
 
-const MODAL_TITLES: Record<AuthModalView, string> = {
-  'sign-in': 'Sign In',
-  'sign-up': 'Sign Up',
-  'forgot-password': 'Forgot Password',
-};
-
 export function AuthModalProvider({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
+  const { signInWithOAuth } = useReader();
   const [view, setView] = useState<AuthModalView | null>(null);
+  const [oauthLoading, setOauthLoading] = useState(false);
 
   const closeAuthModal = useCallback(() => {
     setView(null);
+    setOauthLoading(false);
   }, []);
 
   const completeAuthSuccess = useCallback(() => {
@@ -51,11 +49,32 @@ export function AuthModalProvider({ children }: { children: ReactNode }) {
     setView(nextView);
   }, []);
 
+  const openMembersLogin = useCallback(() => {
+    openAuthModal('members-login');
+  }, [openAuthModal]);
+
+  const handleOAuth = async (provider: 'google' | 'azure' | 'facebook') => {
+    storeReaderReturnTo();
+    setOauthLoading(true);
+    const result = await signInWithOAuth(provider);
+    if (!result.success) {
+      setOauthLoading(false);
+    }
+  };
+
+  const modalTitle =
+    view === 'forgot-password'
+      ? 'Forgot Password'
+      : view === 'email'
+        ? 'Continue with Email'
+        : 'Members Login';
+
   return (
     <AuthModalContext.Provider
       value={{
         isOpen: view !== null,
         view,
+        openMembersLogin,
         openAuthModal,
         closeAuthModal,
         completeAuthSuccess,
@@ -63,24 +82,38 @@ export function AuthModalProvider({ children }: { children: ReactNode }) {
     >
       {children}
       {view && (
-        <Modal title={MODAL_TITLES[view]} onClose={closeAuthModal}>
-          {view === 'sign-in' && (
-            <ReaderSignInForm
-              compact
+        <Modal title={modalTitle} onClose={closeAuthModal}>
+          {view === 'members-login' && (
+            <div className="space-y-4">
+              <p className="text-gray-400 text-sm text-center">
+                Sign in to your member account or create one in a few steps.
+              </p>
+              <SocialAuthButtons onOAuth={handleOAuth} loading={oauthLoading} />
+              <div className="relative py-2">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-navy-600" />
+                </div>
+                <p className="relative text-center text-xs text-gray-500">
+                  <span className="bg-navy-800 px-2">or</span>
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setView('email')}
+                className="w-full py-3 rounded-lg border border-gold-500/40 text-gold-400 font-semibold hover:bg-gold-500/10 transition-colors"
+              >
+                Continue with Email
+              </button>
+            </div>
+          )}
+          {view === 'email' && (
+            <MemberEmailAuthForm
               onSuccess={completeAuthSuccess}
               onForgotPassword={() => setView('forgot-password')}
-              onSignUp={() => setView('sign-up')}
-            />
-          )}
-          {view === 'sign-up' && (
-            <ReaderSignUpForm
-              compact
-              onSuccess={completeAuthSuccess}
-              onSignIn={() => setView('sign-in')}
             />
           )}
           {view === 'forgot-password' && (
-            <ReaderForgotPasswordForm compact onBackToSignIn={() => setView('sign-in')} />
+            <ReaderForgotPasswordForm compact onBackToSignIn={() => setView('email')} />
           )}
         </Modal>
       )}

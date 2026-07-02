@@ -8,7 +8,7 @@ import { ReaderSignUpForm } from '../../components/reader/auth/ReaderSignUpForm'
 import { ReaderAuthShell } from './ReaderAuthShell';
 
 export function ReaderSignUp() {
-  const { openAuthModal } = useAuthModal();
+  const { openMembersLogin } = useAuthModal();
   const { isReaderAuthenticated } = useReader();
   const navigate = useNavigate();
 
@@ -30,7 +30,7 @@ export function ReaderSignUp() {
               const { shouldNavigate, target } = resolvePostAuthNavigation('/');
               if (shouldNavigate) navigate(target, { replace: true });
             }}
-            onSignIn={() => openAuthModal('sign-in')}
+            onSignIn={() => openMembersLogin()}
           />
         </ReaderAuthShell>
       </div>

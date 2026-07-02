@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useBlog } from '../../context/BlogContext';
+import { useTheme } from '../../context/ThemeContext';
 import { BlogLayout } from '../../components/blog/BlogLayout';
 import { Article, Comment } from '../../types/blog';
 import {
@@ -30,7 +31,8 @@ import SEO from "../../seo/SEO";
 
 export function ArticlePage() {
   const { slug } = useParams<{ slug: string }>();
-  const { darkMode, categories, fetchArticleBySlug, fetchComments, addComment, fetchAdjacentArticles, fetchRelatedArticles } = useBlog();
+  const { darkMode } = useTheme();
+  const { categories, fetchArticleBySlug, fetchComments, addComment, fetchAdjacentArticles, fetchRelatedArticles } = useBlog();
 
   const [article, setArticle] = useState<Article | null>(null);
   const [comments, setComments] = useState<Comment[]>([]);

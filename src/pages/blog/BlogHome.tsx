@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useBlog } from '../../context/BlogContext';
+import { useTheme } from '../../context/ThemeContext';
 import { BlogLayout } from '../../components/blog/BlogLayout';
 import { Article, Category } from '../../types/blog';
 import {
@@ -30,8 +31,8 @@ const CATEGORY_EMOJIS: Record<string, string> = {
 };
 
 export function BlogHome() {
+  const { darkMode } = useTheme();
   const {
-    darkMode,
     categories,
     fetchArticles,
     fetchFeaturedArticles,
