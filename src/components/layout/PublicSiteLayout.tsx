@@ -181,6 +181,9 @@ export function PublicSiteLayout({ children, title, memberArea = false }: Public
               <Link to="/" className="hover:text-gold-400 transition-colors">Home</Link>
               <Link to="/blog" className="hover:text-gold-400 transition-colors">Blog</Link>
               <a href="https://www.amazon.in/stores/Javed-Kulkarni/author/B0FP584D9C" target="_blank" rel="noopener noreferrer" className="hover:text-gold-400 transition-colors">Store</a>
+              <Link to="/admin/login" className="text-gray-600 hover:text-gold-400 transition-colors text-xs">
+                Admin Access
+              </Link>
             </div>
           </div>
         </div>

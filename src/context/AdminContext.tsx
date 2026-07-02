@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import type { Session } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 import { AdminView } from '../types/blog';
+import { adminMetadataNeedsRepair, isAdminUser } from '../lib/authRoles';
 
 interface AdminContextType {
   isAuthenticated: boolean;
@@ -24,17 +26,23 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    const syncSession = async (session: Session | null) => {
+      let nextUser = session?.user ?? null;
+      if (nextUser && adminMetadataNeedsRepair(nextUser)) {
+        const { data, error } = await supabase.auth.updateUser({ data: { role: 'admin' } });
+        if (!error && data.user) nextUser = data.user;
+      }
       setSession(session);
-      setUser(session?.user ?? null);
+      setUser(nextUser);
       setIsAuthenticated(!!session);
-    }).catch(console.error);
+    };
 
-    // Initialize Supabase auth
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      syncSession(session).catch(console.error);
+    });
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setIsAuthenticated(!!session);
+      syncSession(session).catch(console.error);
     });
 
     return () => subscription.unsubscribe();
@@ -46,7 +54,16 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       if (error) {
         return { success: false, error: error.message };
       }
+      if (!data.user || !isAdminUser(data.user)) {
+        await supabase.auth.signOut();
+        setIsAuthenticated(false);
+        setUser(null);
+        setSession(null);
+        return { success: false, error: 'This account does not have admin access.' };
+      }
       setUser(data.user);
+      setSession(data.session);
+      setIsAuthenticated(true);
       return { success: true };
     } catch (err) {
       console.error('Login error:', err);

@@ -1,11 +1,7 @@
 import { FormEvent, useState } from 'react';
 import { useBlog } from '../../context/BlogContext';
 
-interface HomeReaderClubSectionProps {
-  darkMode: boolean;
-}
-
-export function HomeReaderClubSection({ darkMode }: HomeReaderClubSectionProps) {
+export function HomeReaderClubSection() {
   const { subscribeNewsletter } = useBlog();
   const [email, setEmail] = useState('');
   const [status, setStatus] = useState<{ success: boolean; message: string } | null>(null);
@@ -21,33 +17,42 @@ export function HomeReaderClubSection({ darkMode }: HomeReaderClubSectionProps) 
   };
 
   return (
-    <section id="reader-club" className={`py-20 lg:py-28 ${darkMode ? 'bg-navy-800/50' : 'bg-gray-50'}`}>
-      <div className="section-container">
-        <div className="max-w-2xl mx-auto text-center">
-          <div className="p-8 sm:p-10 rounded-2xl bg-gradient-to-br from-gold-400 to-gold-600 shadow-xl">
-            <h2 className="text-2xl sm:text-3xl font-bold text-navy-900 mb-2">वाचक क्लब</h2>
-            <p className="text-navy-800/80 mb-6">नवीन लेख आणि अपडेट्स सरळ तुमच्या ईमेलमध्ये.</p>
-            <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="तुमचा ईमेल"
-                required
-                className="flex-1 px-4 py-3 rounded-lg text-navy-800 placeholder-navy-800/50 focus:outline-none focus:ring-2 focus:ring-white/30 text-sm"
-              />
-              <button
-                type="submit"
-                disabled={submitting}
-                className="px-6 py-3 rounded-lg bg-navy-900 text-white font-semibold hover:bg-navy-800 transition-colors text-sm disabled:opacity-50"
-              >
-                {submitting ? 'Please wait...' : 'सब्स्क्राईब करा'}
-              </button>
-            </form>
-            {status && (
-              <p className={`mt-4 text-sm ${status.success ? 'text-navy-900' : 'text-red-900'}`}>{status.message}</p>
-            )}
-          </div>
+    <section
+      id="reader-club"
+      className="relative py-20 lg:py-28 overflow-hidden bg-gradient-to-br from-navy-900 via-navy-800 to-navy-900"
+    >
+      <div className="absolute inset-0 opacity-30 bg-[radial-gradient(circle_at_top_left,_var(--tw-gradient-stops))] from-gold-500/40 via-transparent to-transparent pointer-events-none" />
+      <div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_bottom_right,_var(--tw-gradient-stops))] from-gold-400/30 via-transparent to-transparent pointer-events-none" />
+
+      <div className="section-container relative">
+        <div className="max-w-3xl mx-auto text-center">
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-2">वाचक क्लब</h2>
+          <p className="text-gold-300/90 text-base sm:text-lg mb-6">Reader Club</p>
+          <p className="text-gray-300 text-base sm:text-lg leading-relaxed mb-10 max-w-xl mx-auto">
+            नवीन लेख, पुस्तक अपडेट्स आणि लेखन प्रवासातील बातम्या — सरळ तुमच्या ईमेलमध्ये.
+          </p>
+
+          <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3 max-w-lg mx-auto mb-4">
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="तुमचा ईमेल"
+              required
+              className="flex-1 px-5 py-3.5 rounded-xl bg-white/95 text-navy-900 placeholder-navy-700/50 focus:outline-none focus:ring-2 focus:ring-gold-400 text-sm sm:text-base"
+            />
+            <button
+              type="submit"
+              disabled={submitting}
+              className="px-8 py-3.5 rounded-xl bg-gradient-to-r from-gold-400 to-gold-500 text-navy-900 font-semibold hover:from-gold-500 hover:to-gold-600 transition-all text-sm sm:text-base disabled:opacity-50 shadow-lg shadow-gold-500/20"
+            >
+              {submitting ? 'Please wait...' : 'सब्स्क्राईब करा'}
+            </button>
+          </form>
+
+          {status && (
+            <p className={`text-sm ${status.success ? 'text-gold-300' : 'text-red-300'}`}>{status.message}</p>
+          )}
         </div>
       </div>
     </section>

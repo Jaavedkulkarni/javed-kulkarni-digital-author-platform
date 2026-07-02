@@ -520,7 +520,6 @@ function MainWebsite() {
                 <li><Link to="/shipping" className="text-gray-400 hover:text-gold-400 transition-colors">Shipping Policy</Link></li>
                 <li><Link to="/cookies" className="text-gray-400 hover:text-gold-400 transition-colors">Cookie Policy</Link></li>
                 <li><a href="#contact" className="text-gray-400 hover:text-gold-400 transition-colors">Contact</a></li>
-                <li><Link to="/admin/login" className="text-gray-500 hover:text-gold-400 transition-colors text-xs">Admin Login</Link></li>
               </ul>
             </div>
           </div>
@@ -531,9 +530,14 @@ function MainWebsite() {
               <p className="text-gray-500 text-sm">
                 © {new Date().getFullYear()} Javed Kulkarni. All Rights Reserved.
               </p>
-              <p className="text-gray-500 text-sm flex items-center gap-1">
-                Crafted with <Heart className="w-4 h-4 text-red-500" /> for Marathi Literature
-              </p>
+              <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4">
+                <Link to="/admin/login" className="text-gray-600 hover:text-gold-400 transition-colors text-xs">
+                  Admin Access
+                </Link>
+                <p className="text-gray-500 text-sm flex items-center gap-1">
+                  Crafted with <Heart className="w-4 h-4 text-red-500" /> for Marathi Literature
+                </p>
+              </div>
             </div>
           </div>
         </div>

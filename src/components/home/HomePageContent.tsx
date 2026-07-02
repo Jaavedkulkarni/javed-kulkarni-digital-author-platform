@@ -1,12 +1,9 @@
 import { Link } from 'react-router-dom';
 import {
-  ArrowRight,
   BookOpen,
   BookHeart,
   ExternalLink,
   Ghost,
-  Globe,
-  Heart,
   Lightbulb,
   MessageCircle,
   MonitorSmartphone,
@@ -21,6 +18,7 @@ import { HomeBlogPanel } from './HomeBlogPanel';
 import { HomeReaderClubSection } from './HomeReaderClubSection';
 import { HomeWhyReadersLove } from './HomeWhyReadersLove';
 import { HomeAnimatedTrustStats } from './HomeAnimatedTrustStats';
+import { HomeSectionHeader } from './HomeSectionHeader';
 
 const AMAZON_AUTHOR_URL = 'https://www.amazon.in/stores/Javed-Kulkarni/author/B0FP584D9C';
 
@@ -41,14 +39,6 @@ const categoryUiBySlug: Record<string, { icon: typeof Lightbulb; color: string }
   horror: { icon: Ghost, color: 'from-slate-600 to-gray-800' },
   humour: { icon: MessageCircle, color: 'from-green-500 to-emerald-500' },
 };
-
-const blogCategories = [
-  { icon: Heart, name: 'नातेसंबंध', color: 'bg-rose-500' },
-  { icon: Users, name: 'पालकत्व', color: 'bg-pink-500' },
-  { icon: MonitorSmartphone, name: 'डिजिटल जीवन', color: 'bg-blue-500' },
-  { icon: Lightbulb, name: 'आत्मविकास', color: 'bg-amber-500' },
-  { icon: Globe, name: 'समाज आणि वास्तव', color: 'bg-teal-500' },
-];
 
 export interface HomeCategory {
   slug: string;
@@ -84,10 +74,7 @@ export function HomePageContent({
       <section id="about" className={`py-20 lg:py-28 ${darkMode ? 'bg-navy-800/50' : 'bg-gray-50'}`}>
         <div className="section-container">
           <div className="max-w-4xl mx-auto">
-            <div className="text-center mb-10">
-              <h2 className={`text-3xl sm:text-4xl font-bold mb-4 ${darkMode ? 'text-white' : 'text-navy-800'}`}>माझ्याविषयी</h2>
-              <div className="w-20 h-1 bg-gradient-to-r from-gold-400 to-gold-600 mx-auto rounded-full" />
-            </div>
+            <HomeSectionHeader titleMr="माझ्याविषयी" subtitle="About Me" darkMode={darkMode} />
             <div className={`p-6 sm:p-10 rounded-2xl ${darkMode ? 'bg-navy-800 border border-navy-700' : 'bg-white shadow-lg border border-gray-100'}`}>
               <div className="space-y-5 text-base sm:text-lg leading-relaxed">
                 {[
@@ -109,13 +96,11 @@ export function HomePageContent({
 
       <section id="audience" className={`py-20 lg:py-28 ${darkMode ? 'bg-navy-900' : 'bg-white'}`}>
         <div className="section-container">
-          <div className="text-center mb-12">
-            <h2 className={`inline-block text-3xl sm:text-4xl font-bold mb-4 ${darkMode ? 'text-white' : 'text-navy-800'}`}>
-              Who Should Read My Books
-            </h2>
-            <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>माझं लेखन कोणासाठी?</p>
-            <div className="w-20 h-1 bg-gradient-to-r from-gold-400 to-gold-600 mx-auto rounded-full mt-4" />
-          </div>
+          <HomeSectionHeader
+            titleMr="माझं लेखन कोणासाठी?"
+            subtitle="Who Should Read My Books"
+            darkMode={darkMode}
+          />
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {readerCards.map((card, i) => (
               <div key={i} className={`group p-6 rounded-2xl transition-all duration-300 hover:scale-[1.02] ${darkMode ? 'bg-navy-800 hover:bg-navy-700 border border-navy-700' : 'bg-gray-50 hover:bg-white shadow-lg hover:shadow-xl border border-transparent'}`}>
@@ -130,38 +115,11 @@ export function HomePageContent({
         </div>
       </section>
 
-      <section id="blog-link" className={`py-20 lg:py-28 ${darkMode ? 'bg-navy-800/50' : 'bg-gray-50'}`}>
-        <div className="section-container">
-          <div className="text-center mb-12">
-            <h2 className={`inline-block text-3xl sm:text-4xl font-bold mb-4 ${darkMode ? 'text-white' : 'text-navy-800'}`}>Latest Articles</h2>
-            <div className="w-20 h-1 bg-gradient-to-r from-gold-400 to-gold-600 mx-auto rounded-full" />
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
-            {blogCategories.map((cat, i) => (
-              <Link key={i} to="/blog" className={`group p-6 rounded-2xl transition-all duration-300 hover:scale-[1.02] ${darkMode ? 'bg-navy-800 hover:bg-navy-700 border border-navy-700' : 'bg-white shadow-lg hover:shadow-xl'}`}>
-                <div className={`w-14 h-14 rounded-xl ${cat.color} flex items-center justify-center mb-4 transition-transform group-hover:scale-110`}>
-                  <cat.icon className="w-7 h-7 text-white" />
-                </div>
-                <h3 className={`font-semibold text-lg mb-3 ${darkMode ? 'text-white' : 'text-navy-800'}`}>{cat.name}</h3>
-                <span className="flex items-center gap-2 text-gold-500 text-sm hover:text-gold-600 transition-colors">
-                  Explore
-                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                </span>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
-
       <HomeWhyReadersLove darkMode={darkMode} />
 
       <section id="categories" className={`py-20 lg:py-28 ${darkMode ? 'bg-navy-900' : 'bg-white'}`}>
         <div className="section-container">
-          <div className="text-center mb-12">
-            <h2 className={`inline-block text-3xl sm:text-4xl font-bold mb-4 ${darkMode ? 'text-white' : 'text-navy-800'}`}>Book Categories</h2>
-            <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>पुस्तक श्रेणी</p>
-            <div className="w-20 h-1 bg-gradient-to-r from-gold-400 to-gold-600 mx-auto rounded-full mt-4" />
-          </div>
+          <HomeSectionHeader titleMr="पुस्तक श्रेणी" subtitle="Book Categories" darkMode={darkMode} />
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
             {homeCategories.map((cat, i) => {
               const ui = categoryUiBySlug[cat.slug];
@@ -192,16 +150,9 @@ export function HomePageContent({
         </div>
       </section>
 
-      <section id="books" className={`py-20 lg:py-28 ${darkMode ? 'bg-navy-900' : 'bg-gray-50'}`}>
+      <section id="books" className={`py-20 lg:py-28 ${darkMode ? 'bg-navy-800/50' : 'bg-gray-50'}`}>
         <div className="section-container">
-          <div className="text-center mb-14">
-            <span className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-medium mb-4 ${darkMode ? 'bg-navy-800 text-gold-400' : 'bg-navy-100 text-navy-600'}`}>
-              <BookOpen className="w-4 h-4" />
-              My Books
-            </span>
-            <h2 className={`text-3xl sm:text-4xl lg:text-5xl font-bold mb-4 ${darkMode ? 'text-white' : 'text-navy-800'}`}>माझी पुस्तके</h2>
-            <div className="w-20 h-1 bg-gradient-to-r from-gold-400 to-gold-600 mx-auto rounded-full mt-6" />
-          </div>
+          <HomeSectionHeader titleMr="माझी पुस्तके" subtitle="My Books" darkMode={darkMode} />
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 lg:gap-7">
             {homeBooks.map((book) => (
               <article
@@ -239,20 +190,24 @@ export function HomePageContent({
         </div>
       </section>
 
-      <HomeReaderClubSection darkMode={darkMode} />
+      <HomeBlogPanel darkMode={darkMode} variant="latest" limit={4} />
 
-      <section className="py-20 bg-gradient-to-r from-gold-400 via-gold-500 to-gold-600 relative overflow-hidden">
+      <HomeReaderClubSection />
+
+      <HomeAnimatedTrustStats darkMode={darkMode} />
+
+      <section className="py-20 lg:py-28 bg-gradient-to-r from-gold-400 via-gold-500 to-gold-600 relative overflow-hidden">
         <div className="section-container relative">
           <div className="max-w-3xl mx-auto text-center">
             <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-navy-900 flex items-center justify-center">
               <BookOpen className="w-8 h-8 text-gold-400" />
             </div>
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-navy-900 mb-3">
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-navy-900 mb-2">
               Available Worldwide on Amazon
             </h2>
-            <p className="text-navy-800/90 text-lg sm:text-xl font-medium mb-2">Read Anywhere.</p>
+            <p className="text-navy-800/90 text-lg sm:text-xl font-medium mb-3">Read Anywhere.</p>
             <p className="text-navy-800/80 text-base sm:text-lg mb-8">
-              Paperback. Kindle. Worldwide Delivery.
+              Paperback • Kindle • Worldwide Delivery
             </p>
             <a href={AMAZON_AUTHOR_URL} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-8 py-4 bg-navy-900 text-gold-400 font-semibold rounded-lg hover:bg-navy-800 transition-all shadow-lg hover:shadow-xl transform hover:scale-[1.02]">
               <ExternalLink className="w-5 h-5" />
@@ -261,10 +216,6 @@ export function HomePageContent({
           </div>
         </div>
       </section>
-
-      <HomeAnimatedTrustStats darkMode={darkMode} />
-
-      <HomeBlogPanel darkMode={darkMode} variant="latest" limit={4} />
     </>
   );
 }

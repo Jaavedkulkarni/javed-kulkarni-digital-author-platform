@@ -8,7 +8,7 @@ import {
 } from 'react';
 import type { Session, User } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
-import { isReaderUser } from '../lib/authRoles';
+import { isReaderUser, isAdminUser, adminMetadataNeedsRepair } from '../lib/authRoles';
 import { getUserRole } from '../lib/authRoles';
 import {
   ensureReaderProfile,
@@ -39,6 +39,13 @@ const SITE_URL = typeof window !== 'undefined' ? window.location.origin : '';
 const OAUTH_INTENT_KEY = 'readerOAuthIntent';
 
 async function ensureReaderRole(user: User): Promise<User> {
+  if (isAdminUser(user)) {
+    if (adminMetadataNeedsRepair(user)) {
+      const { data, error } = await supabase.auth.updateUser({ data: { role: 'admin' } });
+      if (!error && data.user) return data.user;
+    }
+    return user;
+  }
   if (getUserRole(user) === 'reader') return user;
   const { data, error } = await supabase.auth.updateUser({
     data: {

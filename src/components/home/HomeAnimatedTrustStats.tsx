@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { HomeSectionHeader } from './HomeSectionHeader';
 
 const STATS = [
   { emoji: '📚', target: 8, suffix: '+', label: 'Published Books' },
@@ -53,16 +54,22 @@ export function HomeAnimatedTrustStats({ darkMode }: HomeAnimatedTrustStatsProps
   return (
     <section
       ref={ref}
-      aria-label="Trust statistics"
-      className={`py-16 lg:py-20 ${darkMode ? 'bg-navy-800/30' : 'bg-gray-50'}`}
+      aria-label="Published books statistics"
+      className={`py-16 lg:py-20 ${darkMode ? 'bg-navy-900' : 'bg-white'}`}
     >
       <div className="section-container">
+        <HomeSectionHeader
+          titleMr="विश्वास शब्दांचा नाही तर वाचकांचा"
+          subtitle="Readers Trust My Work"
+          darkMode={darkMode}
+          className="mb-8 lg:mb-10"
+        />
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
           {STATS.map((card, i) => (
             <article
               key={card.label}
               className={`flex flex-col items-center text-center p-5 sm:p-6 rounded-2xl border transition-all ${
-                darkMode ? 'bg-navy-800 border-gold-500/20' : 'bg-white border-gold-400/30 shadow-sm'
+                darkMode ? 'bg-navy-800 border-gold-500/20' : 'bg-gray-50 border-gold-400/30 shadow-sm'
               }`}
             >
               <span className="text-2xl mb-2" aria-hidden="true">{card.emoji}</span>

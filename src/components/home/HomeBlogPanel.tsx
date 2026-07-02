@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Calendar, Clock, Eye, TrendingUp } from 'lucide-react';
+import { ArrowRight, Calendar, Clock, Eye, TrendingUp } from 'lucide-react';
 import { format } from 'date-fns';
 import { useBlog } from '../../context/BlogContext';
 import type { Article } from '../../types/blog';
+import { HomeSectionHeader } from './HomeSectionHeader';
 
 const CATEGORY_EMOJIS: Record<string, string> = {
   'naty-sambandh': '❤️',
@@ -134,9 +135,24 @@ export function HomeBlogPanel({ darkMode, variant, limit = 4, compact = false }:
   }, [fetchArticles, fetchTrendingArticles, limit, variant]);
 
   const title = variant === 'trending' ? 'Most Viewed Blog Posts' : 'Latest Blog Posts';
-  const titleMr = variant === 'trending' ? 'सर्वाधिक वाचन' : 'ताजे ब्लॉग लेख';
+  const titleMr = variant === 'trending' ? 'सर्वाधिक वाचन' : 'ताजे लेख';
 
-  if (loading) {
+  if (loading && !compact) {
+    return (
+      <section id={variant === 'latest' ? 'blog-link' : undefined} className={`py-20 lg:py-28 ${darkMode ? 'bg-navy-800/50' : 'bg-gray-50'}`}>
+        <div className="section-container">
+          <HomeSectionHeader titleMr={titleMr} subtitle={title} darkMode={darkMode} />
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className={`h-64 rounded-xl animate-pulse ${darkMode ? 'bg-navy-800' : 'bg-gray-200'}`} />
+            ))}
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (loading && compact) {
     return (
       <div className={`rounded-2xl p-6 ${darkMode ? 'bg-navy-800' : 'bg-white'}`}>
         <div className="h-6 w-40 bg-gray-300/30 rounded animate-pulse mb-4" />
@@ -173,20 +189,30 @@ export function HomeBlogPanel({ darkMode, variant, limit = 4, compact = false }:
   }
 
   return (
-    <section className={`py-20 lg:py-28 ${darkMode ? 'bg-navy-900' : 'bg-white'}`}>
+    <section id={variant === 'latest' ? 'blog-link' : undefined} className={`py-20 lg:py-28 ${darkMode ? 'bg-navy-800/50' : 'bg-gray-50'}`}>
       <div className="section-container">
-        <header className="text-center mb-10">
-          <h2 className={`text-3xl sm:text-4xl font-bold mb-3 ${darkMode ? 'text-white' : 'text-navy-800'}`}>{titleMr}</h2>
-          <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>{title}</p>
-        </header>
+        <HomeSectionHeader titleMr={titleMr} subtitle={title} darkMode={darkMode} />
         {articles.length > 0 ? (
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {articles.map((article) => (
-              <ArticleCard key={article.id} article={article} darkMode={darkMode} />
-            ))}
-          </div>
+          <>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {articles.map((article) => (
+                <ArticleCard key={article.id} article={article} darkMode={darkMode} />
+              ))}
+            </div>
+            <div className="text-center mt-10">
+              <Link
+                to="/blog"
+                className={`inline-flex items-center gap-2 text-sm font-semibold transition-colors ${darkMode ? 'text-gold-400 hover:text-gold-300' : 'text-gold-600 hover:text-gold-700'}`}
+              >
+                सर्व लेख पहा
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
+          </>
         ) : (
-          <p className={`text-center ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>अजून कोणतेही लेख प्रकाशित झालेले नाहीत.</p>
+          <p className={`text-center text-sm sm:text-base py-4 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+            अजून कोणतेही लेख प्रकाशित झालेले नाहीत.
+          </p>
         )}
       </div>
     </section>

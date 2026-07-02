@@ -88,7 +88,7 @@ export function resolveNavRole(user: SupabaseUser | null, isReaderAuthenticated:
   return 'guest';
 }
 
-/** Public header never shows admin/author menus — those live in CMS only */
+/** Public header shows reader menu only — admin auth is separate at /admin/login */
 export function getPublicAuthenticatedMenuItems(role: NavRole): SiteNavItem[] {
   if (role === 'reader') return READER_MENU_ITEMS;
   return [];

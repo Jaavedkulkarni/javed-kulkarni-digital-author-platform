@@ -258,10 +258,13 @@ export function BlogLayout({ children }: BlogLayoutProps) {
               </p>
             </div>
           </div>
-          <div className="mt-8 pt-8 border-t border-navy-700 text-center">
+          <div className="mt-8 pt-8 border-t border-navy-700 flex flex-col sm:flex-row items-center justify-center sm:justify-between gap-3">
             <p className="text-gray-500 text-sm">
               © {new Date().getFullYear()} Javed Kulkarni. All Rights Reserved.
             </p>
+            <Link to="/admin/login" className="text-gray-600 hover:text-gold-400 transition-colors text-xs">
+              Admin Access
+            </Link>
           </div>
         </div>
       </footer>
