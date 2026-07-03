@@ -94,6 +94,11 @@ export function ReaderProvider({ children }: { children: ReactNode }) {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, s) => {
+      if (event === 'TOKEN_REFRESHED') {
+        setSession(s);
+        return;
+      }
+
       let nextUser = s?.user ?? null;
 
       if (nextUser && sessionStorage.getItem(OAUTH_INTENT_KEY) === '1') {

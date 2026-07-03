@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useAdmin } from '../../context/AdminContext';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { useProducts } from '../../context/ProductContext';
 import { listProductTypes } from '../../lib/productTypeService';
 import { supabase } from '../../lib/supabase';
@@ -23,6 +23,8 @@ import {
   EyeOff,
 } from 'lucide-react';
 import { format } from 'date-fns';
+import { adminPathFromView } from '../../lib/adminPaths';
+import { getProductEditorMode, productEditorPath } from '../../lib/adminEditorRoutes';
 
 const PAGE_SIZE = 15;
 const LANGUAGE_OPTIONS = ['मराठी', 'English'];
@@ -33,7 +35,10 @@ const STATUS_STYLES: Record<string, string> = {
 };
 
 export function ProductManager() {
-  const { currentView, setCurrentView } = useAdmin();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const editorMode = getProductEditorMode(location.pathname);
   const { getProducts, getProduct, deleteProduct } = useProducts();
 
   const [items, setItems] = useState<ProductListItem[]>([]);
@@ -53,7 +58,25 @@ export function ProductManager() {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 
   const totalPages = Math.ceil(total / PAGE_SIZE);
-  const isEditorOpen = currentView === 'product-create' || currentView === 'product-edit';
+  const isEditorOpen = editorMode !== null;
+
+  useEffect(() => {
+    if (editorMode !== 'edit') return;
+    const id = searchParams.get('id');
+    if (!id) {
+      navigate(adminPathFromView('products'), { replace: true });
+      return;
+    }
+    if (editingProduct?.id === id) return;
+    getProduct(id).then((full) => {
+      if (full) setEditingProduct(full);
+      else navigate(adminPathFromView('products'), { replace: true });
+    });
+  }, [editorMode, searchParams, editingProduct?.id, getProduct, navigate]);
+
+  useEffect(() => {
+    if (editorMode === 'create') setEditingProduct(null);
+  }, [editorMode]);
 
   useEffect(() => {
     listProductTypes().then(setProductTypes).catch(console.error);
@@ -106,23 +129,25 @@ export function ProductManager() {
 
   const handleCreateNew = () => {
     setEditingProduct(null);
-    setCurrentView('product-create');
+    navigate(productEditorPath('create'));
   };
 
   const handleEdit = async (item: ProductListItem) => {
     const full = await getProduct(item.id);
+    if (!full) return;
     setEditingProduct(full);
-    setCurrentView('product-edit');
+    navigate(productEditorPath('edit', full.id));
   };
 
   const handleCancel = () => {
     setEditingProduct(null);
-    setCurrentView('products');
+    navigate(adminPathFromView('products'));
   };
 
   const handleSaved = () => {
     setEditingProduct(null);
-    setCurrentView('products');
+    navigate(adminPathFromView('products'));
+    void loadProducts();
   };
 
   const handleDelete = async (id: string) => {
@@ -144,6 +169,16 @@ export function ProductManager() {
     !!filterLanguage;
 
   if (isEditorOpen) {
+    if (editorMode === 'edit' && !editingProduct) {
+      return (
+        <AdminLayout title="Products">
+          <div className="py-24 flex justify-center">
+            <div className="w-10 h-10 border-4 border-gold-400 border-t-transparent rounded-full animate-spin" />
+          </div>
+        </AdminLayout>
+      );
+    }
+
     return (
       <ProductEditor
         product={editingProduct}

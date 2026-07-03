@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useAdmin } from '../../context/AdminContext';
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 import { AdminLayout } from './AdminLayout';
 import { ArticleEditor } from './ArticleEditor';
+import { adminPathFromView } from '../../lib/adminPaths';
+import { articleEditorPath, getArticleEditorMode } from '../../lib/adminEditorRoutes';
 import {
   Plus,
   Search,
@@ -19,7 +21,6 @@ import {
   Filter,
 } from 'lucide-react';
 import { format } from 'date-fns';
-import { Link } from 'react-router-dom';
 
 interface Article {
   id: string;
@@ -57,7 +58,10 @@ const STATUS_LABELS: Record<string, string> = {
 };
 
 export function ArticleManager() {
-  const { currentView, setCurrentView } = useAdmin();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const editorMode = getArticleEditorMode(location.pathname);
 
   // ─── List state ───────────────────────────────────────────────────
   const [articles, setArticles] = useState<Article[]>([]);
@@ -71,7 +75,38 @@ export function ArticleManager() {
   const [editingArticle, setEditingArticle] = useState<Article | null>(null);
 
   const totalPages = Math.ceil(total / PAGE_SIZE);
-  const isEditorOpen = currentView === 'create' || currentView === 'edit';
+  const isEditorOpen = editorMode !== null;
+
+  const loadArticleById = useCallback(async (id: string) => {
+    const { data } = await supabase.from('blog_articles').select('*').eq('id', id).maybeSingle();
+    return data as Article | null;
+  }, []);
+
+  useEffect(() => {
+    if (editorMode !== 'edit') return;
+    const id = searchParams.get('id');
+    if (!id) {
+      navigate(adminPathFromView('articles'), { replace: true });
+      return;
+    }
+    if (editingArticle?.id === id) return;
+
+    let cancelled = false;
+    loadArticleById(id).then((data) => {
+      if (cancelled) return;
+      if (data) setEditingArticle(data);
+      else navigate(adminPathFromView('articles'), { replace: true });
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [editorMode, searchParams, editingArticle?.id, loadArticleById, navigate]);
+
+  useEffect(() => {
+    if (editorMode === 'create') {
+      setEditingArticle(null);
+    }
+  }, [editorMode]);
 
   const loadArticles = useCallback(async () => {
     setLoading(true);
@@ -124,28 +159,25 @@ export function ArticleManager() {
 
   const handleCreateNew = () => {
     setEditingArticle(null);
-    setCurrentView('create');
+    navigate(articleEditorPath('create'));
   };
 
   const handleEdit = async (article: Article) => {
-    // Fetch full article data (content + all fields)
-    const { data } = await supabase
-      .from('blog_articles')
-      .select('*')
-      .eq('id', article.id)
-      .maybeSingle();
-    setEditingArticle(data ?? article);
-    setCurrentView('edit');
+    const data = await loadArticleById(article.id);
+    if (!data) return;
+    setEditingArticle(data);
+    navigate(articleEditorPath('edit', data.id));
   };
 
   const handleSaved = () => {
     setEditingArticle(null);
-    setCurrentView('articles');
+    navigate(adminPathFromView('articles'));
+    void loadArticles();
   };
 
   const handleCancel = () => {
     setEditingArticle(null);
-    setCurrentView('articles');
+    navigate(adminPathFromView('articles'));
   };
 
   const handleDuplicate = async (article: Article) => {
@@ -181,9 +213,19 @@ export function ArticleManager() {
 
   // ─── Editor view ──────────────────────────────────────────────────
   if (isEditorOpen) {
+    if (editorMode === 'edit' && !editingArticle) {
+      return (
+        <AdminLayout title="लेख">
+          <div className="py-24 flex justify-center">
+            <div className="w-10 h-10 border-4 border-gold-400 border-t-transparent rounded-full animate-spin" />
+          </div>
+        </AdminLayout>
+      );
+    }
+
     return (
       <ArticleEditor
-        article={editingArticle}
+        article={editorMode === 'create' ? null : editingArticle}
         onSaved={handleSaved}
         onCancel={handleCancel}
       />

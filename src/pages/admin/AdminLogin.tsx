@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAdmin } from '../../context/AdminContext';
 import { useRoles } from '../../context/RoleContext';
 import { consumeAdminReturnTo } from '../../lib/authRedirect';
+import { consumeCmsPage } from '../../lib/cmsNavigation';
 import { getPostLoginPath } from '../../lib/roleRedirect';
 
 export function AdminLogin() {
@@ -16,7 +17,7 @@ export function AdminLogin() {
 
   useEffect(() => {
     if (!isAuthenticated || !user || rolesLoading || !isStaff) return;
-    navigate(getPostLoginPath(roles, consumeAdminReturnTo('/admin')), { replace: true });
+    navigate(getPostLoginPath(roles, consumeAdminReturnTo(consumeCmsPage('/admin'))), { replace: true });
   }, [isAuthenticated, user, roles, rolesLoading, isStaff, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {

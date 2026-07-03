@@ -134,6 +134,33 @@ export function ArticleEditor({ article, onSaved, onCancel }: ArticleEditorProps
   const [saveMsg, setSaveMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [slugManual, setSlugManual] = useState(!!article);
 
+  useEffect(() => {
+    if (!article) return;
+    setForm({
+      title: article.title,
+      subtitle: article.subtitle ?? '',
+      slug: article.slug,
+      excerpt: article.excerpt ?? '',
+      content: article.content,
+      featured_image: article.featured_image ?? '',
+      category_id: article.category_id ?? '',
+      author_name: article.author_name ?? 'जावेद कुलकर्णी',
+      author_image: article.author_image ?? '',
+      status: article.status,
+      published_at: article.published_at
+        ? format(new Date(article.published_at), "yyyy-MM-dd'T'HH:mm")
+        : '',
+      scheduled_at: article.scheduled_at
+        ? format(new Date(article.scheduled_at), "yyyy-MM-dd'T'HH:mm")
+        : '',
+      is_featured: article.is_featured,
+      meta_title: article.meta_title ?? '',
+      meta_description: article.meta_description ?? '',
+      og_image: article.og_image ?? '',
+    });
+    setSlugManual(true);
+  }, [article?.id]);
+
   // Load categories + tags
   useEffect(() => {
     supabase.from('blog_categories').select('*').order('sort_order').then(({ data }) => {
@@ -209,7 +236,7 @@ export function ArticleEditor({ article, onSaved, onCancel }: ArticleEditorProps
     setTimeout(() => setSaveMsg(null), 3500);
   };
 
-  const save = async (overrideStatus?: 'draft' | 'published') => {
+  const save = async (overrideStatus?: 'draft' | 'published', returnToList = false) => {
     if (!form.title.trim()) {
       showMsg('error', 'शीर्षक आवश्यक आहे.');
       return;
@@ -274,8 +301,8 @@ export function ArticleEditor({ article, onSaved, onCancel }: ArticleEditorProps
       }
 
       showMsg('success', status === 'published' ? 'लेख प्रकाशित झाला!' : 'ड्राफ्ट साठवला.');
-      if (overrideStatus === 'published') {
-        setTimeout(onSaved, 800);
+      if (overrideStatus === 'published' || returnToList) {
+        setTimeout(onSaved, 500);
       }
     } catch (err: any) {
       showMsg('error', err.message ?? 'त्रुटी आली.');
@@ -331,7 +358,7 @@ export function ArticleEditor({ article, onSaved, onCancel }: ArticleEditorProps
             Preview
           </button>
           <button
-            onClick={() => save('draft')}
+            onClick={() => save('draft', true)}
             disabled={saving}
             className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-navy-700 border border-navy-600 text-gray-300 text-sm font-medium hover:text-white hover:border-navy-500 transition-colors disabled:opacity-50"
           >

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Heart, ShoppingBag, BookOpen } from 'lucide-react';
 import type { Book } from '../../data/books';
+import { HomeSectionHeader } from './HomeSectionHeader';
 
 interface FeaturedBookHeroProps {
   book: Book;
@@ -52,11 +53,14 @@ export function FeaturedBookHero({ book, highlights, darkMode, books = [] }: Fea
     >
       <div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-gold-400 via-transparent to-transparent pointer-events-none" />
       <div className="section-container relative py-16 lg:py-24">
+        <HomeSectionHeader
+          titleMr="या महिन्याचे वैशिष्ट्यपूर्ण पुस्तक"
+          subtitle="Featured Book of the Month"
+          darkMode
+          className="mb-10 lg:mb-12 [&>h2]:!text-white [&>p]:!text-gray-400"
+        />
         <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 items-center">
           <div className="order-2 lg:order-1 text-white">
-            <p className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wider bg-gold-500/15 text-gold-300 border border-gold-500/30 mb-5">
-              Monthly Featured Book
-            </p>
             <h2 id="featured-book-heading" className="text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight mb-4">
               {current.title}
             </h2>

@@ -45,7 +45,7 @@ function SuperAdminShellPage({
       menuItems={SUPER_ADMIN_SHELL_MENU}
       pageTitle={pageTitle}
       onLogout={handleLogout}
-      logoutRedirect="/admin/login"
+      logoutRedirect="/"
     >
       <RolePlaceholder heading={heading} description={description} />
     </RoleShell>

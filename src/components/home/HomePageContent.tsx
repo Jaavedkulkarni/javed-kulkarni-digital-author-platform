@@ -2,19 +2,18 @@ import { Link } from 'react-router-dom';
 import {
   BookOpen,
   BookHeart,
+  Baby,
   ExternalLink,
   Ghost,
   Lightbulb,
   MessageCircle,
   MonitorSmartphone,
   PenTool,
-  ShoppingBag,
-  Users,
-  Baby,
 } from 'lucide-react';
 import type { Book } from '../../data/books';
 import { FeaturedBookHero } from './FeaturedBookHero';
 import { HomeBlogPanel } from './HomeBlogPanel';
+import { HomeBooksCarousel } from './HomeBooksCarousel';
 import { HomeReaderClubSection } from './HomeReaderClubSection';
 import { HomeWhyReadersLove } from './HomeWhyReadersLove';
 import { HomeAnimatedTrustStats } from './HomeAnimatedTrustStats';
@@ -22,14 +21,16 @@ import { HomeSectionHeader } from './HomeSectionHeader';
 
 const AMAZON_AUTHOR_URL = 'https://www.amazon.in/stores/Javed-Kulkarni/author/B0FP584D9C';
 
-const readerCards = [
-  { icon: Users, text: 'पालकांसाठी', desc: 'पालकत्वावरील अंतर्दृष्टी' },
-  { icon: PenTool, text: 'विद्यार्थ्यांसाठी', desc: 'शैक्षणिक मार्गदर्शन' },
-  { icon: Lightbulb, text: 'आत्मविकास शोधणाऱ्यांसाठी', desc: 'व्यक्तिगत विकास' },
-  { icon: MonitorSmartphone, text: 'डिजिटल युग समजून घेऊ इच्छिणाऱ्यांसाठी', desc: 'तंत्रज्ञान आणि जीवन' },
-  { icon: BookHeart, text: 'कथा आणि कादंबरी प्रेमींसाठी', desc: 'साहित्यिक सफर' },
-  { icon: Ghost, text: 'भयकथा व कल्पनारम्य साहित्य वाचकांसाठी', desc: 'रोमांचक कथा' },
+const writingCategoryCards = [
+  { icon: Baby, text: 'पालकत्व' },
+  { icon: PenTool, text: 'शिक्षण' },
+  { icon: Lightbulb, text: 'आत्मविकास' },
+  { icon: MonitorSmartphone, text: 'डिजिटल जीवन' },
+  { icon: BookHeart, text: 'कथा' },
+  { icon: Ghost, text: 'भयकथा' },
 ];
+
+const WORLD_COUNTRY_FLAGS = ['🇺🇸', '🇬🇧', '🇨🇦', '🇦🇺', '🇩🇪', '🇫🇷', '🇯🇵', '🇸🇬', '🇦🇪'];
 
 const categoryUiBySlug: Record<string, { icon: typeof Lightbulb; color: string }> = {
   atmvikas: { icon: Lightbulb, color: 'from-amber-500 to-orange-500' },
@@ -96,19 +97,27 @@ export function HomePageContent({
 
       <section id="audience" className={`py-20 lg:py-28 ${darkMode ? 'bg-navy-900' : 'bg-white'}`}>
         <div className="section-container">
-          <HomeSectionHeader
-            titleMr="माझं लेखन कोणासाठी?"
-            subtitle="Who Should Read My Books"
-            darkMode={darkMode}
-          />
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {readerCards.map((card, i) => (
-              <div key={i} className={`group p-6 rounded-2xl transition-all duration-300 hover:scale-[1.02] ${darkMode ? 'bg-navy-800 hover:bg-navy-700 border border-navy-700' : 'bg-gray-50 hover:bg-white shadow-lg hover:shadow-xl border border-transparent'}`}>
-                <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 transition-transform group-hover:scale-110 ${darkMode ? 'bg-gold-400/20 text-gold-400' : 'bg-gold-100 text-gold-600'}`}>
+          <HomeSectionHeader titleMr="लेखन श्रेणी" subtitle="Writing Categories" darkMode={darkMode} />
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 lg:gap-5">
+            {writingCategoryCards.map((card) => (
+              <div
+                key={card.text}
+                className={`group p-5 sm:p-6 rounded-2xl text-center transition-all duration-300 hover:scale-[1.03] ${
+                  darkMode
+                    ? 'bg-navy-800 hover:bg-navy-700 border border-navy-700'
+                    : 'bg-gray-50 hover:bg-white shadow-lg hover:shadow-xl border border-transparent'
+                }`}
+              >
+                <div
+                  className={`w-12 h-12 rounded-xl flex items-center justify-center mb-3 mx-auto transition-transform group-hover:scale-110 ${
+                    darkMode ? 'bg-gold-400/20 text-gold-400' : 'bg-gold-100 text-gold-600'
+                  }`}
+                >
                   <card.icon className="w-6 h-6" />
                 </div>
-                <h3 className={`font-semibold text-lg mb-2 ${darkMode ? 'text-white' : 'text-navy-800'}`}>{card.text}</h3>
-                <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>{card.desc}</p>
+                <h3 className={`font-semibold text-sm sm:text-base ${darkMode ? 'text-white' : 'text-navy-800'}`}>
+                  {card.text}
+                </h3>
               </div>
             ))}
           </div>
@@ -153,40 +162,7 @@ export function HomePageContent({
       <section id="books" className={`py-20 lg:py-28 ${darkMode ? 'bg-navy-800/50' : 'bg-gray-50'}`}>
         <div className="section-container">
           <HomeSectionHeader titleMr="माझी पुस्तके" subtitle="My Books" darkMode={darkMode} />
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 lg:gap-7">
-            {homeBooks.map((book) => (
-              <article
-                key={book.id}
-                className={`group flex flex-col rounded-[22px] overflow-hidden transition-all duration-500 ease-out transform hover:-translate-y-2 ${
-                  darkMode
-                    ? 'bg-navy-800 shadow-[0_8px_30px_rgb(0,0,0,0.3)] hover:shadow-[0_24px_60px_rgba(218,165,32,0.18)] border border-navy-700/50'
-                    : 'bg-white shadow-[0_8px_30px_rgb(0,0,0,0.06)] hover:shadow-[0_24px_60px_rgba(26,46,93,0.18)] border border-gray-100'
-                }`}
-              >
-                <div className="relative bg-white p-[18px]">
-                  <div className="relative w-full overflow-hidden rounded-lg" style={{ aspectRatio: '2 / 3' }}>
-                    <img src={book.cover} alt={book.title} loading="lazy" className="w-full h-full object-contain transition-transform duration-700 ease-out group-hover:scale-[1.04]" />
-                  </div>
-                </div>
-                <div className="flex flex-col flex-1 p-5 pt-4">
-                  <h3 className={`font-bold text-base leading-snug mb-2 line-clamp-2 ${darkMode ? 'text-white group-hover:text-gold-400' : 'text-navy-800 group-hover:text-navy-600'}`}>
-                    {book.title}
-                  </h3>
-                  <p className={`text-sm leading-relaxed line-clamp-3 mb-5 flex-1 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>{book.description}</p>
-                  <div className="flex flex-col gap-2.5 mt-auto">
-                    <Link to={`/books/${book.slug}`} className={`w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold ${darkMode ? 'bg-navy-700 text-white hover:bg-navy-600' : 'bg-navy-100 text-navy-700 hover:bg-navy-200'}`}>
-                      <BookOpen className="w-4 h-4" />
-                      अधिक वाचा
-                    </Link>
-                    <a href={book.amazonUrl} target="_blank" rel="noopener noreferrer" className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold bg-gradient-to-r from-gold-400 to-gold-500 text-navy-900 hover:from-gold-500 hover:to-gold-600">
-                      <ShoppingBag className="w-4 h-4" />
-                      Amazon वर
-                    </a>
-                  </div>
-                </div>
-              </article>
-            ))}
-          </div>
+          <HomeBooksCarousel books={homeBooks} darkMode={darkMode} />
         </div>
       </section>
 
@@ -196,20 +172,43 @@ export function HomePageContent({
 
       <HomeAnimatedTrustStats darkMode={darkMode} />
 
-      <section className="py-20 lg:py-28 bg-gradient-to-r from-gold-400 via-gold-500 to-gold-600 relative overflow-hidden">
+      <section className="py-20 lg:py-28 pb-24 lg:pb-28 bg-gradient-to-r from-gold-400 via-gold-500 to-gold-600 relative overflow-hidden">
         <div className="section-container relative">
           <div className="max-w-3xl mx-auto text-center">
-            <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-navy-900 flex items-center justify-center">
-              <BookOpen className="w-8 h-8 text-gold-400" />
-            </div>
             <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-navy-900 mb-2">
-              Available Worldwide on Amazon
+              जगभरातील वाचकांसाठी उपलब्ध
             </h2>
-            <p className="text-navy-800/90 text-lg sm:text-xl font-medium mb-3">Read Anywhere.</p>
-            <p className="text-navy-800/80 text-base sm:text-lg mb-8">
-              Paperback • Kindle • Worldwide Delivery
+            <p className="text-navy-800/90 text-base sm:text-lg mb-8">
+              Available Worldwide on Amazon Kindle &amp; Paperback
             </p>
-            <a href={AMAZON_AUTHOR_URL} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-8 py-4 bg-navy-900 text-gold-400 font-semibold rounded-lg hover:bg-navy-800 transition-all shadow-lg hover:shadow-xl transform hover:scale-[1.02]">
+
+            <div className="mb-8">
+              <span className="text-7xl sm:text-8xl leading-none" role="img" aria-label="India">
+                🇮🇳
+              </span>
+              <p className="text-navy-900 font-semibold mt-3 text-lg">India</p>
+            </div>
+
+            <div className="flex flex-wrap justify-center gap-2 sm:gap-3 mb-10">
+              {WORLD_COUNTRY_FLAGS.map((flag) => (
+                <span
+                  key={flag}
+                  className="inline-flex items-center justify-center px-3 py-1.5 rounded-full bg-navy-900/15 border border-navy-900/20 text-2xl"
+                  role="img"
+                  aria-hidden="true"
+                >
+                  {flag}
+                </span>
+              ))}
+            </div>
+
+            <p className="text-navy-800/80 text-sm sm:text-base mb-8">Paperback • Kindle • Worldwide Delivery</p>
+            <a
+              href={AMAZON_AUTHOR_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-8 py-4 bg-navy-900 text-gold-400 font-semibold rounded-lg hover:bg-navy-800 transition-all shadow-lg hover:shadow-xl transform hover:scale-[1.02]"
+            >
               <ExternalLink className="w-5 h-5" />
               Amazon Author Page
             </a>

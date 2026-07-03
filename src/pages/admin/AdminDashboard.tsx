@@ -5,7 +5,6 @@ import { AdminLayout } from './AdminLayout';
 import { adminPathFromView } from '../../lib/adminPaths';
 import {
   BookOpen,
-  CheckCircle2,
   FileText,
   FolderOpen,
   Mail,
@@ -17,17 +16,24 @@ import {
   TrendingUp,
   ArrowUpRight,
   Clock,
-  AlertCircle,
+  ShoppingBag,
+  Users,
+  PenTool,
+  DollarSign,
+  Image,
+  Package,
 } from 'lucide-react';
 import { format } from 'date-fns';
 
 interface Stats {
-  totalArticles: number;
-  publishedArticles: number;
-  draftArticles: number;
-  totalCategories: number;
-  totalSubscribers: number;
-  totalViews: number;
+  books: number;
+  articles: number;
+  products: number;
+  readers: number;
+  authors: number;
+  revenue: number;
+  media: number;
+  orders: number;
 }
 
 interface RecentArticle {
@@ -52,15 +58,20 @@ const STATUS_LABELS: Record<string, string> = {
   scheduled: 'नियोजित',
 };
 
+const DASHBOARD_CACHE_TTL_MS = 60_000;
+let dashboardCache: { stats: Stats; recentArticles: RecentArticle[]; cachedAt: number } | null = null;
+
 export function AdminDashboard() {
   const navigate = useNavigate();
   const [stats, setStats] = useState<Stats>({
-    totalArticles: 0,
-    publishedArticles: 0,
-    draftArticles: 0,
-    totalCategories: 0,
-    totalSubscribers: 0,
-    totalViews: 0,
+    books: 0,
+    articles: 0,
+    products: 0,
+    readers: 0,
+    authors: 0,
+    revenue: 0,
+    media: 0,
+    orders: 0,
   });
   const [recentArticles, setRecentArticles] = useState<RecentArticle[]>([]);
   const [loading, setLoading] = useState(true);
@@ -70,12 +81,30 @@ export function AdminDashboard() {
     loadDashboardData();
   }, []);
 
-  const loadDashboardData = async () => {
+  const loadDashboardData = async (force = false) => {
+    if (
+      !force &&
+      dashboardCache &&
+      Date.now() - dashboardCache.cachedAt < DASHBOARD_CACHE_TTL_MS
+    ) {
+      setStats(dashboardCache.stats);
+      setRecentArticles(dashboardCache.recentArticles);
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     try {
-      const [articlesRes, categoriesRes, subscribersRes, recentRes] = await Promise.all([
-        supabase.from('blog_articles').select('status, views_count'),
-        supabase.from('blog_categories').select('id', { count: 'exact', head: true }),
+      const [
+        booksRes,
+        articlesRes,
+        productsRes,
+        readersRes,
+        recentRes,
+      ] = await Promise.all([
+        supabase.from('books').select('id', { count: 'exact', head: true }),
+        supabase.from('blog_articles').select('id', { count: 'exact', head: true }),
+        supabase.from('books').select('id', { count: 'exact', head: true }),
         supabase.from('blog_newsletter_subscribers').select('id', { count: 'exact', head: true }),
         supabase
           .from('blog_articles')
@@ -84,22 +113,30 @@ export function AdminDashboard() {
           .limit(10),
       ]);
 
-      const articles = articlesRes.data || [];
-      setStats({
-        totalArticles: articles.length,
-        publishedArticles: articles.filter((a) => a.status === 'published').length,
-        draftArticles: articles.filter((a) => a.status === 'draft').length,
-        totalCategories: categoriesRes.count ?? 0,
-        totalSubscribers: subscribersRes.count ?? 0,
-        totalViews: articles.reduce((sum, a) => sum + (a.views_count || 0), 0),
-      });
+      const nextStats: Stats = {
+        books: booksRes.count ?? 0,
+        articles: articlesRes.count ?? 0,
+        products: productsRes.count ?? 0,
+        readers: readersRes.count ?? 0,
+        authors: 0,
+        revenue: 0,
+        media: 0,
+        orders: 0,
+      };
 
-      setRecentArticles(
-        (recentRes.data || []).map((a: any) => ({
-          ...a,
-          category: Array.isArray(a.category) ? a.category[0] ?? null : a.category,
-        }))
-      );
+      const nextRecent = (recentRes.data || []).map((a: any) => ({
+        ...a,
+        category: Array.isArray(a.category) ? a.category[0] ?? null : a.category,
+      }));
+
+      dashboardCache = {
+        stats: nextStats,
+        recentArticles: nextRecent,
+        cachedAt: Date.now(),
+      };
+
+      setStats(nextStats);
+      setRecentArticles(nextRecent);
     } catch (err) {
       console.error('Error loading dashboard data:', err);
     } finally {
@@ -113,60 +150,21 @@ export function AdminDashboard() {
     const { error } = await supabase.from('blog_articles').delete().eq('id', id);
     if (!error) {
       setRecentArticles((prev) => prev.filter((a) => a.id !== id));
-      setStats((prev) => ({ ...prev, totalArticles: prev.totalArticles - 1 }));
+      setStats((prev) => ({ ...prev, articles: Math.max(0, prev.articles - 1) }));
+      dashboardCache = null;
     }
     setDeletingId(null);
   };
 
   const statCards = [
-    {
-      label: 'एकूण लेख',
-      value: stats.totalArticles,
-      icon: BookOpen,
-      iconColor: 'text-blue-400',
-      iconBg: 'bg-blue-500/10',
-      action: () => navigate(adminPathFromView('articles')),
-    },
-    {
-      label: 'प्रकाशित',
-      value: stats.publishedArticles,
-      icon: CheckCircle2,
-      iconColor: 'text-emerald-400',
-      iconBg: 'bg-emerald-500/10',
-      action: () => navigate(adminPathFromView('articles')),
-    },
-    {
-      label: 'ड्राफ्ट',
-      value: stats.draftArticles,
-      icon: FileText,
-      iconColor: 'text-yellow-400',
-      iconBg: 'bg-yellow-500/10',
-      action: () => navigate(adminPathFromView('articles')),
-    },
-    {
-      label: 'श्रेणी',
-      value: stats.totalCategories,
-      icon: FolderOpen,
-      iconColor: 'text-purple-400',
-      iconBg: 'bg-purple-500/10',
-      action: () => navigate(adminPathFromView('categories')),
-    },
-    {
-      label: 'वाचक क्लब',
-      value: stats.totalSubscribers,
-      icon: Mail,
-      iconColor: 'text-gold-400',
-      iconBg: 'bg-gold-500/10',
-      action: () => navigate(adminPathFromView('subscribers')),
-    },
-    {
-      label: 'एकूण Views',
-      value: stats.totalViews,
-      icon: Eye,
-      iconColor: 'text-cyan-400',
-      iconBg: 'bg-cyan-500/10',
-      action: undefined,
-    },
+    { label: 'Books', value: stats.books, icon: BookOpen, iconColor: 'text-blue-400', iconBg: 'bg-blue-500/10', action: () => navigate(adminPathFromView('books')) },
+    { label: 'Articles', value: stats.articles, icon: FileText, iconColor: 'text-emerald-400', iconBg: 'bg-emerald-500/10', action: () => navigate(adminPathFromView('articles')) },
+    { label: 'Products', value: stats.products, icon: Package, iconColor: 'text-purple-400', iconBg: 'bg-purple-500/10', action: () => navigate(adminPathFromView('products')) },
+    { label: 'Readers', value: stats.readers, icon: Users, iconColor: 'text-cyan-400', iconBg: 'bg-cyan-500/10', action: () => navigate(adminPathFromView('subscribers')) },
+    { label: 'Authors', value: stats.authors, icon: PenTool, iconColor: 'text-gold-400', iconBg: 'bg-gold-500/10', action: undefined },
+    { label: 'Revenue', value: stats.revenue, icon: DollarSign, iconColor: 'text-green-400', iconBg: 'bg-green-500/10', action: undefined },
+    { label: 'Media', value: stats.media, icon: Image, iconColor: 'text-pink-400', iconBg: 'bg-pink-500/10', action: () => navigate(adminPathFromView('media')) },
+    { label: 'Orders', value: stats.orders, icon: ShoppingBag, iconColor: 'text-orange-400', iconBg: 'bg-orange-500/10', action: undefined },
   ];
 
   return (
@@ -190,8 +188,8 @@ export function AdminDashboard() {
 
       {/* Stat Cards */}
       {loading ? (
-        <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-4 mb-8">
-          {Array.from({ length: 6 }).map((_, i) => (
+        <div className="grid grid-cols-2 sm:grid-cols-4 xl:grid-cols-8 gap-4 mb-8">
+          {Array.from({ length: 8 }).map((_, i) => (
             <div key={i} className="bg-navy-800 rounded-xl p-5 animate-pulse">
               <div className="w-8 h-8 bg-navy-700 rounded-lg mb-3" />
               <div className="h-7 bg-navy-700 rounded w-12 mb-1.5" />
@@ -200,7 +198,7 @@ export function AdminDashboard() {
           ))}
         </div>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-4 mb-8">
+        <div className="grid grid-cols-2 sm:grid-cols-4 xl:grid-cols-8 gap-4 mb-8">
           {statCards.map((card) => (
             <button
               key={card.label}

@@ -43,7 +43,13 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       syncSession(session).catch(console.error);
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'TOKEN_REFRESHED') {
+        setSession(session);
+        setUser(session?.user ?? null);
+        setIsAuthenticated(!!session);
+        return;
+      }
       syncSession(session).catch(console.error);
     });
 

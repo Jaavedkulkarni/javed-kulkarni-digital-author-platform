@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useAdmin } from '../../context/AdminContext';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { useBooks } from '../../context/BookContext';
 import { getProductTypeBySlug } from '../../lib/productTypeService';
 import { supabase } from '../../lib/supabase';
@@ -23,6 +23,8 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { format } from 'date-fns';
+import { adminPathFromView } from '../../lib/adminPaths';
+import { bookEditorPath, getBookEditorMode } from '../../lib/adminEditorRoutes';
 
 const PAGE_SIZE = 15;
 
@@ -39,7 +41,10 @@ const STATUS_LABELS: Record<string, string> = {
 const LANGUAGE_OPTIONS = ['मराठी', 'English'];
 
 export function BookManager() {
-  const { currentView, setCurrentView } = useAdmin();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const editorMode = getBookEditorMode(location.pathname);
   const { getBooks, getBook, deleteBook } = useBooks();
 
   const [books, setBooks] = useState<BookListItem[]>([]);
@@ -59,7 +64,25 @@ export function BookManager() {
   const [bookTypeId, setBookTypeId] = useState<string>('');
 
   const totalPages = Math.ceil(total / PAGE_SIZE);
-  const isEditorOpen = currentView === 'book-create' || currentView === 'book-edit';
+  const isEditorOpen = editorMode !== null;
+
+  useEffect(() => {
+    if (editorMode !== 'edit') return;
+    const id = searchParams.get('id');
+    if (!id) {
+      navigate(adminPathFromView('books'), { replace: true });
+      return;
+    }
+    if (editingBook?.id === id) return;
+    getBook(id).then((full) => {
+      if (full) setEditingBook(full);
+      else navigate(adminPathFromView('books'), { replace: true });
+    });
+  }, [editorMode, searchParams, editingBook?.id, getBook, navigate]);
+
+  useEffect(() => {
+    if (editorMode === 'create') setEditingBook(null);
+  }, [editorMode]);
 
   useEffect(() => {
     getProductTypeBySlug('book').then((type) => {
@@ -143,23 +166,25 @@ export function BookManager() {
 
   const handleCreateNew = () => {
     setEditingBook(null);
-    setCurrentView('book-create');
+    navigate(bookEditorPath('create'));
   };
 
   const handleEdit = async (book: BookListItem) => {
     const full = await getBook(book.id);
+    if (!full) return;
     setEditingBook(full);
-    setCurrentView('book-edit');
+    navigate(bookEditorPath('edit', full.id));
   };
 
   const handleCancel = () => {
     setEditingBook(null);
-    setCurrentView('books');
+    navigate(adminPathFromView('books'));
   };
 
   const handleSaved = () => {
     setEditingBook(null);
-    setCurrentView('books');
+    navigate(adminPathFromView('books'));
+    void loadBooks();
   };
 
   const handleDelete = async (id: string) => {
@@ -178,6 +203,16 @@ export function BookManager() {
   const showSeedWarning = booksTableEmpty && !hasActiveFilters && !loading;
 
   if (isEditorOpen) {
+    if (editorMode === 'edit' && !editingBook) {
+      return (
+        <AdminLayout title="पुस्तके">
+          <div className="py-24 flex justify-center">
+            <div className="w-10 h-10 border-4 border-gold-400 border-t-transparent rounded-full animate-spin" />
+          </div>
+        </AdminLayout>
+      );
+    }
+
     return <BookEditor book={editingBook} onCancel={handleCancel} onSaved={handleSaved} />;
   }
 

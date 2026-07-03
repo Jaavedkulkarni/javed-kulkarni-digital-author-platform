@@ -18,6 +18,7 @@ import { BookProvider } from '../../context/BookContext';
 import { useAdmin } from '../../context/AdminContext';
 import { useRoles } from '../../context/RoleContext';
 import { storeAdminReturnTo } from '../../lib/authRedirect';
+import { trackCmsPage } from '../../lib/cmsNavigation';
 import { adminViewFromPath } from '../../lib/adminPaths';
 import {
   canAccessAdminDashboard,
@@ -75,7 +76,13 @@ function AdminProtected() {
   const { roles, loading } = useRoles();
   const location = useLocation();
 
-  if (loading) {
+  useEffect(() => {
+    if (isAuthenticated && location.pathname !== '/admin/login') {
+      trackCmsPage(`${location.pathname}${location.search}`);
+    }
+  }, [isAuthenticated, location.pathname, location.search]);
+
+  if (loading && !isAuthenticated) {
     return (
       <div className="min-h-screen bg-navy-900 flex items-center justify-center">
         <div className="w-10 h-10 border-4 border-gold-400 border-t-transparent rounded-full animate-spin" />
@@ -92,21 +99,20 @@ function AdminProtected() {
     return <Navigate to="/admin/login" replace state={{ from: location.pathname }} />;
   }
 
-  return (
-    <ProductProvider>
-      <BookProvider>
-        <AdminCmsContent />
-      </BookProvider>
-    </ProductProvider>
-  );
+  return <AdminCmsContent />;
 }
 
 export function AdminPage() {
   return (
-    <Routes>
-      <Route path="login" element={<AdminLogin />} />
-      <Route path="*" element={<AdminProtected />} />
-    </Routes>
+    <ProductProvider>
+      <BookProvider>
+        <Routes>
+          <Route path="login" element={<AdminLogin />} />
+          <Route index element={<AdminProtected />} />
+          <Route path="*" element={<AdminProtected />} />
+        </Routes>
+      </BookProvider>
+    </ProductProvider>
   );
 }
 

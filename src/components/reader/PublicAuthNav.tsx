@@ -86,7 +86,7 @@ export function PublicAuthNav({ darkMode = false, className = '', onNavigate }: 
     );
   };
 
-  if (readerLoading || rolesLoading) {
+  if (readerLoading && rolesLoading && !user) {
     return <div className={`h-9 w-24 rounded-lg bg-navy-700/30 animate-pulse ${className}`} />;
   }
 

@@ -19,14 +19,12 @@ export function PublicSiteLayout({ children, title, memberArea = false }: Public
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const navLinkCls = (active: boolean) =>
-    `px-3 py-2 rounded-lg font-medium text-sm transition-colors ${
+    `relative px-3 py-2 rounded-lg font-medium text-sm transition-all duration-200 hover:bg-navy-800 hover:text-white ${
       active
-        ? darkMode
-          ? 'text-gold-400 bg-gold-400/10'
-          : 'text-navy-700 bg-navy-100'
+        ? 'bg-navy-800 text-white after:absolute after:bottom-0.5 after:left-2 after:right-2 after:h-0.5 after:rounded-full after:bg-gold-400'
         : darkMode
-          ? 'text-gray-300 hover:text-white hover:bg-navy-800'
-          : 'text-navy-600 hover:text-navy-800 hover:bg-navy-50'
+          ? 'text-gray-300'
+          : 'text-navy-600'
     }`;
 
   return (
@@ -61,15 +59,13 @@ export function PublicSiteLayout({ children, title, memberArea = false }: Public
                       {item.label}
                       <ExternalLink className="w-3 h-3 inline ml-1 opacity-60" />
                     </a>
-                  ) : item.path === '/#books' ? (
-                    <Link key={item.label} to="/#books" className={navLinkCls(false)}>
-                      {item.label}
-                    </Link>
                   ) : (
                     <Link
                       key={item.label}
                       to={item.path}
-                      className={navLinkCls(location.pathname === item.path)}
+                      className={navLinkCls(
+                        item.path.startsWith('/#') ? false : location.pathname === item.path
+                      )}
                     >
                       {item.label}
                     </Link>
@@ -123,9 +119,11 @@ export function PublicSiteLayout({ children, title, memberArea = false }: Public
               ) : (
                 <Link
                   key={item.label}
-                  to={item.path === '/#books' ? '/#books' : item.path}
+                  to={item.path}
                   onClick={() => setMobileOpen(false)}
-                  className={`block px-3 py-2 rounded-lg text-sm ${navLinkCls(location.pathname === item.path)}`}
+                  className={`block px-3 py-2 rounded-lg text-sm ${navLinkCls(
+                    item.path.startsWith('/#') ? false : location.pathname === item.path
+                  )}`}
                 >
                   {item.label}
                 </Link>

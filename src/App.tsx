@@ -18,7 +18,6 @@ import {
   MessageCircle,
   Sparkles,
   ArrowRight,
-  Award,
   Instagram,
   Facebook,
 } from 'lucide-react';
@@ -35,6 +34,7 @@ import {
   getHomepageInitialData,
   loadHomepageBookData,
 } from './lib/publicBooks';
+import { ScrollToTopButton } from './components/layout/ScrollToTopButton';
 import { HomePageContent } from './components/home/HomePageContent';
 
 // Lazy load blog, book and admin pages
@@ -55,8 +55,28 @@ const AMAZON_AUTHOR_URL = 'https://www.amazon.in/stores/Javed-Kulkarni/author/B0
 const INSTAGRAM_URL = 'https://instagram.com/authorjavedkulkarni';
 const FACEBOOK_URL = 'https://facebook.com/authorjavedkulkarni';
 
-const navLinks = ['Home', 'About', 'Books', 'Categories', 'Blog', 'Amazon', 'Contact'];
-const navLabels = ['मुख्यपृष्ठ', 'माझ्याविषयी', 'पुस्तके', 'पुस्तक श्रेणी', 'ब्लॉग', 'Amazon', 'संपर्क'];
+const navLinks = ['Home', 'Books', 'Categories', 'Blog', 'ReaderClub', 'Store', 'About', 'Contact'];
+const navLabels = ['मुख्यपृष्ठ', 'माझी पुस्तके', 'लेखन श्रेणी', 'ब्लॉग', 'वाचक क्लब', 'स्टोअर', 'माझ्याविषयी', 'संपर्क'];
+
+const SECTION_IDS: Record<string, string> = {
+  Home: 'home',
+  Books: 'books',
+  Categories: 'audience',
+  ReaderClub: 'reader-club',
+  About: 'about',
+  Contact: 'contact',
+};
+
+const FOOTER_QUICK_LINKS = [
+  { label: 'माझी पुस्तके', section: 'Books' },
+  { label: 'वाचक क्लब', section: 'ReaderClub' },
+  { label: 'ब्लॉग', href: '/blog' },
+  { label: 'स्टोअर', external: AMAZON_AUTHOR_URL },
+  { label: 'मुख्यपृष्ठ', section: 'Home' },
+  { label: 'Amazon', external: AMAZON_AUTHOR_URL },
+] as const;
+
+const FOOTER_BOOK_CATEGORIES = ['कथा', 'कादंबरी', 'पालकत्व', 'नातेसंबंध', 'डिजिटल जीवन', 'विनोदी कथा'];
 
 const homepageInitialData = getHomepageInitialData();
 
@@ -70,11 +90,34 @@ function MainWebsite() {
     homepageInitialData.featured.highlights
   );
   const [homeCategories, setHomeCategories] = useState(homepageInitialData.categories);
+  const [activeSection, setActiveSection] = useState('home');
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 50);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  useEffect(() => {
+    const sectionIds = Object.values(SECTION_IDS);
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio);
+        if (visible[0]?.target.id) {
+          setActiveSection(visible[0].target.id);
+        }
+      },
+      { rootMargin: '-30% 0px -55% 0px', threshold: [0.1, 0.25, 0.5] }
+    );
+
+    sectionIds.forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) observer.observe(el);
+    });
+
+    return () => observer.disconnect();
   }, []);
 
   useEffect(() => {
@@ -95,9 +138,22 @@ function MainWebsite() {
   }, []);
 
   const scrollToSection = (id: string) => {
-    if (id === 'blog') return;
-    const element = document.getElementById(id.toLowerCase());
-    element?.scrollIntoView({ behavior: 'smooth' });
+    const targetId = SECTION_IDS[id] ?? id.toLowerCase();
+    document.getElementById(targetId)?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const navItemClass = (link: string, isActive: boolean) => {
+    const base =
+      'relative px-4 py-2 rounded-lg font-medium text-sm transition-all duration-200 hover:bg-navy-800 hover:text-white';
+    if (isActive) {
+      return `${base} bg-navy-800 text-white after:absolute after:bottom-0.5 after:left-3 after:right-3 after:h-0.5 after:rounded-full after:bg-gold-400`;
+    }
+    return `${base} ${darkMode ? 'text-gray-300' : 'text-navy-600'}`;
+  };
+
+  const isNavActive = (link: string) => {
+    if (link === 'Blog' || link === 'Store') return false;
+    return SECTION_IDS[link] === activeSection;
   };
 
   return (
@@ -135,47 +191,32 @@ function MainWebsite() {
 
             {/* Desktop Navigation */}
             <div className="hidden lg:flex items-center gap-1">
-              {navLinks.map((link, i) => (
+              {navLinks.map((link, i) =>
                 link === 'Blog' ? (
-                  <Link
-                    key={link}
-                    to="/blog"
-                    className={`px-4 py-2 rounded-lg font-medium text-sm transition-all duration-200 ${
-                      darkMode
-                        ? 'text-gray-300 hover:text-white hover:bg-navy-800'
-                        : 'text-navy-600 hover:text-navy-800 hover:bg-navy-50'
-                    }`}
-                  >
+                  <Link key={link} to="/blog" className={navItemClass(link, false)}>
                     {navLabels[i]}
                   </Link>
-                ) : link === 'Amazon' ? (
+                ) : link === 'Store' ? (
                   <a
                     key={link}
                     href={AMAZON_AUTHOR_URL}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className={`px-4 py-2 rounded-lg font-medium text-sm transition-all duration-200 ${
-                      darkMode
-                        ? 'text-gray-300 hover:text-white hover:bg-navy-800'
-                        : 'text-navy-600 hover:text-navy-800 hover:bg-navy-50'
-                    }`}
+                    className={navItemClass(link, false)}
                   >
                     {navLabels[i]}
                   </a>
                 ) : (
                   <button
                     key={link}
+                    type="button"
                     onClick={() => scrollToSection(link)}
-                    className={`px-4 py-2 rounded-lg font-medium text-sm transition-all duration-200 ${
-                      darkMode
-                        ? 'text-gray-300 hover:text-white hover:bg-navy-800'
-                        : 'text-navy-600 hover:text-navy-800 hover:bg-navy-50'
-                    }`}
+                    className={navItemClass(link, isNavActive(link))}
                   >
                     {navLabels[i]}
                   </button>
                 )
-              ))}
+              )}
             </div>
 
             <div className="flex items-center gap-3">
@@ -209,31 +250,27 @@ function MainWebsite() {
         {mobileMenuOpen && (
           <div className="lg:hidden border-t border-navy-200 dark:border-navy-800 bg-white dark:bg-navy-900">
             <div className="section-container py-4 space-y-2">
-              {navLinks.map((link, i) => (
+              {navLinks.map((link, i) =>
                 link === 'Blog' ? (
                   <Link
                     key={link}
                     to="/blog"
                     onClick={() => setMobileMenuOpen(false)}
-                    className={`block px-4 py-3 rounded-lg font-medium transition-colors ${
-                      darkMode
-                        ? 'text-gray-300 hover:text-white hover:bg-navy-800'
-                        : 'text-navy-600 hover:text-navy-800 hover:bg-navy-50'
+                    className={`block px-4 py-3 rounded-lg font-medium transition-colors hover:bg-navy-800 hover:text-white ${
+                      darkMode ? 'text-gray-300' : 'text-navy-600'
                     }`}
                   >
                     {navLabels[i]}
                   </Link>
-                ) : link === 'Amazon' ? (
+                ) : link === 'Store' ? (
                   <a
                     key={link}
                     href={AMAZON_AUTHOR_URL}
                     target="_blank"
                     rel="noopener noreferrer"
                     onClick={() => setMobileMenuOpen(false)}
-                    className={`block px-4 py-3 rounded-lg font-medium transition-colors ${
-                      darkMode
-                        ? 'text-gray-300 hover:text-white hover:bg-navy-800'
-                        : 'text-navy-600 hover:text-navy-800 hover:bg-navy-50'
+                    className={`block px-4 py-3 rounded-lg font-medium transition-colors hover:bg-navy-800 hover:text-white ${
+                      darkMode ? 'text-gray-300' : 'text-navy-600'
                     }`}
                   >
                     {navLabels[i]}
@@ -241,20 +278,23 @@ function MainWebsite() {
                 ) : (
                   <button
                     key={link}
+                    type="button"
                     onClick={() => {
                       scrollToSection(link);
                       setMobileMenuOpen(false);
                     }}
-                    className={`block w-full text-left px-4 py-3 rounded-lg font-medium transition-colors ${
-                      darkMode
-                        ? 'text-gray-300 hover:text-white hover:bg-navy-800'
-                        : 'text-navy-600 hover:text-navy-800 hover:bg-navy-50'
+                    className={`block w-full text-left px-4 py-3 rounded-lg font-medium transition-colors hover:bg-navy-800 hover:text-white ${
+                      isNavActive(link)
+                        ? 'bg-navy-800 text-white border-b-2 border-gold-400'
+                        : darkMode
+                          ? 'text-gray-300'
+                          : 'text-navy-600'
                     }`}
                   >
                     {navLabels[i]}
                   </button>
                 )
-              ))}
+              )}
               <div className="pt-3 border-t border-navy-200 dark:border-navy-800">
                 <PublicAuthNav darkMode={darkMode} onNavigate={() => setMobileMenuOpen(false)} className="flex-col items-stretch !gap-2" />
               </div>
@@ -302,7 +342,6 @@ function MainWebsite() {
                   { icon: User, text: 'Author' },
                   { icon: PenTool, text: 'Blogger' },
                   { icon: MessageCircle, text: 'Storyteller' },
-                  { icon: Award, text: 'Amazon Published' },
                 ].map((badge) => (
                   <span
                     key={badge.text}
@@ -394,7 +433,7 @@ function MainWebsite() {
       {/* Footer */}
       <footer
         id="contact"
-        className={`py-16 ${
+        className={`pt-16 pb-16 mt-16 lg:mt-20 ${
           darkMode ? 'bg-navy-900 border-t border-navy-800' : 'bg-navy-800'
         }`}
       >
@@ -464,31 +503,28 @@ function MainWebsite() {
             <div>
               <h4 className="text-white font-semibold mb-4">Quick Links</h4>
               <ul className="space-y-3">
-                <li>
-                  <Link
-                    to="/blog"
-                    className="text-gray-400 hover:text-gold-400 transition-colors"
-                  >
-                    ब्लॉग
-                  </Link>
-                </li>
-                {navLinks.slice(0, -1).map((link, i) => (
-                  <li key={link}>
-                    {link === 'Amazon' ? (
+                {FOOTER_QUICK_LINKS.map((item) => (
+                  <li key={item.label}>
+                    {'href' in item ? (
+                      <Link to={item.href} className="text-gray-400 hover:text-gold-400 transition-colors">
+                        {item.label}
+                      </Link>
+                    ) : 'external' in item ? (
                       <a
-                        href={AMAZON_AUTHOR_URL}
+                        href={item.external}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-gray-400 hover:text-gold-400 transition-colors"
                       >
-                        {navLabels[i]}
+                        {item.label}
                       </a>
                     ) : (
                       <button
-                        onClick={() => scrollToSection(link)}
+                        type="button"
+                        onClick={() => scrollToSection(item.section)}
                         className="text-gray-400 hover:text-gold-400 transition-colors"
                       >
-                        {navLabels[i]}
+                        {item.label}
                       </button>
                     )}
                   </li>
@@ -500,13 +536,14 @@ function MainWebsite() {
             <div>
               <h4 className="text-white font-semibold mb-4">पुस्तक श्रेणी</h4>
               <ul className="space-y-3">
-                {homeCategories.map((cat, i) => (
-                  <li key={i}>
+                {FOOTER_BOOK_CATEGORIES.map((name) => (
+                  <li key={name}>
                     <button
-                      onClick={() => scrollToSection('Categories')}
+                      type="button"
+                      onClick={() => document.getElementById('categories')?.scrollIntoView({ behavior: 'smooth' })}
                       className="text-gray-400 hover:text-gold-400 transition-colors"
                     >
-                      {cat.name}
+                      {name}
                     </button>
                   </li>
                 ))}
@@ -608,6 +645,7 @@ function App() {
           <Route path="*" element={<MainWebsite />} />
         </Routes>
       </Suspense>
+      <ScrollToTopButton />
       </AuthModalProvider>
       </RoleProvider>
       </ReaderProvider>

@@ -134,8 +134,8 @@ export function HomeBlogPanel({ darkMode, variant, limit = 4, compact = false }:
     };
   }, [fetchArticles, fetchTrendingArticles, limit, variant]);
 
-  const title = variant === 'trending' ? 'Most Viewed Blog Posts' : 'Latest Blog Posts';
-  const titleMr = variant === 'trending' ? 'सर्वाधिक वाचन' : 'ताजे लेख';
+  const titleMr = variant === 'trending' ? 'सर्वाधिक वाचन' : 'ब्लॉग आणि लेख';
+  const title = variant === 'trending' ? 'Most Viewed Blog Posts' : 'Blog & Articles';
 
   if (loading && !compact) {
     return (

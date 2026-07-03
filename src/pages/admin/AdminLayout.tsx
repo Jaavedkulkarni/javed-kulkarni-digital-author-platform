@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { adminPathFromView, adminViewFromPath } from '../../lib/adminPaths';
+import { trackCmsPage } from '../../lib/cmsNavigation';
 import type { AdminView } from '../../types/blog';
 
 interface AdminLayoutProps {
@@ -53,12 +54,15 @@ export function AdminLayout({ children, title }: AdminLayoutProps) {
   const currentView = adminViewFromPath(location.pathname);
 
   const goToView = (view: AdminView) => {
-    navigate(adminPathFromView(view));
+    const path = adminPathFromView(view);
+    trackCmsPage(path);
+    navigate(path);
   };
 
   const handleLogout = async () => {
+    trackCmsPage(`${location.pathname}${location.search}`);
     await logout();
-    navigate('/admin/login', { replace: true });
+    navigate('/', { replace: true });
   };
 
   if (!isAuthenticated) return <>{children}</>;
@@ -91,7 +95,7 @@ export function AdminLayout({ children, title }: AdminLayoutProps) {
           </div>
           <div className="min-w-0">
             <p className="text-white font-bold text-sm leading-none">जावेद कुलकर्णी</p>
-            <p className="text-gold-400 text-xs mt-0.5">Blog CMS</p>
+            <p className="text-gold-400 text-xs mt-0.5">CMS</p>
           </div>
           <button
             onClick={toggleSidebar}

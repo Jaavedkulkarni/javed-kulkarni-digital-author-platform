@@ -33,11 +33,17 @@ export interface SiteNavItem {
   external?: boolean;
 }
 
+export const AMAZON_STORE_URL = 'https://www.amazon.in/stores/Javed-Kulkarni/author/B0FP584D9C';
+
 export const PUBLIC_SITE_LINKS = [
-  { label: 'Home', path: '/' },
-  { label: 'Books', path: '/#books' },
-  { label: 'Blog', path: '/blog' },
-  { label: 'Store', path: 'https://www.amazon.in/stores/Javed-Kulkarni/author/B0FP584D9C', external: true },
+  { label: 'मुख्यपृष्ठ', path: '/' },
+  { label: 'माझी पुस्तके', path: '/#books' },
+  { label: 'लेखन श्रेणी', path: '/#audience' },
+  { label: 'ब्लॉग', path: '/blog' },
+  { label: 'वाचक क्लब', path: '/#reader-club' },
+  { label: 'स्टोअर', path: AMAZON_STORE_URL, external: true },
+  { label: 'माझ्याविषयी', path: '/#about' },
+  { label: 'संपर्क', path: '/#contact' },
 ] as const;
 
 export const MEMBER_AREA_NAV_ITEMS: SiteNavItem[] = [

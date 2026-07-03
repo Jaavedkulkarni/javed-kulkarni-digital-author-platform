@@ -3,7 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { useBlog } from '../../context/BlogContext';
 import { useTheme } from '../../context/ThemeContext';
 import { PublicAuthNav } from '../reader/PublicAuthNav';
-import { Moon, Sun, Menu, X, Search, BookOpen, ExternalLink, ArrowUp } from 'lucide-react';
+import { Moon, Sun, Menu, X, Search, BookOpen, ExternalLink } from 'lucide-react';
 
 interface BlogLayoutProps {
   children: React.ReactNode;
@@ -15,14 +15,7 @@ export function BlogLayout({ children }: BlogLayoutProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
   const [searchOpen, setSearchOpen] = React.useState(false);
   const [searchQuery, setSearchQuery] = React.useState('');
-  const [showBackToTop, setShowBackToTop] = React.useState(false);
   const location = useLocation();
-
-  React.useEffect(() => {
-    const handleScroll = () => setShowBackToTop(window.scrollY > 400);
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
 
   const navItems = [
     { label: 'Blog होम', path: '/blog' },
@@ -188,21 +181,6 @@ export function BlogLayout({ children }: BlogLayoutProps) {
 
       {/* Main Content */}
       <main>{children}</main>
-
-      {/* Back To Top */}
-      {showBackToTop && (
-        <button
-          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          aria-label="वर जा"
-          className={`fixed bottom-6 right-6 z-50 w-11 h-11 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 hover:scale-110 ${
-            darkMode
-              ? 'bg-gold-500 text-navy-900 hover:bg-gold-400'
-              : 'bg-navy-700 text-white hover:bg-navy-600'
-          }`}
-        >
-          <ArrowUp className="w-5 h-5" />
-        </button>
-      )}
 
       {/* Blog Footer */}
       <footer className={`py-12 ${darkMode ? 'bg-navy-900 border-t border-navy-800' : 'bg-navy-800'}`}>
