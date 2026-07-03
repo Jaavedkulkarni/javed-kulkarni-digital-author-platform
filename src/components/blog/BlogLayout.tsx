@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { useBlog } from '../../context/BlogContext';
 import { useTheme } from '../../context/ThemeContext';
 import { PublicAuthNav } from '../reader/PublicAuthNav';
+import { SiteFooter } from '../layout/SiteFooter';
 import { Moon, Sun, Menu, X, Search, BookOpen, ExternalLink } from 'lucide-react';
 
 interface BlogLayoutProps {
@@ -182,70 +183,7 @@ export function BlogLayout({ children }: BlogLayoutProps) {
       {/* Main Content */}
       <main>{children}</main>
 
-      {/* Blog Footer */}
-      <footer className={`py-12 ${darkMode ? 'bg-navy-900 border-t border-navy-800' : 'bg-navy-800'}`}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid md:grid-cols-3 gap-8">
-            <div>
-              <h3 className="text-white font-semibold mb-4">श्रेणी</h3>
-              <ul className="space-y-2">
-                {categories.map((cat) => (
-                  <li key={cat.id}>
-                    <Link
-                      to={`/blog/${cat.slug}`}
-                      className="text-gray-400 hover:text-gold-400 transition-colors"
-                    >
-                      {cat.name}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div>
-              <h3 className="text-white font-semibold mb-4">Quick Links</h3>
-              <ul className="space-y-2">
-                <li>
-                  <Link to="/" className="text-gray-400 hover:text-gold-400 transition-colors">
-                    Website होम
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/blog" className="text-gray-400 hover:text-gold-400 transition-colors">
-                    ब्लॉग होम
-                  </Link>
-                </li>
-                <li>
-                  <a
-                    href="https://www.amazon.in/stores/Javed-Kulkarni/author/B0FP584D9C"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-gray-400 hover:text-gold-400 transition-colors inline-flex items-center gap-1"
-                  >
-                    Amazon Author Page
-                    <ExternalLink className="w-4 h-4" />
-                  </a>
-                </li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="text-white font-semibold mb-4">Contact</h3>
-              <p className="text-gray-400">
-                <a href="mailto:jaavedkulkarni@gmail.com" className="hover:text-gold-400 transition-colors">
-                  jaavedkulkarni@gmail.com
-                </a>
-              </p>
-            </div>
-          </div>
-          <div className="mt-8 pt-8 border-t border-navy-700 flex flex-col sm:flex-row items-center justify-center sm:justify-between gap-3">
-            <p className="text-gray-500 text-sm">
-              © {new Date().getFullYear()} Javed Kulkarni. All Rights Reserved.
-            </p>
-            <Link to="/admin/login" className="text-gray-600 hover:text-gold-400 transition-colors text-xs">
-              Admin Access
-            </Link>
-          </div>
-        </div>
-      </footer>
+      <SiteFooter darkMode={darkMode} />
     </div>
   );
 }

@@ -1,10 +1,12 @@
+import { BookOpen, Globe, ShoppingCart, Library } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import { HomeSectionHeader } from './HomeSectionHeader';
 
-const STATS = [
-  { emoji: '📚', text: '१० प्रकाशित पुस्तके' },
-  { emoji: '🛒', text: '२६ Amazon विक्री' },
-  { emoji: '📖', text: '४१२ Kindle पृष्ठे वाचली' },
-  { emoji: '🌍', text: '६+ देशांतील वाचक' },
+const STATS: { icon: LucideIcon; text: string }[] = [
+  { icon: Library, text: '१० प्रकाशित पुस्तके' },
+  { icon: ShoppingCart, text: '२६ Amazon विक्री' },
+  { icon: BookOpen, text: '४१२ Kindle पृष्ठे वाचली' },
+  { icon: Globe, text: '६+ देशांतील वाचक' },
 ];
 
 interface HomeAnimatedTrustStatsProps {
@@ -32,9 +34,7 @@ export function HomeAnimatedTrustStats({ darkMode }: HomeAnimatedTrustStatsProps
                 darkMode ? 'bg-navy-800 border-gold-500/20' : 'bg-gray-50 border-gold-400/30 shadow-sm'
               }`}
             >
-              <span className="text-2xl mb-2" aria-hidden="true">
-                {card.emoji}
-              </span>
+              <card.icon className={`w-7 h-7 mb-3 ${darkMode ? 'text-gold-400' : 'text-gold-600'}`} aria-hidden="true" />
               <p className={`text-sm sm:text-base font-bold leading-snug ${darkMode ? 'text-white' : 'text-navy-800'}`}>
                 {card.text}
               </p>

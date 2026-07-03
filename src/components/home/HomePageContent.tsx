@@ -1,3 +1,7 @@
+/**
+ * Homepage UI Version 1.0 – Frozen
+ * Do not modify homepage layout without explicit request.
+ */
 import { Link } from 'react-router-dom';
 import {
   BookOpen,
@@ -5,10 +9,12 @@ import {
   Baby,
   ExternalLink,
   Ghost,
+  Heart,
   Lightbulb,
   MessageCircle,
   MonitorSmartphone,
   PenTool,
+  Users,
 } from 'lucide-react';
 import type { Book } from '../../data/books';
 import { FeaturedBookHero } from './FeaturedBookHero';
@@ -17,20 +23,38 @@ import { HomeBooksCarousel } from './HomeBooksCarousel';
 import { HomeReaderClubSection } from './HomeReaderClubSection';
 import { HomeWhyReadersLove } from './HomeWhyReadersLove';
 import { HomeAnimatedTrustStats } from './HomeAnimatedTrustStats';
+import { HomeContactSection } from './HomeContactSection';
 import { HomeSectionHeader } from './HomeSectionHeader';
 
 const AMAZON_AUTHOR_URL = 'https://www.amazon.in/stores/Javed-Kulkarni/author/B0FP584D9C';
 
-const writingCategoryCards = [
-  { icon: Baby, text: 'पालकत्व' },
-  { icon: PenTool, text: 'शिक्षण' },
-  { icon: Lightbulb, text: 'आत्मविकास' },
-  { icon: MonitorSmartphone, text: 'डिजिटल जीवन' },
-  { icon: BookHeart, text: 'कथा' },
-  { icon: Ghost, text: 'भयकथा' },
+const ABOUT_PARAGRAPHS = [
+  'मी जावेद कुलकर्णी.',
+  'लेखन ही माझ्यासाठी केवळ अभिव्यक्ती नसून माणसांच्या मनाशी जोडणारी एक यात्रा आहे.',
+  'नातेसंबंध, पालकत्व, आत्मविकास, डिजिटल युगातील आव्हाने, सामाजिक वास्तव आणि कल्पनारम्य विश्व या विविध विषयांवर मी सातत्याने लेखन करत आहे.',
+  'माझ्या प्रत्येक पुस्तकामागे एक विचार, एक अनुभव आणि वाचकांच्या आयुष्यात सकारात्मक बदल घडवण्याची प्रामाणिक इच्छा आहे.',
+  'शब्दांच्या माध्यमातून विचारांची दारे उघडण्याचा आणि वाचकांना स्वतःकडे नव्याने पाहण्याचा हा माझा प्रयत्न आहे.',
 ];
 
-const WORLD_COUNTRY_FLAGS = ['🇺🇸', '🇬🇧', '🇨🇦', '🇦🇺', '🇩🇪', '🇫🇷', '🇯🇵', '🇸🇬', '🇦🇪'];
+const writingCategoryCards = [
+  { icon: Baby, text: 'पालकत्व' },
+  { icon: Heart, text: 'नातेसंबंध' },
+  { icon: MonitorSmartphone, text: 'डिजिटल जीवन' },
+  { icon: Lightbulb, text: 'आत्मविकास' },
+  { icon: Users, text: 'समाज' },
+  { icon: BookHeart, text: 'कथा' },
+];
+
+const WORLD_COUNTRIES = [
+  { name: 'USA', flag: '🇺🇸' },
+  { name: 'UK', flag: '🇬🇧' },
+  { name: 'Canada', flag: '🇨🇦' },
+  { name: 'Australia', flag: '🇦🇺' },
+  { name: 'Germany', flag: '🇩🇪' },
+  { name: 'France', flag: '🇫🇷' },
+  { name: 'Japan', flag: '🇯🇵' },
+  { name: 'Singapore', flag: '🇸🇬' },
+];
 
 const categoryUiBySlug: Record<string, { icon: typeof Lightbulb; color: string }> = {
   atmvikas: { icon: Lightbulb, color: 'from-amber-500 to-orange-500' },
@@ -74,18 +98,40 @@ export function HomePageContent({
 
       <section id="about" className={`py-20 lg:py-28 ${darkMode ? 'bg-navy-800/50' : 'bg-gray-50'}`}>
         <div className="section-container">
-          <div className="max-w-4xl mx-auto">
-            <HomeSectionHeader titleMr="माझ्याविषयी" subtitle="About Me" darkMode={darkMode} />
+          <HomeSectionHeader titleMr="माझ्याविषयी" subtitle="About Me" darkMode={darkMode} />
+          <div className="grid lg:grid-cols-2 gap-10 lg:gap-14 items-start max-w-6xl mx-auto">
+            <div className="flex flex-col items-center lg:items-start text-center lg:text-left">
+              <div className="relative mb-6">
+                <div className="absolute -inset-3 bg-gold-400/15 rounded-2xl blur-xl" />
+                <div className="relative w-56 h-56 sm:w-64 sm:h-64 rounded-2xl overflow-hidden shadow-xl border-4 border-gold-400/40">
+                  <img
+                    src="/images/author.webp"
+                    alt="जावेद कुलकर्णी"
+                    loading="lazy"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              </div>
+              <p className={`font-display text-xl italic mb-2 ${darkMode ? 'text-gold-400' : 'text-gold-600'}`}>
+                — जावेद कुलकर्णी
+              </p>
+              <p className={`text-sm leading-relaxed max-w-xs ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                मराठी लेखक, ब्लॉगर आणि कथाकार. नातेसंबंध, पालकत्व आणि डिजिटल जीवनावर लेखन.
+              </p>
+            </div>
             <div className={`p-6 sm:p-10 rounded-2xl ${darkMode ? 'bg-navy-800 border border-navy-700' : 'bg-white shadow-lg border border-gray-100'}`}>
               <div className="space-y-5 text-base sm:text-lg leading-relaxed">
-                {[
-                  'मी जावेद कुलकर्णी.',
-                  'लेखन ही माझ्यासाठी केवळ अभिव्यक्ती नसून माणसांच्या मनाशी जोडणारी एक यात्रा आहे.',
-                  'नातेसंबंध, पालकत्व, आत्मविकास, डिजिटल युगातील आव्हाने, सामाजिक वास्तव आणि कल्पनारम्य विश्व या विविध विषयांवर मी सातत्याने लेखन करत आहे.',
-                  'माझ्या प्रत्येक पुस्तकामागे एक विचार, एक अनुभव आणि वाचकांच्या आयुष्यात सकारात्मक बदल घडवण्याची प्रामाणिक इच्छा आहे.',
-                  'शब्दांच्या माध्यमातून विचारांची दारे उघडण्याचा आणि वाचकांना स्वतःकडे नव्याने पाहण्याचा हा माझा प्रयत्न आहे.',
-                ].map((text, i) => (
-                  <p key={i} className={i === 0 ? `font-semibold text-lg ${darkMode ? 'text-gold-400' : 'text-navy-700'}` : darkMode ? 'text-gray-300' : 'text-gray-700'}>
+                {ABOUT_PARAGRAPHS.map((text, i) => (
+                  <p
+                    key={i}
+                    className={
+                      i === 0
+                        ? `font-semibold text-lg ${darkMode ? 'text-gold-400' : 'text-navy-700'}`
+                        : darkMode
+                          ? 'text-gray-300'
+                          : 'text-gray-700'
+                    }
+                  >
                     {text}
                   </p>
                 ))}
@@ -95,7 +141,7 @@ export function HomePageContent({
         </div>
       </section>
 
-      <section id="audience" className={`py-20 lg:py-28 ${darkMode ? 'bg-navy-900' : 'bg-white'}`}>
+      <section id="writing" className={`py-20 lg:py-28 ${darkMode ? 'bg-navy-900' : 'bg-white'}`}>
         <div className="section-container">
           <HomeSectionHeader titleMr="लेखन श्रेणी" subtitle="Writing Categories" darkMode={darkMode} />
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 lg:gap-5">
@@ -166,7 +212,7 @@ export function HomePageContent({
         </div>
       </section>
 
-      <HomeBlogPanel darkMode={darkMode} variant="latest" limit={4} />
+      <HomeBlogPanel darkMode={darkMode} variant="latest" limit={3} />
 
       <HomeReaderClubSection />
 
@@ -190,14 +236,13 @@ export function HomePageContent({
             </div>
 
             <div className="flex flex-wrap justify-center gap-2 sm:gap-3 mb-10">
-              {WORLD_COUNTRY_FLAGS.map((flag) => (
+              {WORLD_COUNTRIES.map((country) => (
                 <span
-                  key={flag}
-                  className="inline-flex items-center justify-center px-3 py-1.5 rounded-full bg-navy-900/15 border border-navy-900/20 text-2xl"
-                  role="img"
-                  aria-hidden="true"
+                  key={country.name}
+                  className="inline-flex items-center gap-2 px-3 py-2 rounded-full bg-navy-900/15 border border-navy-900/20 text-sm font-medium text-navy-900"
                 >
-                  {flag}
+                  <span className="text-xl" role="img" aria-hidden="true">{country.flag}</span>
+                  {country.name}
                 </span>
               ))}
             </div>
@@ -207,7 +252,7 @@ export function HomePageContent({
               href={AMAZON_AUTHOR_URL}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-8 py-4 bg-navy-900 text-gold-400 font-semibold rounded-lg hover:bg-navy-800 transition-all shadow-lg hover:shadow-xl transform hover:scale-[1.02]"
+              className="btn-primary"
             >
               <ExternalLink className="w-5 h-5" />
               Amazon Author Page
@@ -215,6 +260,8 @@ export function HomePageContent({
           </div>
         </div>
       </section>
+
+      <HomeContactSection darkMode={darkMode} />
     </>
   );
 }

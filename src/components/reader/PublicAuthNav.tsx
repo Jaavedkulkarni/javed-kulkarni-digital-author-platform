@@ -29,11 +29,9 @@ export function PublicAuthNav({ darkMode = false, className = '', onNavigate }: 
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  const linkCls = darkMode
-    ? 'text-gray-300 hover:text-white hover:bg-navy-800'
-    : 'text-navy-600 hover:text-navy-800 hover:bg-navy-50';
+  const linkCls = darkMode ? 'text-gray-300' : 'text-navy-600';
 
-  const btnCls = `px-3 py-2 rounded-lg font-medium text-sm transition-all duration-200 ${linkCls}`;
+  const btnCls = `px-3 py-2 rounded-lg font-medium text-sm transition-all duration-300 hover:bg-brand hover:text-white ${linkCls}`;
 
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
@@ -137,7 +135,7 @@ export function PublicAuthNav({ darkMode = false, className = '', onNavigate }: 
       <button
         type="button"
         onClick={() => { openMembersLogin(); onNavigate?.(); }}
-        className="px-4 py-2 rounded-lg font-medium text-sm bg-gold-500 text-navy-900 hover:bg-gold-400 transition-colors"
+        className="px-4 py-2 rounded-lg font-medium text-sm btn-primary"
       >
         Members Login
       </button>

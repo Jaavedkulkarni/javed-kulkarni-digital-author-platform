@@ -10,16 +10,12 @@ import {
   X,
   Moon,
   Sun,
-  Mail,
   ExternalLink,
   User,
   PenTool,
-  Heart,
   MessageCircle,
   Sparkles,
-  ArrowRight,
-  Instagram,
-  Facebook,
+  Search,
 } from 'lucide-react';
 import { BlogProvider } from './context/BlogContext';
 import { ReaderProvider } from './context/ReaderContext';
@@ -35,6 +31,7 @@ import {
   loadHomepageBookData,
 } from './lib/publicBooks';
 import { ScrollToTopButton } from './components/layout/ScrollToTopButton';
+import { SiteFooter } from './components/layout/SiteFooter';
 import { HomePageContent } from './components/home/HomePageContent';
 
 // Lazy load blog, book and admin pages
@@ -50,33 +47,19 @@ const BookPage = lazy(() => import('./pages/books/BookPage'));
 const BookCategoryPage = lazy(() => import('./pages/books/BookCategoryPage'));
 const SampleReaderPage = lazy(() => import('./pages/books/SampleReaderPage'));
 
-// Data
+// Data — Homepage UI Version 1.0 – Frozen
 const AMAZON_AUTHOR_URL = 'https://www.amazon.in/stores/Javed-Kulkarni/author/B0FP584D9C';
-const INSTAGRAM_URL = 'https://instagram.com/authorjavedkulkarni';
-const FACEBOOK_URL = 'https://facebook.com/authorjavedkulkarni';
 
-const navLinks = ['Home', 'Books', 'Categories', 'Blog', 'ReaderClub', 'Store', 'About', 'Contact'];
-const navLabels = ['मुख्यपृष्ठ', 'माझी पुस्तके', 'लेखन श्रेणी', 'ब्लॉग', 'वाचक क्लब', 'स्टोअर', 'माझ्याविषयी', 'संपर्क'];
+const navLinks = ['Home', 'Books', 'Writing', 'Store', 'About', 'Contact'];
+const navLabels = ['मुख्यपृष्ठ', 'माझी पुस्तके', 'लेखन', 'स्टोअर', 'माझ्याविषयी', 'संपर्क'];
 
 const SECTION_IDS: Record<string, string> = {
   Home: 'home',
   Books: 'books',
-  Categories: 'audience',
-  ReaderClub: 'reader-club',
+  Writing: 'writing',
   About: 'about',
   Contact: 'contact',
 };
-
-const FOOTER_QUICK_LINKS = [
-  { label: 'माझी पुस्तके', section: 'Books' },
-  { label: 'वाचक क्लब', section: 'ReaderClub' },
-  { label: 'ब्लॉग', href: '/blog' },
-  { label: 'स्टोअर', external: AMAZON_AUTHOR_URL },
-  { label: 'मुख्यपृष्ठ', section: 'Home' },
-  { label: 'Amazon', external: AMAZON_AUTHOR_URL },
-] as const;
-
-const FOOTER_BOOK_CATEGORIES = ['कथा', 'कादंबरी', 'पालकत्व', 'नातेसंबंध', 'डिजिटल जीवन', 'विनोदी कथा'];
 
 const homepageInitialData = getHomepageInitialData();
 
@@ -142,17 +125,11 @@ function MainWebsite() {
     document.getElementById(targetId)?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  const navItemClass = (link: string, isActive: boolean) => {
-    const base =
-      'relative px-4 py-2 rounded-lg font-medium text-sm transition-all duration-200 hover:bg-navy-800 hover:text-white';
-    if (isActive) {
-      return `${base} bg-navy-800 text-white after:absolute after:bottom-0.5 after:left-3 after:right-3 after:h-0.5 after:rounded-full after:bg-gold-400`;
-    }
-    return `${base} ${darkMode ? 'text-gray-300' : 'text-navy-600'}`;
-  };
+  const navItemClass = (isActive: boolean) =>
+    isActive ? 'nav-link-brand-active' : `nav-link-brand ${darkMode ? 'text-gray-300' : 'text-navy-600'}`;
 
   const isNavActive = (link: string) => {
-    if (link === 'Blog' || link === 'Store') return false;
+    if (link === 'Store') return false;
     return SECTION_IDS[link] === activeSection;
   };
 
@@ -192,17 +169,13 @@ function MainWebsite() {
             {/* Desktop Navigation */}
             <div className="hidden lg:flex items-center gap-1">
               {navLinks.map((link, i) =>
-                link === 'Blog' ? (
-                  <Link key={link} to="/blog" className={navItemClass(link, false)}>
-                    {navLabels[i]}
-                  </Link>
-                ) : link === 'Store' ? (
+                link === 'Store' ? (
                   <a
                     key={link}
                     href={AMAZON_AUTHOR_URL}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className={navItemClass(link, false)}
+                    className={navItemClass(false)}
                   >
                     {navLabels[i]}
                   </a>
@@ -211,7 +184,7 @@ function MainWebsite() {
                     key={link}
                     type="button"
                     onClick={() => scrollToSection(link)}
-                    className={navItemClass(link, isNavActive(link))}
+                    className={navItemClass(isNavActive(link))}
                   >
                     {navLabels[i]}
                   </button>
@@ -220,6 +193,15 @@ function MainWebsite() {
             </div>
 
             <div className="flex items-center gap-3">
+              <Link
+                to="/blog/search"
+                className={`p-2.5 rounded-lg transition-all duration-300 hover:bg-brand hover:text-white ${
+                  darkMode ? 'text-gray-300' : 'text-navy-600'
+                }`}
+                aria-label="Search"
+              >
+                <Search className="w-5 h-5" />
+              </Link>
               <div className="hidden lg:block">
                 <PublicAuthNav darkMode={darkMode} />
               </div>
@@ -251,25 +233,14 @@ function MainWebsite() {
           <div className="lg:hidden border-t border-navy-200 dark:border-navy-800 bg-white dark:bg-navy-900">
             <div className="section-container py-4 space-y-2">
               {navLinks.map((link, i) =>
-                link === 'Blog' ? (
-                  <Link
-                    key={link}
-                    to="/blog"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className={`block px-4 py-3 rounded-lg font-medium transition-colors hover:bg-navy-800 hover:text-white ${
-                      darkMode ? 'text-gray-300' : 'text-navy-600'
-                    }`}
-                  >
-                    {navLabels[i]}
-                  </Link>
-                ) : link === 'Store' ? (
+                link === 'Store' ? (
                   <a
                     key={link}
                     href={AMAZON_AUTHOR_URL}
                     target="_blank"
                     rel="noopener noreferrer"
                     onClick={() => setMobileMenuOpen(false)}
-                    className={`block px-4 py-3 rounded-lg font-medium transition-colors hover:bg-navy-800 hover:text-white ${
+                    className={`block px-4 py-3 rounded-lg font-medium transition-all duration-300 hover:bg-brand hover:text-white ${
                       darkMode ? 'text-gray-300' : 'text-navy-600'
                     }`}
                   >
@@ -283,9 +254,9 @@ function MainWebsite() {
                       scrollToSection(link);
                       setMobileMenuOpen(false);
                     }}
-                    className={`block w-full text-left px-4 py-3 rounded-lg font-medium transition-colors hover:bg-navy-800 hover:text-white ${
+                    className={`block w-full text-left px-4 py-3 rounded-lg font-medium transition-all duration-300 hover:bg-brand hover:text-white ${
                       isNavActive(link)
-                        ? 'bg-navy-800 text-white border-b-2 border-gold-400'
+                        ? 'bg-brand text-white border-b-2 border-gold-400'
                         : darkMode
                           ? 'text-gray-300'
                           : 'text-navy-600'
@@ -295,6 +266,16 @@ function MainWebsite() {
                   </button>
                 )
               )}
+              <Link
+                to="/blog/search"
+                onClick={() => setMobileMenuOpen(false)}
+                className={`flex items-center gap-2 px-4 py-3 rounded-lg font-medium transition-all duration-300 hover:bg-brand hover:text-white ${
+                  darkMode ? 'text-gray-300' : 'text-navy-600'
+                }`}
+              >
+                <Search className="w-4 h-4" />
+                Search
+              </Link>
               <div className="pt-3 border-t border-navy-200 dark:border-navy-800">
                 <PublicAuthNav darkMode={darkMode} onNavigate={() => setMobileMenuOpen(false)} className="flex-col items-stretch !gap-2" />
               </div>
@@ -430,158 +411,7 @@ function MainWebsite() {
         homeCategories={homeCategories}
       />
 
-      {/* Footer */}
-      <footer
-        id="contact"
-        className={`pt-16 pb-16 mt-16 lg:mt-20 ${
-          darkMode ? 'bg-navy-900 border-t border-navy-800' : 'bg-navy-800'
-        }`}
-      >
-        <div className="section-container">
-          <div className="grid lg:grid-cols-5 gap-12">
-            {/* Brand */}
-            <div className="lg:col-span-2">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-gold-400 to-gold-600 flex items-center justify-center text-navy-900 font-bold text-xl shadow-lg">
-                  ज
-                </div>
-                <div>
-                  <h3 className="text-white font-semibold text-xl">जावेद कुलकर्णी</h3>
-                  <p className="text-gold-400 text-sm">मराठी लेखक | ब्लॉगर | कथाकार</p>
-                </div>
-              </div>
-              <p className="text-gray-400 mb-6 max-w-md">
-                जिथे शब्द नाही, तर हृदय बोलतं. नातेसंबंध, पालकत्व, डिजिटल जीवन आणि आत्मविकासावर
-                आधारित पुस्तके.
-              </p>
-              <div className="flex flex-wrap gap-4">
-                <a
-                  href="mailto:jaavedkulkarni@gmail.com"
-                  className="flex items-center gap-2 text-gray-300 hover:text-gold-400 transition-colors"
-                >
-                  <Mail className="w-4 h-4" />
-                  jaavedkulkarni@gmail.com
-                </a>
-                <a
-                  href={AMAZON_AUTHOR_URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 text-gray-300 hover:text-gold-400 transition-colors"
-                >
-                  <ExternalLink className="w-4 h-4" />
-                  Amazon Author Page
-                </a>
-              </div>
-
-              {/* Social Links */}
-              <div className="mt-6">
-                <p className="text-white font-semibold text-sm mb-3">Follow Javed Kulkarni</p>
-                <div className="flex items-center gap-3">
-                  <a
-                    href={INSTAGRAM_URL}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label="Instagram"
-                    className="w-9 h-9 rounded-lg bg-navy-700 hover:bg-gradient-to-br hover:from-purple-500 hover:to-pink-500 flex items-center justify-center text-gray-400 hover:text-white transition-all duration-200"
-                  >
-                    <Instagram className="w-4 h-4" />
-                  </a>
-                  <a
-                    href={FACEBOOK_URL}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label="Facebook"
-                    className="w-9 h-9 rounded-lg bg-navy-700 hover:bg-blue-600 flex items-center justify-center text-gray-400 hover:text-white transition-all duration-200"
-                  >
-                    <Facebook className="w-4 h-4" />
-                  </a>
-                </div>
-              </div>
-            </div>
-
-            {/* Quick Links */}
-            <div>
-              <h4 className="text-white font-semibold mb-4">Quick Links</h4>
-              <ul className="space-y-3">
-                {FOOTER_QUICK_LINKS.map((item) => (
-                  <li key={item.label}>
-                    {'href' in item ? (
-                      <Link to={item.href} className="text-gray-400 hover:text-gold-400 transition-colors">
-                        {item.label}
-                      </Link>
-                    ) : 'external' in item ? (
-                      <a
-                        href={item.external}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-gray-400 hover:text-gold-400 transition-colors"
-                      >
-                        {item.label}
-                      </a>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={() => scrollToSection(item.section)}
-                        className="text-gray-400 hover:text-gold-400 transition-colors"
-                      >
-                        {item.label}
-                      </button>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Categories */}
-            <div>
-              <h4 className="text-white font-semibold mb-4">पुस्तक श्रेणी</h4>
-              <ul className="space-y-3">
-                {FOOTER_BOOK_CATEGORIES.map((name) => (
-                  <li key={name}>
-                    <button
-                      type="button"
-                      onClick={() => document.getElementById('categories')?.scrollIntoView({ behavior: 'smooth' })}
-                      className="text-gray-400 hover:text-gold-400 transition-colors"
-                    >
-                      {name}
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Legal */}
-            <div>
-              <h4 className="text-white font-semibold mb-4">Legal</h4>
-              <ul className="space-y-3 text-sm">
-                <li><Link to="/privacy" className="text-gray-400 hover:text-gold-400 transition-colors">Privacy Policy</Link></li>
-                <li><Link to="/terms" className="text-gray-400 hover:text-gold-400 transition-colors">Terms &amp; Conditions</Link></li>
-                <li><Link to="/refund" className="text-gray-400 hover:text-gold-400 transition-colors">Refund Policy</Link></li>
-                <li><Link to="/shipping" className="text-gray-400 hover:text-gold-400 transition-colors">Shipping Policy</Link></li>
-                <li><Link to="/cookies" className="text-gray-400 hover:text-gold-400 transition-colors">Cookie Policy</Link></li>
-                <li><a href="#contact" className="text-gray-400 hover:text-gold-400 transition-colors">Contact</a></li>
-              </ul>
-            </div>
-          </div>
-
-          {/* Bottom */}
-          <div className="mt-12 pt-8 border-t border-navy-700">
-            <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-              <p className="text-gray-500 text-sm">
-                © {new Date().getFullYear()} Javed Kulkarni. All Rights Reserved.
-              </p>
-              <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4">
-                <Link to="/admin/login" className="text-gray-600 hover:text-gold-400 transition-colors text-xs">
-                  Admin Access
-                </Link>
-                <p className="text-gray-500 text-sm flex items-center gap-1">
-                  Crafted with <Heart className="w-4 h-4 text-red-500" /> for Marathi Literature
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-  </footer>
+      <SiteFooter darkMode={darkMode} />
 </div>
 </>
 );

@@ -2,9 +2,20 @@
 export default {
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   darkMode: 'class',
+  safelist: [
+    'bg-brand',
+    'text-brand',
+    'border-brand',
+    'hover:bg-brand',
+    'hover:bg-brand-hover',
+    'hover:text-brand',
+    'focus:ring-brand/50',
+  ],
   theme: {
     extend: {
       colors: {
+        brand: '#1e3a5f',
+        'brand-hover': '#1a2e4a',
         navy: {
           50: '#f0f3ff',
           100: '#e0e7ff',

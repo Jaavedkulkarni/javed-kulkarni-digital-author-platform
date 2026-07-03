@@ -135,7 +135,7 @@ export function HomeBlogPanel({ darkMode, variant, limit = 4, compact = false }:
   }, [fetchArticles, fetchTrendingArticles, limit, variant]);
 
   const titleMr = variant === 'trending' ? 'सर्वाधिक वाचन' : 'ब्लॉग आणि लेख';
-  const title = variant === 'trending' ? 'Most Viewed Blog Posts' : 'Blog & Articles';
+  const title = variant === 'trending' ? 'Most Viewed Blog Posts' : 'Blogs & Articles';
 
   if (loading && !compact) {
     return (
@@ -194,7 +194,7 @@ export function HomeBlogPanel({ darkMode, variant, limit = 4, compact = false }:
         <HomeSectionHeader titleMr={titleMr} subtitle={title} darkMode={darkMode} />
         {articles.length > 0 ? (
           <>
-            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {articles.map((article) => (
                 <ArticleCard key={article.id} article={article} darkMode={darkMode} />
               ))}

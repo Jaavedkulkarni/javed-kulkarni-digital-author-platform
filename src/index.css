@@ -5,6 +5,11 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --color-brand: #1e3a5f;
+    --color-brand-hover: #1a2e4a;
+  }
+
   html {
     scroll-behavior: smooth;
   }
@@ -21,13 +26,32 @@
 @layer components {
   .btn-primary {
     @apply inline-flex items-center justify-center gap-2 px-6 py-3
-           bg-gradient-to-r from-navy-500 to-navy-600
-           text-white font-medium rounded-lg
-           hover:from-navy-600 hover:to-navy-700
+           bg-brand text-white font-medium rounded-lg
+           hover:bg-brand-hover
            transform hover:scale-[1.02]
            transition-all duration-300
            shadow-lg hover:shadow-xl
-           focus:outline-none focus:ring-2 focus:ring-navy-500/50;
+           focus:outline-none focus:ring-2 focus:ring-brand/50;
+  }
+
+  .nav-link-brand {
+    @apply relative px-4 py-2 rounded-lg font-medium text-sm
+           transition-all duration-300
+           hover:bg-brand hover:text-white;
+  }
+
+  .nav-link-brand-active {
+    @apply relative px-4 py-2 rounded-lg font-medium text-sm
+           transition-all duration-300
+           bg-brand text-white
+           hover:bg-brand hover:text-white
+           after:absolute after:bottom-0.5 after:left-3 after:right-3
+           after:h-0.5 after:rounded-full after:bg-gold-400;
+  }
+
+  .book-badge-brand {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold
+           bg-brand text-white border border-gold-400;
   }
 
   .btn-secondary {

@@ -8,8 +8,7 @@ interface HomeBooksCarouselProps {
   darkMode: boolean;
 }
 
-const BOOK_BADGE =
-  'inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-navy-800 text-white border border-gold-400';
+const BOOK_BADGE = 'book-badge-brand';
 
 export function HomeBooksCarousel({ books, darkMode }: HomeBooksCarouselProps) {
   const trackRef = useRef<HTMLDivElement>(null);
@@ -56,10 +55,10 @@ export function HomeBooksCarousel({ books, darkMode }: HomeBooksCarouselProps) {
         {books.map((book) => (
           <article
             key={book.id}
-            className={`group flex-shrink-0 w-[260px] sm:w-[280px] snap-start flex flex-col rounded-[22px] overflow-hidden transition-all duration-500 ease-out transform hover:-translate-y-2 ${
+            className={`group flex-shrink-0 w-[260px] sm:w-[280px] snap-start flex flex-col rounded-[22px] overflow-hidden transition-all duration-300 ease-out hover:scale-[1.02] ${
               darkMode
-                ? 'bg-navy-800 shadow-[0_8px_30px_rgb(0,0,0,0.3)] hover:shadow-[0_24px_60px_rgba(218,165,32,0.18)] border border-navy-700/50'
-                : 'bg-white shadow-[0_8px_30px_rgb(0,0,0,0.06)] hover:shadow-[0_24px_60px_rgba(26,46,93,0.18)] border border-gray-100'
+                ? 'bg-navy-800 shadow-[0_8px_30px_rgb(0,0,0,0.3)] hover:shadow-[0_20px_50px_rgba(30,58,95,0.25)] border border-navy-700/50'
+                : 'bg-white shadow-[0_8px_30px_rgb(0,0,0,0.06)] hover:shadow-[0_20px_50px_rgba(30,58,95,0.15)] border border-gray-100'
             }`}
           >
             <div className="relative bg-white p-[18px]">

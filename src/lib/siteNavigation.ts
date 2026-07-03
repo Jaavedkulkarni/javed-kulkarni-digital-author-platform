@@ -38,12 +38,27 @@ export const AMAZON_STORE_URL = 'https://www.amazon.in/stores/Javed-Kulkarni/aut
 export const PUBLIC_SITE_LINKS = [
   { label: 'मुख्यपृष्ठ', path: '/' },
   { label: 'माझी पुस्तके', path: '/#books' },
-  { label: 'लेखन श्रेणी', path: '/#audience' },
-  { label: 'ब्लॉग', path: '/blog' },
-  { label: 'वाचक क्लब', path: '/#reader-club' },
+  { label: 'लेखन', path: '/#writing' },
   { label: 'स्टोअर', path: AMAZON_STORE_URL, external: true },
   { label: 'माझ्याविषयी', path: '/#about' },
   { label: 'संपर्क', path: '/#contact' },
+] as const;
+
+export const FOOTER_QUICK_LINKS = [
+  { label: 'माझी पुस्तके', path: '/#books' },
+  { label: 'वाचक क्लब', path: '/#reader-club' },
+  { label: 'लेखन', path: '/#writing' },
+  { label: 'स्टोअर', path: AMAZON_STORE_URL, external: true },
+  { label: 'मुख्यपृष्ठ', path: '/#home' },
+] as const;
+
+export const FOOTER_BOOK_CATEGORIES = [
+  'कथा',
+  'कादंबरी',
+  'पालकत्व',
+  'नातेसंबंध',
+  'डिजिटल जीवन',
+  'विनोदी कथा',
 ] as const;
 
 export const MEMBER_AREA_NAV_ITEMS: SiteNavItem[] = [
