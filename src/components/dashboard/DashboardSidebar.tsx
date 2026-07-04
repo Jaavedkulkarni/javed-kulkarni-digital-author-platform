@@ -14,7 +14,9 @@ interface DashboardSidebarProps {
 }
 
 function isNavActive(pathname: string, path: string): boolean {
-  if (path === '/reader') return pathname === '/reader';
+  if (path === '/reader') {
+    return pathname === '/reader' || pathname === '/reader/dashboard';
+  }
   return pathname === path || pathname.startsWith(`${path}/`);
 }
 

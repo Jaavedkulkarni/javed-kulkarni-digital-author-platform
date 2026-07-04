@@ -18,8 +18,8 @@ export const READER_DASHBOARD_MENU: SiteNavItem[] = [
   { id: 'wishlist', label: 'Wishlist', path: '/reader/wishlist', icon: Heart },
   { id: 'orders', label: 'Orders', path: '/reader/orders', icon: ShoppingBag },
   { id: 'membership', label: 'Membership', path: '/reader/membership', icon: Crown },
-  { id: 'reading-insights', label: 'Reading Insights', path: '#reading-insights', icon: BarChart3 },
-  { id: 'notifications', label: 'Notifications', path: '#notifications', icon: Bell },
+  { id: 'reading-insights', label: 'Reading Insights', path: '/reader/reading-insights', icon: BarChart3 },
+  { id: 'notifications', label: 'Notifications', path: '/reader/notifications', icon: Bell },
   { id: 'profile', label: 'Profile', path: '/reader/profile', icon: User },
   { id: 'settings', label: 'Settings', path: '/reader/settings', icon: Settings },
 ];

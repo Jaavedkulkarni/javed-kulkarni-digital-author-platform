@@ -19,6 +19,8 @@ import {
   ReaderSettingsPage,
   ReaderMembershipPage,
   ReaderOrdersPage,
+  ReaderReadingInsightsPage,
+  ReaderNotificationsPage,
 } from './ReaderDashboardPages';
 import { ShieldAlert } from 'lucide-react';
 import {
@@ -111,14 +113,38 @@ export function ReaderApp() {
           </ReaderProtected>
         }
       />
+      <Route
+        path="dashboard"
+        element={
+          <ReaderProtected>
+            <ReaderDashboardHome />
+          </ReaderProtected>
+        }
+      />
       <Route path="library" element={<ReaderProtected><ReaderLibraryPage /></ReaderProtected>} />
       <Route path="wishlist" element={<ReaderProtected><ReaderWishlistPage /></ReaderProtected>} />
       <Route path="orders" element={<ReaderProtected><ReaderOrdersPage /></ReaderProtected>} />
+      <Route path="membership" element={<ReaderProtected><ReaderMembershipPage /></ReaderProtected>} />
+      <Route
+        path="reading-insights"
+        element={
+          <ReaderProtected>
+            <ReaderReadingInsightsPage />
+          </ReaderProtected>
+        }
+      />
+      <Route
+        path="notifications"
+        element={
+          <ReaderProtected>
+            <ReaderNotificationsPage />
+          </ReaderProtected>
+        }
+      />
       <Route path="profile" element={<ReaderProtected><ReaderProfilePage /></ReaderProtected>} />
       <Route path="history" element={<ReaderProtected><ReaderHistoryPage /></ReaderProtected>} />
       <Route path="settings" element={<ReaderProtected><ReaderSettingsPage /></ReaderProtected>} />
-      <Route path="membership" element={<ReaderProtected><ReaderMembershipPage /></ReaderProtected>} />
-      <Route path="*" element={<Navigate to="/reader/library" replace />} />
+      <Route path="*" element={<Navigate to="/reader" replace />} />
     </Routes>
   );
 }

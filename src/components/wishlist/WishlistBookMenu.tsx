@@ -41,7 +41,7 @@ export function WishlistBookMenu({ bookTitle = 'book', disabled = true }: Wishli
         aria-expanded={open}
         aria-haspopup="menu"
         aria-disabled={disabled}
-        className="rounded-lg bg-white/90 p-1.5 text-gray-400 shadow-sm transition-colors hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-gold-400/50 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-navy-800/90 dark:text-gray-500 dark:hover:text-gray-300"
+        className="rounded-lg bg-white/90 p-1.5 text-gray-400 shadow-sm transition-colors hover:text-gray-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-400/50 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-navy-800/90 dark:text-gray-500 dark:hover:text-gray-300"
       >
         <MoreVertical className="h-4 w-4" aria-hidden="true" />
       </button>
@@ -54,8 +54,9 @@ export function WishlistBookMenu({ bookTitle = 'book', disabled = true }: Wishli
           <button
             type="button"
             role="menuitem"
-            disabled
-            className="block w-full px-4 py-2 text-left text-sm text-red-500 opacity-70 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-gold-400/50 dark:text-red-400"
+            aria-disabled="true"
+            title="Coming soon"
+            className="block w-full cursor-default px-4 py-2 text-left text-sm text-red-500 opacity-70 focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-gold-400/50 dark:text-red-400"
           >
             Remove from Wishlist
           </button>

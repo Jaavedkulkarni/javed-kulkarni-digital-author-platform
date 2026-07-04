@@ -1,44 +1,62 @@
-import type { ReactNode } from 'react';
+import { memo } from 'react';
+import type { ReactNode, MouseEvent, KeyboardEvent } from 'react';
 
 const BRAND_BUTTON =
-  'inline-flex w-full items-center justify-center rounded-lg bg-brand px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-brand-hover focus:outline-none focus:ring-2 focus:ring-gold-400/50 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto';
+  'inline-flex w-full min-h-10 items-center justify-center rounded-lg bg-brand px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-brand-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-400/50 sm:w-auto';
 
 const OUTLINE_BUTTON =
-  'inline-flex w-full items-center justify-center rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-navy-800 transition-colors hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gold-400/50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-navy-600 dark:bg-navy-900/50 dark:text-gray-200 dark:hover:bg-navy-800 sm:w-auto';
+  'inline-flex w-full min-h-10 items-center justify-center rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-navy-800 transition-colors hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-400/50 dark:border-navy-600 dark:bg-navy-900/50 dark:text-gray-200 dark:hover:bg-navy-800 sm:w-auto';
 
-export function WishlistPrimaryButton({
+function stopInteraction(event: MouseEvent | KeyboardEvent) {
+  event.stopPropagation();
+}
+
+function PlaceholderButton({
   children,
-  disabled = true,
+  className,
 }: {
   children: ReactNode;
-  disabled?: boolean;
+  className: string;
 }) {
   return (
-    <button type="button" disabled={disabled} aria-disabled={disabled} className={BRAND_BUTTON}>
+    <button
+      type="button"
+      aria-disabled="true"
+      title="Coming soon"
+      className={`${className} cursor-default opacity-90`}
+      onClick={(e) => {
+        e.preventDefault();
+        stopInteraction(e);
+      }}
+      onMouseDown={stopInteraction}
+      onKeyDown={stopInteraction}
+    >
       {children}
     </button>
   );
 }
 
-export function WishlistSecondaryButton({
-  children,
-  disabled = true,
+export const WishlistPrimaryButton = memo(function WishlistPrimaryButton({
+  placeholderLabel,
 }: {
-  children: ReactNode;
-  disabled?: boolean;
+  placeholderLabel: string;
 }) {
-  return (
-    <button type="button" disabled={disabled} aria-disabled={disabled} className={OUTLINE_BUTTON}>
-      {children}
-    </button>
-  );
-}
+  return <PlaceholderButton className={BRAND_BUTTON}>{placeholderLabel}</PlaceholderButton>;
+});
 
-export function WishlistDiscountBadge({ label }: { label?: string }) {
+export const WishlistSecondaryButton = memo(function WishlistSecondaryButton({
+  placeholderLabel,
+}: {
+  placeholderLabel: string;
+}) {
+  return <PlaceholderButton className={OUTLINE_BUTTON}>{placeholderLabel}</PlaceholderButton>;
+});
+
+export const WishlistDiscountBadge = memo(function WishlistDiscountBadge({ label }: { label?: string }) {
   if (!label) return null;
   return (
-    <span className="inline-flex rounded-full border border-rose-200 bg-rose-50 px-2.5 py-0.5 text-xs font-semibold text-rose-700 dark:border-rose-500/20 dark:bg-rose-500/15 dark:text-rose-300">
+    <span className="inline-flex items-center rounded-full border border-rose-200 bg-rose-50 px-2.5 py-0.5 text-xs font-semibold leading-none text-rose-700 dark:border-rose-500/20 dark:bg-rose-500/15 dark:text-rose-300">
       {label}
     </span>
   );
-}
+});

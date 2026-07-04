@@ -71,6 +71,28 @@ export function ReaderProfilePage() {
   );
 }
 
+export function ReaderReadingInsightsPage() {
+  return (
+    <ReaderDashboardLayout pageTitle="Reading Insights">
+      <ReaderPlaceholder
+        title="Reading Insights"
+        description="Your reading analytics and insights will appear here."
+      />
+    </ReaderDashboardLayout>
+  );
+}
+
+export function ReaderNotificationsPage() {
+  return (
+    <ReaderDashboardLayout pageTitle="Notifications">
+      <ReaderPlaceholder
+        title="Notifications"
+        description="Your notifications and alerts will appear here."
+      />
+    </ReaderDashboardLayout>
+  );
+}
+
 export function ReaderHistoryPage() {
   return (
     <ReaderDashboardLayout pageTitle="Reading History">
