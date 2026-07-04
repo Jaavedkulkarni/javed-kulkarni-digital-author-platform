@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { DashboardShell } from '../../components/dashboard/DashboardShell';
 import { READER_DASHBOARD_MENU } from '../../lib/dashboardNavigation';
 import { ReaderDashboardWidgets } from '../../components/dashboard/widgets/ReaderDashboardWidgets';
+import { MyLibraryContent } from '../../components/library/MyLibraryContent';
 import { ReaderPlaceholder } from './ReaderPlaceholder';
 import { useReader } from '../../context/ReaderContext';
 
@@ -30,7 +31,7 @@ export function ReaderDashboardHome() {
 export function ReaderLibraryPage() {
   return (
     <ReaderDashboardLayout pageTitle="My Library">
-      <ReaderPlaceholder title="My Library" description="Purchased and saved books will appear here." />
+      <MyLibraryContent />
     </ReaderDashboardLayout>
   );
 }
