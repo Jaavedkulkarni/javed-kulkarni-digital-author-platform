@@ -1,85 +1,106 @@
-import { PublicSiteLayout } from '../../components/layout/PublicSiteLayout';
+import type { ReactNode } from 'react';
+import { DashboardShell } from '../../components/dashboard/DashboardShell';
+import { READER_DASHBOARD_MENU } from '../../lib/dashboardNavigation';
+import { ReaderDashboardWidgets } from '../../components/dashboard/widgets/ReaderDashboardWidgets';
 import { ReaderPlaceholder } from './ReaderPlaceholder';
 import { useReader } from '../../context/ReaderContext';
 
-export function ReaderDashboardHome() {
-  const { profile } = useReader();
+function ReaderDashboardLayout({
+  pageTitle,
+  children,
+}: {
+  pageTitle: string;
+  children: ReactNode;
+}) {
   return (
-    <PublicSiteLayout title="My Account" memberArea>
-      <ReaderPlaceholder
-        title={`Welcome, ${profile?.display_name || 'Reader'}!`}
-        description="Your member area is ready. Library, wishlist, and reading features will arrive in upcoming sprints."
-      />
-    </PublicSiteLayout>
+    <DashboardShell pageTitle={pageTitle} menuItems={READER_DASHBOARD_MENU} roleLabel="Reader">
+      {children}
+    </DashboardShell>
+  );
+}
+
+export function ReaderDashboardHome() {
+  return (
+    <ReaderDashboardLayout pageTitle="">
+      <ReaderDashboardWidgets />
+    </ReaderDashboardLayout>
   );
 }
 
 export function ReaderLibraryPage() {
   return (
-    <PublicSiteLayout title="My Library" memberArea>
+    <ReaderDashboardLayout pageTitle="My Library">
       <ReaderPlaceholder title="My Library" description="Purchased and saved books will appear here." />
-    </PublicSiteLayout>
+    </ReaderDashboardLayout>
   );
 }
 
 export function ReaderWishlistPage() {
   return (
-    <PublicSiteLayout title="Wishlist" memberArea>
+    <ReaderDashboardLayout pageTitle="Wishlist">
       <ReaderPlaceholder title="Wishlist" description="Products you save for later will appear here." />
-    </PublicSiteLayout>
+    </ReaderDashboardLayout>
   );
 }
 
 export function ReaderProfilePage() {
   const { profile, user } = useReader();
   return (
-    <PublicSiteLayout title="Profile" memberArea>
-      <div className="bg-navy-800 border border-navy-700 rounded-xl p-6 max-w-lg space-y-4">
+    <ReaderDashboardLayout pageTitle="Profile">
+      <div className="max-w-lg space-y-4 rounded-xl border border-navy-700 bg-navy-800 p-6">
         <ReaderPlaceholder title="Profile" description="Manage your reader profile details.">
-          <div className="text-left space-y-2 text-sm text-gray-400">
-            <p><span className="text-gray-500">Email:</span> {user?.email}</p>
-            <p><span className="text-gray-500">Display name:</span> {profile?.display_name || '—'}</p>
-            <p><span className="text-gray-500">Language:</span> {profile?.language || '—'}</p>
-            <p><span className="text-gray-500">Membership:</span> {profile?.membership_status || 'free'}</p>
+          <div className="space-y-2 text-left text-sm text-gray-400">
+            <p>
+              <span className="text-gray-500">Email:</span> {user?.email}
+            </p>
+            <p>
+              <span className="text-gray-500">Display name:</span> {profile?.display_name || '—'}
+            </p>
+            <p>
+              <span className="text-gray-500">Language:</span> {profile?.language || '—'}
+            </p>
+            <p>
+              <span className="text-gray-500">Membership:</span> {profile?.membership_status || 'free'}
+            </p>
           </div>
         </ReaderPlaceholder>
       </div>
-    </PublicSiteLayout>
+    </ReaderDashboardLayout>
   );
 }
 
 export function ReaderHistoryPage() {
   return (
-    <PublicSiteLayout title="Reading History" memberArea>
+    <ReaderDashboardLayout pageTitle="Reading History">
       <ReaderPlaceholder title="Reading History" description="Your reading activity will be tracked here." />
-    </PublicSiteLayout>
+    </ReaderDashboardLayout>
   );
 }
 
 export function ReaderSettingsPage() {
   return (
-    <PublicSiteLayout title="Settings" memberArea>
+    <ReaderDashboardLayout pageTitle="Settings">
       <ReaderPlaceholder title="Settings" description="Notification and account preferences will be available here." />
-    </PublicSiteLayout>
+    </ReaderDashboardLayout>
   );
 }
 
 export function ReaderMembershipPage() {
   const { profile } = useReader();
   return (
-    <PublicSiteLayout title="Membership" memberArea>
+    <ReaderDashboardLayout pageTitle="Membership">
       <ReaderPlaceholder
         title="Membership"
         description={`Your current plan: ${profile?.membership_status || 'free'}. Membership upgrades will be available in a future sprint.`}
       />
-    </PublicSiteLayout>
+    </ReaderDashboardLayout>
   );
 }
 
 export function ReaderOrdersPage() {
   return (
-    <PublicSiteLayout title="Orders" memberArea>
+    <ReaderDashboardLayout pageTitle="Orders">
       <ReaderPlaceholder title="Orders" description="Your purchase history and order tracking will appear here." />
-    </PublicSiteLayout>
+    </ReaderDashboardLayout>
   );
 }

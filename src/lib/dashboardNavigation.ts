@@ -1,0 +1,29 @@
+import {
+  BarChart3,
+  Bell,
+  BookOpen,
+  Crown,
+  Heart,
+  LayoutDashboard,
+  Settings,
+  ShoppingBag,
+  User,
+} from 'lucide-react';
+import type { SiteNavItem } from './siteNavigation';
+
+/** Reader dashboard sidebar — Sprint 01 Task 01 (layout only). */
+export const READER_DASHBOARD_MENU: SiteNavItem[] = [
+  { id: 'dashboard', label: 'Dashboard', path: '/reader', icon: LayoutDashboard },
+  { id: 'library', label: 'My Library', path: '/reader/library', icon: BookOpen },
+  { id: 'wishlist', label: 'Wishlist', path: '/reader/wishlist', icon: Heart },
+  { id: 'orders', label: 'Orders', path: '/reader/orders', icon: ShoppingBag },
+  { id: 'membership', label: 'Membership', path: '/reader/membership', icon: Crown },
+  { id: 'reading-insights', label: 'Reading Insights', path: '#reading-insights', icon: BarChart3 },
+  { id: 'notifications', label: 'Notifications', path: '#notifications', icon: Bell },
+  { id: 'profile', label: 'Profile', path: '/reader/profile', icon: User },
+  { id: 'settings', label: 'Settings', path: '/reader/settings', icon: Settings },
+];
+
+export function isDashboardPlaceholderPath(path?: string): boolean {
+  return Boolean(path?.startsWith('#'));
+}
