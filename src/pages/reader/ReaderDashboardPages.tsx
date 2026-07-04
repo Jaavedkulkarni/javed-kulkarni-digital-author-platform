@@ -3,6 +3,7 @@ import { DashboardShell } from '../../components/dashboard/DashboardShell';
 import { READER_DASHBOARD_MENU } from '../../lib/dashboardNavigation';
 import { ReaderDashboardWidgets } from '../../components/dashboard/widgets/ReaderDashboardWidgets';
 import { MyLibraryContent } from '../../components/library/MyLibraryContent';
+import { MyWishlistContent } from '../../components/wishlist/MyWishlistContent';
 import { ReaderPlaceholder } from './ReaderPlaceholder';
 import { useReader } from '../../context/ReaderContext';
 
@@ -38,8 +39,8 @@ export function ReaderLibraryPage() {
 
 export function ReaderWishlistPage() {
   return (
-    <ReaderDashboardLayout pageTitle="Wishlist">
-      <ReaderPlaceholder title="Wishlist" description="Products you save for later will appear here." />
+    <ReaderDashboardLayout pageTitle="My Wishlist">
+      <MyWishlistContent />
     </ReaderDashboardLayout>
   );
 }
