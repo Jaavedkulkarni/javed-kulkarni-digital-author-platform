@@ -1,7 +1,10 @@
+import type { BookFormat } from '../book/bookTypes';
+
 export type OrderPaymentStatus = 'paid' | 'pending' | 'refunded' | 'failed';
 
 export type OrderStatus = 'completed' | 'pending' | 'refunded' | 'cancelled';
 
+/** Slim display model for OrderCard — public to orders module only. */
 export interface OrderCardItem {
   id: string;
   title?: string;
@@ -9,12 +12,48 @@ export interface OrderCardItem {
   coverUrl?: string | null;
   coverAlt?: string;
   orderNumber?: string;
-  invoiceNumber?: string;
   purchaseDate?: string;
-  paymentMethod?: string;
   paymentStatus?: OrderPaymentStatus;
   orderStatus?: OrderStatus;
   amountPaid?: string;
+}
+
+/**
+ * Internal future-ready detail model — not connected to APIs.
+ * Sprint 04C placeholder fields for commerce integration.
+ */
+export interface OrderDetailView {
+  id: string;
+  orderNumber: string;
+  invoiceNumber: string;
+  bookTitle: string;
+  author: string;
+  language: string;
+  category: string;
+  format: BookFormat;
+  purchaseDate: string;
+  paymentMethod: string;
+  paymentStatus: OrderPaymentStatus;
+  orderStatus: OrderStatus;
+  amountPaid: string;
+  membershipPurchase: boolean;
+  downloadAvailable: boolean;
+  invoiceAvailable: boolean;
+  supportAvailable: boolean;
+  subtotal: string;
+  discountAmount: string;
+  gstPercent: string;
+  gstAmount: string;
+  grandTotal: string;
+  transactionId: string;
+  paymentReference: string;
+  invoiceUrl: string | null;
+  billingName: string;
+  billingEmail: string;
+  downloadLimit: number;
+  downloadCount: number;
+  membershipPlan: string | null;
+  membershipExpiry: string | null;
 }
 
 export const PAYMENT_STATUS_LABELS: Record<OrderPaymentStatus, string> = {
