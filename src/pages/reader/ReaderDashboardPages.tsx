@@ -4,6 +4,7 @@ import { READER_DASHBOARD_MENU } from '../../lib/dashboardNavigation';
 import { ReaderDashboardWidgets } from '../../components/dashboard/widgets/ReaderDashboardWidgets';
 import { MyLibraryContent } from '../../components/library/MyLibraryContent';
 import { MyWishlistContent } from '../../components/wishlist/MyWishlistContent';
+import { MyOrdersContent } from '../../components/orders/MyOrdersContent';
 import { ReaderPlaceholder } from './ReaderPlaceholder';
 import { useReader } from '../../context/ReaderContext';
 
@@ -124,7 +125,7 @@ export function ReaderMembershipPage() {
 export function ReaderOrdersPage() {
   return (
     <ReaderDashboardLayout pageTitle="Orders">
-      <ReaderPlaceholder title="Orders" description="Your purchase history and order tracking will appear here." />
+      <MyOrdersContent />
     </ReaderDashboardLayout>
   );
 }
