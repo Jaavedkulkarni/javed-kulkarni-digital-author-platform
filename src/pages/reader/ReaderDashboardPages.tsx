@@ -5,6 +5,7 @@ import { ReaderDashboardWidgets } from '../../components/dashboard/widgets/Reade
 import { MyLibraryContent } from '../../components/library/MyLibraryContent';
 import { MyWishlistContent } from '../../components/wishlist/MyWishlistContent';
 import { MyOrdersContent } from '../../components/orders/MyOrdersContent';
+import { MyMembershipContent } from '../../components/membership/MyMembershipContent';
 import { ReaderPlaceholder } from './ReaderPlaceholder';
 import { useReader } from '../../context/ReaderContext';
 
@@ -111,13 +112,9 @@ export function ReaderSettingsPage() {
 }
 
 export function ReaderMembershipPage() {
-  const { profile } = useReader();
   return (
     <ReaderDashboardLayout pageTitle="Membership">
-      <ReaderPlaceholder
-        title="Membership"
-        description={`Your current plan: ${profile?.membership_status || 'free'}. Membership upgrades will be available in a future sprint.`}
-      />
+      <MyMembershipContent />
     </ReaderDashboardLayout>
   );
 }
