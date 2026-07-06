@@ -1,10 +1,10 @@
 import { memo } from 'react';
 import { DashboardCard } from '../dashboard/DashboardCard';
 import { ProfileInfoRow } from './profileUi';
-import { PROFILE_PERSONAL_PLACEHOLDER } from './profileTypes';
+import { useReaderProfile } from '../../reader/hooks/useReaderProfile';
 
 export const ProfileOverview = memo(function ProfileOverview() {
-  const personal = PROFILE_PERSONAL_PLACEHOLDER;
+  const { personal } = useReaderProfile();
 
   return (
     <DashboardCard title="Personal Information" ariaLabel="Personal information">

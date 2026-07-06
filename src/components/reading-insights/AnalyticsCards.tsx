@@ -1,11 +1,11 @@
-import { memo, useMemo } from 'react';
+import { memo } from 'react';
 import { StatisticsGrid } from '../shared/statistics/StatisticsGrid';
 import { StatisticItem } from '../shared/statistics/StatisticItem';
-import { ANALYTICS_MOCK } from './readingInsightsTypes';
+import { useReadingInsights } from '../../reader/hooks/useReadingInsights';
 import { HeatmapPlaceholder } from './HeatmapPlaceholder';
 
 export const AnalyticsCards = memo(function AnalyticsCards() {
-  const stats = useMemo(() => ANALYTICS_MOCK, []);
+  const { analytics: stats } = useReadingInsights();
 
   return (
     <div className="space-y-4 sm:space-y-5">

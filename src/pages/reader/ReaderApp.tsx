@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { Link, Navigate, Route, Routes, useLocation } from 'react-router-dom';
+import { ReaderQueryProvider } from '../../reader';
 import { useReader } from '../../context/ReaderContext';
 import { useRoles } from '../../context/RoleContext';
 import { storeReaderProtectedReturn, isLoggingOut } from '../../lib/authRedirect';
@@ -99,7 +100,8 @@ function ReaderProtected({ children }: { children: React.ReactNode }) {
 
 export function ReaderApp() {
   return (
-    <Routes>
+    <ReaderQueryProvider>
+      <Routes>
       <Route path="sign-in" element={<ReaderSignIn />} />
       <Route path="sign-up" element={<ReaderSignUp />} />
       <Route path="forgot-password" element={<ReaderForgotPassword />} />
@@ -145,7 +147,8 @@ export function ReaderApp() {
       <Route path="history" element={<ReaderProtected><ReaderHistoryPage /></ReaderProtected>} />
       <Route path="settings" element={<ReaderProtected><ReaderSettingsPage /></ReaderProtected>} />
       <Route path="*" element={<Navigate to="/reader" replace />} />
-    </Routes>
+      </Routes>
+    </ReaderQueryProvider>
   );
 }
 

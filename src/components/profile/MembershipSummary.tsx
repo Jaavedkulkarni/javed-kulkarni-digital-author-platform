@@ -1,10 +1,11 @@
 import { memo } from 'react';
 import { DashboardCard } from '../dashboard/DashboardCard';
 import { ProfileInfoRow, ProfileStatusBadge } from './profileUi';
-import { ACCOUNT_STATUS_STYLE, PROFILE_MEMBERSHIP_PLACEHOLDER } from './profileTypes';
+import { ACCOUNT_STATUS_STYLE } from './profileTypes';
+import { useReaderProfile } from '../../reader/hooks/useReaderProfile';
 
 export const MembershipSummary = memo(function MembershipSummary() {
-  const membership = PROFILE_MEMBERSHIP_PLACEHOLDER;
+  const { membership } = useReaderProfile();
 
   return (
     <DashboardCard

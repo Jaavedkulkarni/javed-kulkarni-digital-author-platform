@@ -1,10 +1,10 @@
-import { memo, useMemo } from 'react';
+import { memo } from 'react';
 import { StatisticsGrid } from '../shared/statistics/StatisticsGrid';
 import { StatisticItem } from '../shared/statistics/StatisticItem';
-import { READING_TIME_MOCK } from './readingInsightsTypes';
+import { useReadingInsights } from '../../reader/hooks/useReadingInsights';
 
 export const ReadingTimeCards = memo(function ReadingTimeCards() {
-  const stats = useMemo(() => READING_TIME_MOCK, []);
+  const { readingTime: stats } = useReadingInsights();
 
   return (
     <StatisticsGrid ariaLabel="Reading time statistics" columnsClass="lg:grid-cols-3">

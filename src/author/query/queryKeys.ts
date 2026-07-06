@@ -1,0 +1,36 @@
+export const authorQueryKeys = {
+  all: ['author'] as const,
+  context: (profileId: string) => [...authorQueryKeys.all, 'context', profileId] as const,
+  dashboard: (authorId: string) => [...authorQueryKeys.all, 'dashboard', authorId] as const,
+  books: (authorId: string, filters?: string) =>
+    [...authorQueryKeys.all, 'books', authorId, filters ?? 'all'] as const,
+  book: (authorId: string, bookId: string) =>
+    [...authorQueryKeys.all, 'book', authorId, bookId] as const,
+  analytics: (authorId: string) => [...authorQueryKeys.all, 'analytics', authorId] as const,
+  bookAnalytics: (authorId: string, bookId: string) =>
+    [...authorQueryKeys.all, 'book-analytics', authorId, bookId] as const,
+  revenue: (authorId: string) => [...authorQueryKeys.all, 'revenue', authorId] as const,
+  blog: (authorId: string) => [...authorQueryKeys.all, 'blog', authorId] as const,
+  profile: (authorId: string) => [...authorQueryKeys.all, 'profile', authorId] as const,
+  media: (authorId: string) => [...authorQueryKeys.all, 'media', authorId] as const,
+  followers: (authorId: string) => [...authorQueryKeys.all, 'followers', authorId] as const,
+  reviews: (authorId: string) => [...authorQueryKeys.all, 'reviews', authorId] as const,
+  tasks: (authorId: string) => [...authorQueryKeys.all, 'tasks', authorId] as const,
+  goals: (authorId: string) => [...authorQueryKeys.all, 'goals', authorId] as const,
+  achievements: (authorId: string) => [...authorQueryKeys.all, 'achievements', authorId] as const,
+  calendar: (authorId: string) => [...authorQueryKeys.all, 'calendar', authorId] as const,
+  notifications: (userId: string) => [...authorQueryKeys.all, 'notifications', userId] as const,
+  earnings: (authorId: string) => [...authorQueryKeys.all, 'earnings', authorId] as const,
+  payouts: (authorId: string) => [...authorQueryKeys.all, 'payouts', authorId] as const,
+  withdrawals: (authorId: string) => [...authorQueryKeys.all, 'withdrawals', authorId] as const,
+  contracts: (authorId: string) => [...authorQueryKeys.all, 'contracts', authorId] as const,
+  kyc: (authorId: string) => [...authorQueryKeys.all, 'kyc', authorId] as const,
+  performance: (authorId: string) => [...authorQueryKeys.all, 'performance', authorId] as const,
+  bookPerformance: (authorId: string, bookId: string) =>
+    [...authorQueryKeys.all, 'book-performance', authorId, bookId] as const,
+  marketing: (authorId: string) => [...authorQueryKeys.all, 'marketing', authorId] as const,
+  importJobs: (authorId: string) => [...authorQueryKeys.all, 'import-jobs', authorId] as const,
+  exportJobs: (authorId: string) => [...authorQueryKeys.all, 'export-jobs', authorId] as const,
+  settings: (authorId: string) => [...authorQueryKeys.all, 'settings', authorId] as const,
+  mindWaveAi: (authorId: string) => [...authorQueryKeys.all, 'mindwave-ai', authorId] as const,
+};

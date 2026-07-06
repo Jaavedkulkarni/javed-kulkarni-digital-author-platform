@@ -1,0 +1,16 @@
+export { useAuthorContext } from '../author/hooks/useAuthorContext';
+export { useAuthorDashboard } from '../author/hooks/useAuthorDashboard';
+export { useAuthorBooks } from '../author/hooks/useAuthorBooks';
+export { useAuthorAnalytics, useBookAnalytics } from '../author/hooks/useAuthorAnalytics';
+export { useAuthorRevenue } from '../author/hooks/useAuthorRevenue';
+export { useAuthorBlog } from '../author/hooks/useAuthorBlog';
+export { useAuthorProfile } from '../author/hooks/useAuthorProfile';
+export { useAuthorServices } from '../author/hooks/useAuthorServices';
+export { useAuthorEarnings } from '../author/hooks/useAuthorEarnings';
+export { useAuthorContracts } from '../author/hooks/useAuthorContracts';
+export { useAuthorKyc } from '../author/hooks/useAuthorKyc';
+export { useBookPerformance } from '../author/hooks/useBookPerformance';
+export { useAuthorMarketing } from '../author/hooks/useAuthorMarketing';
+export { useAuthorImportExport } from '../author/hooks/useAuthorImportExport';
+export { useAuthorSettings } from '../author/hooks/useAuthorSettings';
+export { useMindWaveAi } from '../author/hooks/useMindWaveAi';

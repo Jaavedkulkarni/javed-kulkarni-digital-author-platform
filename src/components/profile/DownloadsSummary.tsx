@@ -2,16 +2,16 @@ import { memo } from 'react';
 import { StatisticsGrid } from '../shared/statistics/StatisticsGrid';
 import { StatisticItem } from '../shared/statistics/StatisticItem';
 import { DashboardCard } from '../dashboard/DashboardCard';
-import { PROFILE_DOWNLOADS_PLACEHOLDER } from './profileTypes';
+import { useReaderProfile } from '../../reader/hooks/useReaderProfile';
 
-const DOWNLOAD_STATS: { label: string; key: keyof typeof PROFILE_DOWNLOADS_PLACEHOLDER }[] = [
-  { label: 'Downloaded Books', key: 'downloadedBooks' },
-  { label: 'Offline Storage', key: 'offlineStorage' },
-  { label: 'Available Space', key: 'availableSpace' },
+const DOWNLOAD_STATS = [
+  { label: 'Downloaded Books', key: 'downloadedBooks' as const },
+  { label: 'Offline Storage', key: 'offlineStorage' as const },
+  { label: 'Available Space', key: 'availableSpace' as const },
 ];
 
 export const DownloadsSummary = memo(function DownloadsSummary() {
-  const downloads = PROFILE_DOWNLOADS_PLACEHOLDER;
+  const { downloads } = useReaderProfile();
 
   return (
     <DashboardCard title="Downloads Summary" ariaLabel="Downloads summary">

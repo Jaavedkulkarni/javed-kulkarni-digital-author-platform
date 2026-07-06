@@ -1,10 +1,11 @@
 import { memo } from 'react';
 import { ProfileAvatar } from './ProfileAvatar';
 import { ProfileStatusBadge } from './profileUi';
-import { MEMBERSHIP_BADGE_STYLE, PROFILE_HERO_PLACEHOLDER } from './profileTypes';
+import { MEMBERSHIP_BADGE_STYLE } from './profileTypes';
+import { useReaderProfile } from '../../reader/hooks/useReaderProfile';
 
 export const ProfileHero = memo(function ProfileHero() {
-  const hero = PROFILE_HERO_PLACEHOLDER;
+  const { hero } = useReaderProfile();
 
   return (
     <section aria-label="Profile hero" className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-navy-700 dark:bg-navy-800">

@@ -43,6 +43,7 @@ const AdminPage = lazy(() => import('./pages/admin/AdminPage'));
 const AuthorApp = lazy(() => import('./pages/author/AuthorApp'));
 const SuperAdminApp = lazy(() => import('./pages/super/SuperAdminApp'));
 const ReaderApp = lazy(() => import('./pages/reader/ReaderApp'));
+const AuthApp = lazy(() => import('./auth/AuthApp'));
 const BookPage = lazy(() => import('./pages/books/BookPage'));
 const BookCategoryPage = lazy(() => import('./pages/books/BookCategoryPage'));
 const SampleReaderPage = lazy(() => import('./pages/books/SampleReaderPage'));
@@ -467,6 +468,9 @@ function App() {
 
           {/* Super Admin Routes */}
           <Route path="/super/*" element={<SuperAdminApp />} />
+
+          {/* Authentication Routes */}
+          <Route path="/auth/*" element={<AuthApp />} />
 
           {/* Reader Routes */}
           <Route path="/reader/*" element={<ReaderApp />} />

@@ -1,8 +1,9 @@
-import { memo, useMemo } from 'react';
+import { memo } from 'react';
 import { DashboardCard } from '../dashboard/DashboardCard';
 import { ResponsiveGrid } from '../shared/layout/ResponsiveGrid';
 import { SecondaryButton } from '../shared/buttons/SecondaryButton';
 import { GOALS_MOCK, type ReadingGoalPlaceholder } from './readingInsightsTypes';
+import { useReadingInsights } from '../../reader/hooks/useReadingInsights';
 
 interface GoalRingProps {
   goal: ReadingGoalPlaceholder;
@@ -55,7 +56,11 @@ const GoalRing = memo(function GoalRing({ goal }: GoalRingProps) {
 });
 
 export const ReadingGoals = memo(function ReadingGoals() {
-  const goals = useMemo(() => GOALS_MOCK, []);
+  const { goals: insightGoals } = useReadingInsights();
+  const goals: ReadingGoalPlaceholder[] =
+    insightGoals.length > 0
+      ? insightGoals
+      : GOALS_MOCK;
 
   return (
     <div className="space-y-4 sm:space-y-5">

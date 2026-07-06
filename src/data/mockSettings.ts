@@ -65,7 +65,7 @@ export const MOCK_ACCOUNT = {
   password: '••••••••',
   connectedDevices: '2 devices',
   sessionManagement: 'Active session on this device',
-} as const;
+};
 
 export const MOCK_SETTINGS: ReaderSettings = {
   appearance: {

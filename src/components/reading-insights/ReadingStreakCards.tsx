@@ -1,11 +1,11 @@
-import { memo, useMemo } from 'react';
+import { memo } from 'react';
 import { StatisticsGrid } from '../shared/statistics/StatisticsGrid';
 import { StatisticItem } from '../shared/statistics/StatisticItem';
-import { STREAK_MOCK } from './readingInsightsTypes';
 import { ReadingCalendar } from './ReadingCalendar';
+import { useReadingInsights } from '../../reader/hooks/useReadingInsights';
 
 export const ReadingStreakCards = memo(function ReadingStreakCards() {
-  const stats = useMemo(() => STREAK_MOCK, []);
+  const { streak: stats } = useReadingInsights();
 
   return (
     <div className="space-y-4 sm:space-y-5">

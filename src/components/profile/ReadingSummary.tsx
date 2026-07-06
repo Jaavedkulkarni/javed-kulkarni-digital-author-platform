@@ -2,19 +2,19 @@ import { memo } from 'react';
 import { StatisticsGrid } from '../shared/statistics/StatisticsGrid';
 import { StatisticItem } from '../shared/statistics/StatisticItem';
 import { DashboardCard } from '../dashboard/DashboardCard';
-import { PROFILE_READING_PLACEHOLDER } from './profileTypes';
+import { useReaderProfile } from '../../reader/hooks/useReaderProfile';
 
-const READING_STATS: { label: string; key: keyof typeof PROFILE_READING_PLACEHOLDER }[] = [
-  { label: 'Books Read', key: 'booksRead' },
-  { label: 'Books Reading', key: 'booksReading' },
-  { label: 'Wishlist', key: 'wishlist' },
-  { label: 'Downloads', key: 'downloads' },
-  { label: 'Hours Read', key: 'hoursRead' },
-  { label: 'Reading Streak', key: 'readingStreak' },
+const READING_STATS = [
+  { label: 'Books Read', key: 'booksRead' as const },
+  { label: 'Books Reading', key: 'booksReading' as const },
+  { label: 'Wishlist', key: 'wishlist' as const },
+  { label: 'Downloads', key: 'downloads' as const },
+  { label: 'Hours Read', key: 'hoursRead' as const },
+  { label: 'Reading Streak', key: 'readingStreak' as const },
 ];
 
 export const ReadingSummary = memo(function ReadingSummary() {
-  const reading = PROFILE_READING_PLACEHOLDER;
+  const { reading } = useReaderProfile();
 
   return (
     <DashboardCard title="Reading Summary" ariaLabel="Reading summary">
