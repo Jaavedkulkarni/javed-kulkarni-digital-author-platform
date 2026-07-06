@@ -124,7 +124,8 @@ async function fetchPublishedBookRows(): Promise<SupabaseBookRow[] | null> {
   const { data, error } = await supabase
     .from('books')
     .select(PUBLIC_BOOK_SELECT)
-    .eq('status', 'published')
+    .eq('workflow_status', 'published')
+    .eq('is_hidden', false)
     .order('sort_order', { ascending: true });
 
   if (error || !data?.length) {
@@ -208,7 +209,8 @@ export async function loadBookBySlug(slug: string): Promise<Book | undefined> {
   const { data, error } = await supabase
     .from('books')
     .select(PUBLIC_BOOK_SELECT)
-    .eq('status', 'published')
+    .eq('workflow_status', 'published')
+    .eq('is_hidden', false)
     .eq('slug', slug)
     .maybeSingle();
 
@@ -225,7 +227,8 @@ export async function loadRelatedBooks(slugs: string[]): Promise<Book[]> {
   const { data, error } = await supabase
     .from('books')
     .select(PUBLIC_BOOK_SELECT)
-    .eq('status', 'published')
+    .eq('workflow_status', 'published')
+    .eq('is_hidden', false)
     .in('slug', slugs);
 
   if (!error && data?.length) {

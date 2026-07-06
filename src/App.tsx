@@ -4,6 +4,7 @@ import AuthorSchema from "./seo/AuthorSchema";
 
 import { useState, useEffect, Suspense, lazy } from 'react';
 import { Routes, Route, Link } from 'react-router-dom';
+import { supabase } from './lib/supabase';
 import {
   BookOpen,
   Menu,
@@ -25,6 +26,7 @@ import { AuthModalProvider } from './context/AuthModalContext';
 import { AuthRouteEffects } from './components/auth/AuthRouteEffects';
 import { AdminProvider } from './context/AdminContext';
 import { RoleProvider } from './context/RoleContext';
+import { OrganizationModuleProvider } from './organization/providers';
 import { PublicAuthNav } from './components/reader/PublicAuthNav';
 import {
   getHomepageInitialData,
@@ -41,6 +43,7 @@ const BlogDynamicPage = lazy(() => import('./pages/blog/BlogDynamicPage'));
 const SearchPage = lazy(() => import('./pages/blog/SearchPage').then(m => ({ default: m.SearchPage })));
 const AdminPage = lazy(() => import('./pages/admin/AdminPage'));
 const AuthorApp = lazy(() => import('./pages/author/AuthorApp'));
+const PlatformAdminApp = lazy(() => import('./pages/platform-admin/PlatformAdminApp'));
 const SuperAdminApp = lazy(() => import('./pages/super/SuperAdminApp'));
 const ReaderApp = lazy(() => import('./pages/reader/ReaderApp'));
 const AuthApp = lazy(() => import('./auth/AuthApp'));
@@ -116,8 +119,22 @@ function MainWebsite() {
       setHomeCategories(data.categories);
     });
 
+    const catalogChannel = supabase
+      .channel('public-catalog')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'books' }, () => {
+        loadHomepageBookData().then((data) => {
+          if (cancelled) return;
+          setHomeBooks(data.books);
+          setFeaturedBook(data.featured.book);
+          setFeaturedBookHighlights(data.featured.highlights);
+          setHomeCategories(data.categories);
+        });
+      })
+      .subscribe();
+
     return () => {
       cancelled = true;
+      void supabase.removeChannel(catalogChannel);
     };
   }, []);
 
@@ -425,6 +442,7 @@ function App() {
     <BlogProvider>
       <ReaderProvider>
       <RoleProvider>
+      <OrganizationModuleProvider>
       <AuthModalProvider>
       <AuthRouteEffects />
       <Suspense fallback={
@@ -466,6 +484,9 @@ function App() {
           {/* Author Routes */}
           <Route path="/author/*" element={<AuthorApp />} />
 
+          {/* Platform Admin Operations */}
+          <Route path="/platform-admin/*" element={<PlatformAdminApp />} />
+
           {/* Super Admin Routes */}
           <Route path="/super/*" element={<SuperAdminApp />} />
 
@@ -481,6 +502,7 @@ function App() {
       </Suspense>
       <ScrollToTopButton />
       </AuthModalProvider>
+      </OrganizationModuleProvider>
       </RoleProvider>
       </ReaderProvider>
     </BlogProvider>

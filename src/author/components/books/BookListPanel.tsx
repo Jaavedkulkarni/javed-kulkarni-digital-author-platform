@@ -4,6 +4,8 @@ interface BookListPanelProps {
   books: AuthorBook[];
   title?: string;
   isLoading?: boolean;
+  onSubmitForReview?: (bookId: string) => void;
+  isSubmitting?: boolean;
 }
 
 const STATUS_COLORS: Record<string, string> = {
@@ -13,7 +15,7 @@ const STATUS_COLORS: Record<string, string> = {
   archived: 'text-red-400',
 };
 
-export function BookListPanel({ books, title = 'Books', isLoading }: BookListPanelProps) {
+export function BookListPanel({ books, title = 'Books', isLoading, onSubmitForReview, isSubmitting }: BookListPanelProps) {
   if (isLoading) return <div className="text-sm text-gray-400">Loading books...</div>;
 
   return (
@@ -24,14 +26,26 @@ export function BookListPanel({ books, title = 'Books', isLoading }: BookListPan
       ) : (
         <ul className="divide-y divide-navy-700">
           {books.map((book) => (
-            <li key={book.id} className="py-3 flex items-center justify-between">
+            <li key={book.id} className="py-3 flex items-center justify-between gap-3">
               <div>
                 <p className="text-sm font-medium text-white">{book.title}</p>
                 <p className="text-xs text-gray-500">{book.slug}</p>
               </div>
+              <div className="flex items-center gap-3">
               <span className={`text-xs capitalize ${STATUS_COLORS[book.workflow_status] ?? 'text-gray-400'}`}>
                 {book.workflow_status}
               </span>
+              {book.workflow_status === 'draft' && onSubmitForReview && (
+                <button
+                  type="button"
+                  disabled={isSubmitting}
+                  onClick={() => onSubmitForReview(book.id)}
+                  className="text-xs text-gold-400 hover:text-gold-300 disabled:opacity-50"
+                >
+                  Submit for Review
+                </button>
+              )}
+              </div>
             </li>
           ))}
         </ul>

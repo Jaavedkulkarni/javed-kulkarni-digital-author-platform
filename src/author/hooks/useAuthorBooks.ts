@@ -53,6 +53,11 @@ export function useAuthorBooks(filters?: AuthorBookListFilters) {
     onSuccess: () => void queryClient.invalidateQueries({ queryKey: authorQueryKeys.books(authorId!) }),
   });
 
+  const submitForReviewMutation = useMutation({
+    mutationFn: (bookId: string) => books.submitForReview(authorId!, bookId, profile!.id),
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: authorQueryKeys.books(authorId!) }),
+  });
+
   return {
     books: query.data ?? [],
     drafts: draftsQuery.data ?? [],
@@ -61,6 +66,8 @@ export function useAuthorBooks(filters?: AuthorBookListFilters) {
     createBook: createMutation.mutateAsync,
     archiveBook: archiveMutation.mutateAsync,
     duplicateBook: duplicateMutation.mutateAsync,
+    submitForReview: submitForReviewMutation.mutateAsync,
     isCreating: createMutation.isPending,
+    isSubmitting: submitForReviewMutation.isPending,
   };
 }

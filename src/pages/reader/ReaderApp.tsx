@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { Link, Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { ReaderQueryProvider } from '../../reader';
+import { useOrganizationRealtime } from '../../organization/hooks/useOrganizationRealtime';
 import { useReader } from '../../context/ReaderContext';
 import { useRoles } from '../../context/RoleContext';
 import { storeReaderProtectedReturn, isLoggingOut } from '../../lib/authRedirect';
@@ -98,9 +99,15 @@ function ReaderProtected({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+function ReaderRealtimeBridge() {
+  useOrganizationRealtime();
+  return null;
+}
+
 export function ReaderApp() {
   return (
     <ReaderQueryProvider>
+      <ReaderRealtimeBridge />
       <Routes>
       <Route path="sign-in" element={<ReaderSignIn />} />
       <Route path="sign-up" element={<ReaderSignUp />} />

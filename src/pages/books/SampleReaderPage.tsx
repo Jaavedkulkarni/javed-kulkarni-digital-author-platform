@@ -1,11 +1,13 @@
 import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, BookOpen, Clock, Sparkles } from 'lucide-react';
 import { useState, useEffect } from 'react';
-import { getBookBySlug } from '../../data/books';
+import { loadBookBySlug } from '../../lib/publicBooks';
+import type { Book } from '../../data/books';
 
 export default function SampleReaderPage() {
   const { slug } = useParams<{ slug: string }>();
   const [darkMode, setDarkMode] = useState(false);
+  const [book, setBook] = useState<Book | undefined>(undefined);
 
   useEffect(() => {
     setDarkMode(document.documentElement.classList.contains('dark'));
@@ -20,7 +22,16 @@ export default function SampleReaderPage() {
     window.scrollTo({ top: 0 });
   }, []);
 
-  const book = getBookBySlug(slug ?? '');
+  useEffect(() => {
+    let cancelled = false;
+    if (!slug) return;
+    loadBookBySlug(slug).then((loaded) => {
+      if (!cancelled) setBook(loaded);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [slug]);
 
   const bg = darkMode ? 'bg-navy-900' : 'bg-gray-50';
   const cardBg = darkMode ? 'bg-navy-800 border-navy-700' : 'bg-white border-gray-100';
@@ -29,7 +40,6 @@ export default function SampleReaderPage() {
 
   return (
     <div className={`min-h-screen ${bg} flex flex-col`}>
-      {/* Header bar */}
       <div className={`sticky top-0 z-40 border-b backdrop-blur-md ${darkMode ? 'bg-navy-900/95 border-navy-800' : 'bg-white/95 border-gray-200'}`}>
         <div className="section-container">
           <div className="flex items-center justify-between py-4">
@@ -48,10 +58,8 @@ export default function SampleReaderPage() {
         </div>
       </div>
 
-      {/* Main content */}
       <div className="flex-1 flex items-center justify-center px-4 py-20">
         <div className="max-w-2xl w-full text-center">
-          {/* Decorative icon */}
           <div className="relative inline-flex items-center justify-center mb-10">
             <div className="absolute inset-0 bg-gradient-to-br from-gold-400/30 to-navy-400/20 rounded-full blur-3xl w-40 h-40 mx-auto" />
             <div className={`relative w-28 h-28 rounded-full border-2 flex items-center justify-center ${darkMode ? 'bg-navy-800 border-gold-500/40' : 'bg-white border-gold-300 shadow-xl'}`}>
@@ -62,7 +70,6 @@ export default function SampleReaderPage() {
             </div>
           </div>
 
-          {/* Book cover mini */}
           {book && (
             <div className="flex justify-center mb-8">
               <div className={`w-20 rounded-xl overflow-hidden shadow-lg border ${darkMode ? 'border-navy-600' : 'border-gray-200'}`} style={{ aspectRatio: '2 / 3' }}>
@@ -90,7 +97,6 @@ export default function SampleReaderPage() {
               : 'पुस्तकाचे पहिले काही पान लवकरच इथे ऑनलाइन वाचता येतील.'}
           </p>
 
-          {/* Feature preview cards */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10 text-left">
             {[
               { emoji: '📖', title: 'Flipbook Reader', desc: 'Real page-turning experience' },
