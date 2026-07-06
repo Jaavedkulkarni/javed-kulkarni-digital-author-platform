@@ -6,8 +6,11 @@ import { MyLibraryContent } from '../../components/library/MyLibraryContent';
 import { MyWishlistContent } from '../../components/wishlist/MyWishlistContent';
 import { MyOrdersContent } from '../../components/orders/MyOrdersContent';
 import { MyMembershipContent } from '../../components/membership/MyMembershipContent';
+import { ReadingInsightsContent } from '../../components/reading-insights/ReadingInsightsContent';
+import { MyNotificationsContent } from '../../components/notifications/MyNotificationsContent';
+import { ProfileContent } from '../../components/profile/ProfileContent';
+import { SettingsContent } from '../../components/settings/SettingsContent';
 import { ReaderPlaceholder } from './ReaderPlaceholder';
-import { useReader } from '../../context/ReaderContext';
 
 function ReaderDashboardLayout({
   pageTitle,
@@ -48,27 +51,9 @@ export function ReaderWishlistPage() {
 }
 
 export function ReaderProfilePage() {
-  const { profile, user } = useReader();
   return (
     <ReaderDashboardLayout pageTitle="Profile">
-      <div className="max-w-lg space-y-4 rounded-xl border border-navy-700 bg-navy-800 p-6">
-        <ReaderPlaceholder title="Profile" description="Manage your reader profile details.">
-          <div className="space-y-2 text-left text-sm text-gray-400">
-            <p>
-              <span className="text-gray-500">Email:</span> {user?.email}
-            </p>
-            <p>
-              <span className="text-gray-500">Display name:</span> {profile?.display_name || '—'}
-            </p>
-            <p>
-              <span className="text-gray-500">Language:</span> {profile?.language || '—'}
-            </p>
-            <p>
-              <span className="text-gray-500">Membership:</span> {profile?.membership_status || 'free'}
-            </p>
-          </div>
-        </ReaderPlaceholder>
-      </div>
+      <ProfileContent />
     </ReaderDashboardLayout>
   );
 }
@@ -76,10 +61,7 @@ export function ReaderProfilePage() {
 export function ReaderReadingInsightsPage() {
   return (
     <ReaderDashboardLayout pageTitle="Reading Insights">
-      <ReaderPlaceholder
-        title="Reading Insights"
-        description="Your reading analytics and insights will appear here."
-      />
+      <ReadingInsightsContent />
     </ReaderDashboardLayout>
   );
 }
@@ -87,10 +69,7 @@ export function ReaderReadingInsightsPage() {
 export function ReaderNotificationsPage() {
   return (
     <ReaderDashboardLayout pageTitle="Notifications">
-      <ReaderPlaceholder
-        title="Notifications"
-        description="Your notifications and alerts will appear here."
-      />
+      <MyNotificationsContent />
     </ReaderDashboardLayout>
   );
 }
@@ -106,7 +85,7 @@ export function ReaderHistoryPage() {
 export function ReaderSettingsPage() {
   return (
     <ReaderDashboardLayout pageTitle="Settings">
-      <ReaderPlaceholder title="Settings" description="Notification and account preferences will be available here." />
+      <SettingsContent />
     </ReaderDashboardLayout>
   );
 }

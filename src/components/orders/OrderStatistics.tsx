@@ -1,5 +1,6 @@
 import { memo } from 'react';
-import { StatisticCard } from '../library/StatisticCard';
+import { StatisticsGrid } from '../shared/statistics/StatisticsGrid';
+import { StatisticItem } from '../shared/statistics/StatisticItem';
 import type { OrderStats } from '../../lib/orderBookLogic';
 
 const ORDER_STATS: { label: string; key: keyof OrderStats }[] = [
@@ -16,19 +17,16 @@ interface OrderStatisticsProps {
 
 export const OrderStatistics = memo(function OrderStatistics({ stats }: OrderStatisticsProps) {
   return (
-    <section
-      aria-label="Order statistics"
-      className="grid grid-cols-2 items-stretch gap-3 sm:gap-4 lg:grid-cols-5"
-    >
+    <StatisticsGrid ariaLabel="Order statistics" columnsClass="lg:grid-cols-5">
       {ORDER_STATS.map((stat) => (
-        <StatisticCard
+        <StatisticItem
           key={stat.key}
           label={stat.label}
           value={String(stats[stat.key])}
           ariaLabel={`${stat.label}: ${stats[stat.key]}`}
         />
       ))}
-    </section>
+    </StatisticsGrid>
   );
 });
 

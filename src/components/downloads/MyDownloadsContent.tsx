@@ -1,7 +1,7 @@
 import { DownloadsPageHeader } from './DownloadsPageHeader';
 import { DownloadsToolbar } from './DownloadsToolbar';
 import { DownloadsStatistics } from './DownloadsStatistics';
-import { DownloadsGrid } from './DownloadsGrid';
+import { DownloadGrid } from './DownloadGrid';
 
 export function MyDownloadsContent() {
   const downloads: never[] = [];
@@ -11,7 +11,7 @@ export function MyDownloadsContent() {
       <DownloadsPageHeader />
       <DownloadsToolbar />
       <DownloadsStatistics />
-      <DownloadsGrid items={downloads} />
+      <DownloadGrid items={downloads} />
     </div>
   );
 }

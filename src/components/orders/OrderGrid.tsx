@@ -1,6 +1,7 @@
 import { memo, useEffect } from 'react';
 import type { MockOrder } from '../../data/mockOrders';
 import type { OrderViewMode } from '../../lib/orderBookLogic';
+import { ResponsiveGrid } from '../shared/layout/ResponsiveGrid';
 import { OrderItem } from './OrderItem';
 import { OrderStatePanel } from './OrderStatePanel';
 
@@ -37,13 +38,8 @@ export const OrderGrid = memo(function OrderGrid({
     return <OrderStatePanel variant="no-results" />;
   }
 
-  const listClassName =
-    viewMode === 'list'
-      ? 'flex flex-col gap-4 sm:gap-5'
-      : 'grid grid-cols-1 gap-4 sm:gap-5 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4';
-
   return (
-    <div role="list" aria-label="Order history" className={listClassName}>
+    <ResponsiveGrid viewMode={viewMode} ariaLabel="Order history">
       {orders.map((order) => (
         <div key={order.id} role="listitem" className="h-full min-h-0">
           <OrderItem
@@ -55,7 +51,7 @@ export const OrderGrid = memo(function OrderGrid({
           />
         </div>
       ))}
-    </div>
+    </ResponsiveGrid>
   );
 });
 

@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { BookCover, BookMetadata } from '../book';
 import { DashboardCard } from '../dashboard/DashboardCard';
 import type { DownloadCardItem } from './downloadTypes';
@@ -6,7 +7,12 @@ import {
   DOWNLOAD_STATUS_STYLES,
   OFFLINE_BADGE_STYLE,
 } from './downloadTypes';
-import { DownloadPrimaryButton, DownloadSecondaryButton, DownloadStatusBadge } from './downloadUi';
+import {
+  DownloadDangerButton,
+  DownloadPrimaryButton,
+  DownloadSecondaryButton,
+  DownloadStatusBadge,
+} from './downloadUi';
 
 interface DownloadCardProps {
   item?: DownloadCardItem;
@@ -15,7 +21,7 @@ interface DownloadCardProps {
 
 const PLACEHOLDER = '—';
 
-export function DownloadCard({ item, compact = false }: DownloadCardProps) {
+export const DownloadCard = memo(function DownloadCard({ item, compact = false }: DownloadCardProps) {
   const title = item?.title ?? PLACEHOLDER;
 
   const layoutClass = compact
@@ -30,9 +36,10 @@ export function DownloadCard({ item, compact = false }: DownloadCardProps) {
       ariaLabel={`Downloaded book: ${title}`}
       className="h-full"
       footer={
-        <div className="flex flex-col gap-2 sm:flex-row">
-          <DownloadPrimaryButton>Open Book</DownloadPrimaryButton>
-          <DownloadSecondaryButton>Manage Download</DownloadSecondaryButton>
+        <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+          <DownloadPrimaryButton>Read Offline</DownloadPrimaryButton>
+          <DownloadSecondaryButton>Download Again</DownloadSecondaryButton>
+          <DownloadDangerButton>Remove Download</DownloadDangerButton>
         </div>
       }
     >
@@ -58,12 +65,20 @@ export function DownloadCard({ item, compact = false }: DownloadCardProps) {
 
           <dl className="grid grid-cols-2 gap-x-3 gap-y-1 text-xs">
             <div>
-              <dt className="text-gray-500 dark:text-gray-400">Downloaded</dt>
-              <dd className="text-navy-900 dark:text-white">{item?.downloadedDate ?? PLACEHOLDER}</dd>
+              <dt className="text-gray-500 dark:text-gray-400">Downloaded On</dt>
+              <dd className="text-navy-900 dark:text-white">{item?.downloadedOn ?? PLACEHOLDER}</dd>
             </div>
             <div>
-              <dt className="text-gray-500 dark:text-gray-400">File Size</dt>
-              <dd className="tabular-nums text-navy-900 dark:text-white">{item?.fileSize ?? PLACEHOLDER}</dd>
+              <dt className="text-gray-500 dark:text-gray-400">Last Opened</dt>
+              <dd className="text-navy-900 dark:text-white">{item?.lastOpened ?? PLACEHOLDER}</dd>
+            </div>
+            <div>
+              <dt className="text-gray-500 dark:text-gray-400">Download Size</dt>
+              <dd className="tabular-nums text-navy-900 dark:text-white">{item?.downloadSize ?? PLACEHOLDER}</dd>
+            </div>
+            <div>
+              <dt className="text-gray-500 dark:text-gray-400">Devices</dt>
+              <dd className="tabular-nums text-navy-900 dark:text-white">{item?.deviceCount ?? PLACEHOLDER}</dd>
             </div>
           </dl>
 
@@ -75,18 +90,18 @@ export function DownloadCard({ item, compact = false }: DownloadCardProps) {
               />
             ) : (
               <DownloadStatusBadge
-                label="Download Status"
+                label="Downloaded"
                 styleClass="border-gray-200 bg-gray-100 text-gray-500 dark:border-navy-600 dark:bg-navy-700 dark:text-gray-400"
               />
             )}
             {item?.offlineAvailable ? (
-              <DownloadStatusBadge label="Offline" styleClass={OFFLINE_BADGE_STYLE} />
+              <DownloadStatusBadge label="Available Offline" styleClass={OFFLINE_BADGE_STYLE} />
             ) : null}
           </div>
         </div>
       </article>
     </DashboardCard>
   );
-}
+});
 
 export default DownloadCard;

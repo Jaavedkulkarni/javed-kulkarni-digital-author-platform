@@ -1,5 +1,4 @@
 import { useEffect, useRef, memo } from 'react';
-import { Filter, LayoutGrid, List, Search, X } from 'lucide-react';
 import type {
   OrderFilters,
   OrderPaymentStatusFilter,
@@ -8,6 +7,12 @@ import type {
   OrderTriFilter,
   OrderViewMode,
 } from '../../lib/orderBookLogic';
+import { PageToolbar } from '../shared/toolbar/PageToolbar';
+import { SearchInput } from '../shared/search/SearchInput';
+import { SortDropdown } from '../shared/sort/SortDropdown';
+import { GridListToggle } from '../shared/toggle/GridListToggle';
+import { FilterButton } from '../shared/filters/FilterButton';
+import { FilterField, FilterPopover } from '../shared/filters/FilterPanel';
 
 const SORT_OPTIONS: { value: OrderSortKey; label: string }[] = [
   { value: 'newest', label: 'Newest' },
@@ -16,9 +21,6 @@ const SORT_OPTIONS: { value: OrderSortKey; label: string }[] = [
   { value: 'lowest-amount', label: 'Lowest Amount' },
   { value: 'recently-downloaded', label: 'Recently Downloaded' },
 ];
-
-const CONTROL_CLASS =
-  'inline-flex min-h-10 items-center rounded-lg border border-gray-200 text-sm font-medium text-navy-800 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-400/50 dark:border-navy-700 dark:text-gray-200';
 
 interface OrderToolbarProps {
   searchQuery: string;
@@ -76,236 +78,71 @@ export const OrderToolbar = memo(function OrderToolbar({
     };
   }, [filterOpen, onFilterOpenChange]);
 
-  const selectClass =
-    'w-full min-h-10 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-navy-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-400/50 dark:border-navy-700 dark:bg-navy-900/60 dark:text-gray-200';
-
   return (
-    <section
-      aria-label="Orders toolbar"
-      className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm transition-shadow duration-200 hover:shadow-md dark:border-navy-700 dark:bg-navy-800 sm:p-5"
+    <PageToolbar
+      ariaLabel="Orders toolbar"
+      announcement={`${resultCount} ${resultCount === 1 ? 'order' : 'orders'} shown`}
     >
-      <p className="sr-only" aria-live="polite" aria-atomic="true">
-        {resultCount} {resultCount === 1 ? 'order' : 'orders'} shown
-      </p>
+      <SearchInput
+        id="orders-search"
+        label="Search orders"
+        placeholder="Search orders..."
+        value={searchQuery}
+        onChange={onSearchChange}
+      />
 
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-        <div className="relative min-w-0 flex-1 lg:max-w-md">
-          <label htmlFor="orders-search" className="sr-only">
-            Search orders
-          </label>
-          <Search
-            className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 dark:text-gray-500"
-            aria-hidden="true"
+      <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+        <div className="relative" ref={filterRef}>
+          <FilterButton
+            ariaLabel={filtersActive ? 'Filter orders (filters active)' : 'Filter orders'}
+            active={filtersActive}
+            open={filterOpen}
+            onClick={() => onFilterOpenChange(!filterOpen)}
           />
-          <input
-            id="orders-search"
-            type="search"
-            value={searchQuery}
-            onChange={(e) => onSearchChange(e.target.value)}
-            placeholder="Search orders..."
-            className="h-10 w-full rounded-lg border border-gray-200 bg-gray-50 py-2 pl-10 pr-4 text-sm text-navy-900 placeholder:text-gray-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-400/50 dark:border-navy-700 dark:bg-navy-900/60 dark:text-white dark:placeholder:text-gray-500"
-          />
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-          <div className="relative" ref={filterRef}>
-            <button
-              type="button"
-              onClick={() => onFilterOpenChange(!filterOpen)}
-              aria-label={filtersActive ? 'Filter orders (filters active)' : 'Filter orders'}
-              aria-expanded={filterOpen}
-              aria-haspopup="dialog"
-              className={`${CONTROL_CLASS} gap-2 px-3 hover:bg-gray-50 dark:hover:bg-navy-900/60 ${
-                filtersActive ? 'border-brand/40 bg-brand/5 dark:border-brand/30 dark:bg-brand/10' : ''
-              }`}
-            >
-              <Filter className="h-4 w-4 shrink-0" aria-hidden="true" />
-              <span>Filter</span>
-              {filtersActive ? (
-                <span aria-hidden="true" className="h-2 w-2 shrink-0 rounded-full bg-brand" />
-              ) : null}
-            </button>
-
-            {filterOpen ? (
-              <div
-                role="dialog"
-                aria-label="Order filters"
-                className="absolute right-0 z-20 mt-2 w-72 rounded-xl border border-gray-200 bg-white p-4 shadow-lg dark:border-navy-700 dark:bg-navy-800 sm:w-80"
-              >
-                <div className="mb-3 flex items-center justify-between">
-                  <h3 className="text-sm font-semibold text-navy-900 dark:text-white">Filters</h3>
-                  <button
-                    type="button"
-                    onClick={() => onFilterOpenChange(false)}
-                    aria-label="Close filters"
-                    className="inline-flex min-h-8 min-w-8 items-center justify-center rounded text-gray-400 transition-colors hover:text-gray-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-400/50 dark:hover:text-gray-200"
-                  >
-                    <X className="h-4 w-4" aria-hidden="true" />
-                  </button>
-                </div>
-
-                <div className="space-y-3">
-                  <div>
-                    <label htmlFor="order-filter-payment" className="mb-1 block text-xs font-medium text-gray-500 dark:text-gray-400">
-                      Payment Status
-                    </label>
-                    <select
-                      id="order-filter-payment"
-                      value={filters.paymentStatus}
-                      onChange={(e) =>
-                        onFilterChange('paymentStatus', e.target.value as OrderPaymentStatusFilter)
-                      }
-                      className={selectClass}
-                    >
-                      <option value="all">All Payment Status</option>
-                      <option value="paid">Paid</option>
-                      <option value="pending">Pending</option>
-                      <option value="refunded">Refunded</option>
-                      <option value="failed">Failed</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label htmlFor="order-filter-status" className="mb-1 block text-xs font-medium text-gray-500 dark:text-gray-400">
-                      Order Status
-                    </label>
-                    <select
-                      id="order-filter-status"
-                      value={filters.orderStatus}
-                      onChange={(e) => onFilterChange('orderStatus', e.target.value as OrderStatusFilter)}
-                      className={selectClass}
-                    >
-                      <option value="all">All Order Status</option>
-                      <option value="completed">Completed</option>
-                      <option value="pending">Pending</option>
-                      <option value="refunded">Refunded</option>
-                      <option value="cancelled">Cancelled</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label htmlFor="order-filter-membership" className="mb-1 block text-xs font-medium text-gray-500 dark:text-gray-400">
-                      Membership Purchase
-                    </label>
-                    <select
-                      id="order-filter-membership"
-                      value={filters.membershipPurchase}
-                      onChange={(e) =>
-                        onFilterChange('membershipPurchase', e.target.value as OrderTriFilter)
-                      }
-                      className={selectClass}
-                    >
-                      <option value="all">All</option>
-                      <option value="yes">Membership</option>
-                      <option value="no">Non-Membership</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label htmlFor="order-filter-download" className="mb-1 block text-xs font-medium text-gray-500 dark:text-gray-400">
-                      Download Available
-                    </label>
-                    <select
-                      id="order-filter-download"
-                      value={filters.downloadAvailable}
-                      onChange={(e) =>
-                        onFilterChange('downloadAvailable', e.target.value as OrderTriFilter)
-                      }
-                      className={selectClass}
-                    >
-                      <option value="all">All</option>
-                      <option value="yes">Available</option>
-                      <option value="no">Not Available</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label htmlFor="order-filter-year" className="mb-1 block text-xs font-medium text-gray-500 dark:text-gray-400">
-                      Year
-                    </label>
-                    <select
-                      id="order-filter-year"
-                      value={filters.year}
-                      onChange={(e) => onFilterChange('year', e.target.value)}
-                      className={selectClass}
-                    >
-                      <option value="all">All Years</option>
-                      {years.map((year) => (
-                        <option key={year} value={year}>
-                          {year}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={onResetFilters}
-                  disabled={!filtersActive}
-                  className="mt-4 flex min-h-10 w-full items-center justify-center rounded-lg border border-gray-200 px-3 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-400/50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-navy-700 dark:text-gray-300 dark:hover:bg-navy-900/60"
-                >
-                  Reset Filters
-                </button>
-              </div>
-            ) : null}
-          </div>
-
-          <div className="min-w-[10rem] flex-1 sm:flex-none">
-            <label htmlFor="orders-sort" className="sr-only">
-              Sort orders
-            </label>
-            <select
-              id="orders-sort"
-              value={sortKey}
-              onChange={(e) => onSortChange(e.target.value as OrderSortKey)}
-              className="h-10 w-full rounded-lg border border-gray-200 bg-gray-50 px-3 text-sm text-navy-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-400/50 dark:border-navy-700 dark:bg-navy-900/60 dark:text-gray-200"
-            >
-              {SORT_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div
-            role="group"
-            aria-label="View toggle"
-            className="inline-flex h-10 items-center rounded-lg border border-gray-200 p-1 dark:border-navy-700"
+          <FilterPopover
+            open={filterOpen}
+            ariaLabel="Order filters"
+            onClose={() => onFilterOpenChange(false)}
+            onReset={onResetFilters}
+            filtersActive={filtersActive}
           >
-            <button
-              type="button"
-              onClick={() => onViewModeChange('grid')}
-              aria-label="Grid view"
-              aria-pressed={viewMode === 'grid'}
-              className={`inline-flex h-full items-center gap-1.5 rounded-md px-3 text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-400/50 ${
-                viewMode === 'grid'
-                  ? 'bg-brand text-white'
-                  : 'text-gray-500 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-navy-900/60'
-              }`}
-            >
-              <LayoutGrid className="h-4 w-4 shrink-0" aria-hidden="true" />
-              <span className="hidden sm:inline">Grid</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => onViewModeChange('list')}
-              aria-label="List view"
-              aria-pressed={viewMode === 'list'}
-              className={`inline-flex h-full items-center gap-1.5 rounded-md px-3 text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-400/50 ${
-                viewMode === 'list'
-                  ? 'bg-brand text-white'
-                  : 'text-gray-500 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-navy-900/60'
-              }`}
-            >
-              <List className="h-4 w-4 shrink-0" aria-hidden="true" />
-              <span className="hidden sm:inline">List</span>
-            </button>
-          </div>
+            <FilterField id="order-filter-payment" label="Payment Status" value={filters.paymentStatus} onChange={(value) => onFilterChange('paymentStatus', value as OrderPaymentStatusFilter)}>
+              <option value="all">All Payment Status</option>
+              <option value="paid">Paid</option>
+              <option value="pending">Pending</option>
+              <option value="refunded">Refunded</option>
+              <option value="failed">Failed</option>
+            </FilterField>
+            <FilterField id="order-filter-status" label="Order Status" value={filters.orderStatus} onChange={(value) => onFilterChange('orderStatus', value as OrderStatusFilter)}>
+              <option value="all">All Order Status</option>
+              <option value="completed">Completed</option>
+              <option value="pending">Pending</option>
+              <option value="refunded">Refunded</option>
+              <option value="cancelled">Cancelled</option>
+            </FilterField>
+            <FilterField id="order-filter-membership" label="Membership Purchase" value={filters.membershipPurchase} onChange={(value) => onFilterChange('membershipPurchase', value as OrderTriFilter)}>
+              <option value="all">All</option>
+              <option value="yes">Membership</option>
+              <option value="no">Non-Membership</option>
+            </FilterField>
+            <FilterField id="order-filter-download" label="Download Available" value={filters.downloadAvailable} onChange={(value) => onFilterChange('downloadAvailable', value as OrderTriFilter)}>
+              <option value="all">All</option>
+              <option value="yes">Available</option>
+              <option value="no">Not Available</option>
+            </FilterField>
+            <FilterField id="order-filter-year" label="Year" value={filters.year} onChange={(value) => onFilterChange('year', value)}>
+              <option value="all">All Years</option>
+              {years.map((year) => (
+                <option key={year} value={year}>{year}</option>
+              ))}
+            </FilterField>
+          </FilterPopover>
         </div>
+
+        <SortDropdown id="orders-sort" label="Sort orders" options={SORT_OPTIONS} value={sortKey} onChange={onSortChange} />
+        <GridListToggle viewMode={viewMode} onChange={onViewModeChange} />
       </div>
-    </section>
+    </PageToolbar>
   );
 });
 

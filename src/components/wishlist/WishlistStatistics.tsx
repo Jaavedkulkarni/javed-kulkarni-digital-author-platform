@@ -1,5 +1,6 @@
 import { memo } from 'react';
-import { StatisticCard } from '../library/StatisticCard';
+import { StatisticsGrid } from '../shared/statistics/StatisticsGrid';
+import { StatisticItem } from '../shared/statistics/StatisticItem';
 import type { WishlistStats } from '../../lib/wishlistBookLogic';
 
 const WISHLIST_STATS: { label: string; key: keyof WishlistStats }[] = [
@@ -15,19 +16,16 @@ interface WishlistStatisticsProps {
 
 export const WishlistStatistics = memo(function WishlistStatistics({ stats }: WishlistStatisticsProps) {
   return (
-    <section
-      aria-label="Wishlist statistics"
-      className="grid grid-cols-2 items-stretch gap-3 sm:gap-4 lg:grid-cols-4"
-    >
+    <StatisticsGrid ariaLabel="Wishlist statistics" columnsClass="lg:grid-cols-4">
       {WISHLIST_STATS.map((stat) => (
-        <StatisticCard
+        <StatisticItem
           key={stat.key}
           label={stat.label}
           value={String(stats[stat.key])}
           ariaLabel={`${stat.label}: ${stats[stat.key]}`}
         />
       ))}
-    </section>
+    </StatisticsGrid>
   );
 });
 

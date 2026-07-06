@@ -1,10 +1,11 @@
+import { PageHeader } from '../shared/page/PageHeader';
+
 export function DownloadsPageHeader() {
   return (
-    <header className="space-y-1">
-      <p className="text-sm text-gray-500 dark:text-gray-400 sm:text-base">
-        Manage your downloaded books for offline reading.
-      </p>
-    </header>
+    <PageHeader
+      title="Downloads"
+      subtitle="Manage your downloaded books and offline library."
+    />
   );
 }
 

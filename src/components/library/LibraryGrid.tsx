@@ -1,6 +1,7 @@
 import { memo, useEffect } from 'react';
 import type { MockLibraryBook } from '../../data/mockLibraryBooks';
 import type { LibraryViewMode } from '../../lib/libraryBookLogic';
+import { ResponsiveGrid } from '../shared/layout/ResponsiveGrid';
 import { LibraryBookItem } from './LibraryBookItem';
 import { LibraryStatePanel } from './LibraryStatePanel';
 
@@ -35,13 +36,8 @@ export const LibraryGrid = memo(function LibraryGrid({
     return <LibraryStatePanel variant="no-results" />;
   }
 
-  const listClassName =
-    viewMode === 'list'
-      ? 'flex flex-col gap-4 sm:gap-5'
-      : 'grid grid-cols-1 gap-4 sm:gap-5 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4';
-
   return (
-    <div role="list" aria-label="Library books" className={listClassName}>
+    <ResponsiveGrid viewMode={viewMode} ariaLabel="Library books">
       {books.map((book) => (
         <div key={book.id} role="listitem" className="h-full min-h-0">
           <LibraryBookItem
@@ -52,7 +48,7 @@ export const LibraryGrid = memo(function LibraryGrid({
           />
         </div>
       ))}
-    </div>
+    </ResponsiveGrid>
   );
 });
 
