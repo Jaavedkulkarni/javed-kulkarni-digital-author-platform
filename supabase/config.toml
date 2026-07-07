@@ -1,0 +1,35 @@
+# AuthorOS — Supabase local configuration
+# Edge Functions use service role only inside Deno runtime (never in browser).
+
+project_id = "javed-kulkarni-digital-author-platform"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[functions.create-user]
+verify_jwt = true
+
+[functions.update-user]
+verify_jwt = true
+
+[functions.delete-user]
+verify_jwt = true
+
+[functions.suspend-user]
+verify_jwt = true
+
+[functions.restore-user]
+verify_jwt = true
+
+[functions.upload-avatar]
+verify_jwt = true
+
+[functions.delete-avatar]
+verify_jwt = true
+
+[functions.health-check]
+verify_jwt = false

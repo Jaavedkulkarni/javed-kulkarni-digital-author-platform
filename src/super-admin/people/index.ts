@@ -1,0 +1,12 @@
+export { PeoplePage } from './pages/PeoplePage';
+export * from './components';
+export * from './hooks';
+export * from './types/people.types';
+export * from './schemas/people.schemas';
+export * from './constants/people.constants';
+export * from './queries/people.queries';
+export * from './errors/people.errors';
+export * from './permissions/people.permissions';
+export * from './create-user';
+export { peopleService, createPeopleService, getPeopleService } from './services/people.service';
+export { createPeopleRepository, PeopleRepository } from './repositories/people.repository';

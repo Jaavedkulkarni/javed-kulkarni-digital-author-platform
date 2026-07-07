@@ -5,21 +5,6 @@ export type EmailAuthTab = 'sign-in' | 'create-account';
 const INTENT_KEY = 'publicAuthIntent';
 const EMAIL_TAB_KEY = 'publicAuthEmailTab';
 const VERIFIED_EMAIL_KEY = 'verifiedEmailPrefill';
-const OAUTH_RESUME_KEY = 'publicAuthOAuthResume';
-
-export function markPublicAuthOAuthResume(): void {
-  sessionStorage.setItem(OAUTH_RESUME_KEY, '1');
-}
-
-export function peekPublicAuthOAuthResume(): boolean {
-  return sessionStorage.getItem(OAUTH_RESUME_KEY) === '1';
-}
-
-export function consumePublicAuthOAuthResume(): boolean {
-  const value = sessionStorage.getItem(OAUTH_RESUME_KEY) === '1';
-  sessionStorage.removeItem(OAUTH_RESUME_KEY);
-  return value;
-}
 
 export function setPublicAuthIntent(intent: PublicAuthIntent): void {
   sessionStorage.setItem(INTENT_KEY, intent);

@@ -29,11 +29,8 @@ export {
   supabaseResendVerificationEmail,
   supabaseRestoreSession,
   supabaseRefreshSession,
-  supabaseSignInWithOAuth,
 } from './supabaseAuthService';
 export type {
-  SupabaseOAuthProvider,
-  SupabaseOAuthOptions,
   SupabaseRegisterOptions,
   SupabaseForgotPasswordOptions,
 } from './supabaseAuthService';

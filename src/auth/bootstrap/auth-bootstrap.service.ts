@@ -33,12 +33,10 @@ export class AuthBootstrapService {
   }
 
   private async loadAssignedRoles(user: User): Promise<SystemRole[]> {
-    console.log('C5a before await user_roles query', { userId: user.id });
     const { data, error } = await supabase
       .from('user_roles')
       .select('roles(name)')
       .eq('user_id', user.id);
-    console.log('C5b after await user_roles query', { userId: user.id, error: error?.message, rowCount: data?.length ?? 0 });
 
     if (error) {
       throw createBootstrapError('role_loading_failed', error.message);
@@ -55,23 +53,17 @@ export class AuthBootstrapService {
   }
 
   async bootstrap(user: User): Promise<AuthBootstrapPayload> {
-    console.log('C0 bootstrap enter', { userId: user.id });
-
     if (!user) {
       throw createBootstrapError('authentication_failed', 'No authenticated user.');
     }
 
     if (legacyAdminMetadataNeedsRepair(user)) {
-      console.log('C1 before await updateUser');
       await supabase.auth.updateUser({ data: { role: 'admin' } });
-      console.log('C2 after await updateUser');
     }
 
     let profile = null;
     try {
-      console.log('C3 before await fetchUserProfile');
       profile = await fetchUserProfile(user.id);
-      console.log('C4 after await fetchUserProfile', { hasProfile: Boolean(profile) });
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Profile loading failed.';
       throw createBootstrapError('authentication_failed', message);
@@ -79,9 +71,7 @@ export class AuthBootstrapService {
 
     let assignedRoles: SystemRole[];
     try {
-      console.log('C5 before await loadAssignedRoles');
       assignedRoles = await this.loadAssignedRoles(user);
-      console.log('C6 after await loadAssignedRoles', { roles: assignedRoles });
     } catch (error) {
       if (this.isBootstrapError(error)) throw error;
       const message = error instanceof Error ? error.message : 'Role loading failed.';
@@ -99,7 +89,6 @@ export class AuthBootstrapService {
     let permissions: string[];
     try {
       permissions = createPermissionResolver(assignedRoles).getEffectivePermissions();
-      console.log('C7 permissions resolved', { count: permissions.length });
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Permission resolution failed.';
       throw createBootstrapError('permission_loading_failed', message);
@@ -116,7 +105,6 @@ export class AuthBootstrapService {
       throw createBootstrapError('navigation_loading_failed', message);
     }
 
-    console.log('C8 bootstrap exit success', { userId: user.id });
     return {
       user,
       profile,

@@ -18,7 +18,6 @@ import {
   ExecutiveOverviewCards,
   RecentActivitiesPanel,
   SystemStatusPanel,
-  PeopleManagementPanel,
   PublisherManagementPanel,
   AuthorManagementPanel,
   PlatformAdminManagementPanel,
@@ -29,6 +28,7 @@ import {
   MindWaveConfigPanel,
 } from '../../super-admin/components';
 import { usePlatformConfiguration } from '../../super-admin/hooks/usePlatformConfig';
+import { PeoplePage } from '../../super-admin/people/pages/PeoplePage';
 
 function SuperAdminProtected({ children }: { children: React.ReactNode }) {
   const { roles, profile, loading } = useRoles();
@@ -88,9 +88,8 @@ function ExecutivePage() {
   );
 }
 
-function PeoplePage() {
-  const { people, isLoading, suspendPersonMutation } = usePlatformManagement();
-  return <PeopleManagementPanel people={people} isLoading={isLoading} onSuspend={(id) => suspendPersonMutation.mutate(id)} />;
+function PeoplePageRoute() {
+  return <PeoplePage />;
 }
 
 function PublishersPage() {
@@ -151,7 +150,7 @@ export function SuperAdminApp() {
   return (
     <Routes>
       <Route index element={<SuperAdminProtected><SuperAdminShell pageTitle="Executive Dashboard"><ExecutivePage /></SuperAdminShell></SuperAdminProtected>} />
-      <Route path="people" element={<SuperAdminProtected><SuperAdminShell pageTitle="People"><PeoplePage /></SuperAdminShell></SuperAdminProtected>} />
+      <Route path="people" element={<SuperAdminProtected><SuperAdminShell pageTitle="People"><PeoplePageRoute /></SuperAdminShell></SuperAdminProtected>} />
       <Route path="publishers" element={<SuperAdminProtected><SuperAdminShell pageTitle="Publishers"><PublishersPage /></SuperAdminShell></SuperAdminProtected>} />
       <Route path="authors" element={<SuperAdminProtected><SuperAdminShell pageTitle="Authors"><AuthorsPage /></SuperAdminShell></SuperAdminProtected>} />
       <Route path="platform-admins" element={<SuperAdminProtected><SuperAdminShell pageTitle="Platform Admins"><PlatformAdminsPage /></SuperAdminShell></SuperAdminProtected>} />

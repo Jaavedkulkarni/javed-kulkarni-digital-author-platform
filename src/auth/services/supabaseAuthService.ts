@@ -1,4 +1,3 @@
-import type { Provider } from '@supabase/supabase-js';
 import { supabase } from '../../lib/supabase';
 import type {
   AuthResult,
@@ -24,12 +23,6 @@ import {
 } from './supabaseSessionMapper';
 
 const SITE_URL = typeof window !== 'undefined' ? window.location.origin : '';
-
-export type SupabaseOAuthProvider = 'google' | 'azure' | 'facebook';
-
-export interface SupabaseOAuthOptions {
-  redirectTo?: string;
-}
 
 export interface SupabaseRegisterOptions {
   emailRedirectTo?: string;
@@ -60,10 +53,6 @@ function mapSupabaseAuthError(message: string): string {
   }
 
   return message || AUTH_ERRORS.GENERIC_FAILURE;
-}
-
-function toOAuthProvider(provider: SupabaseOAuthProvider): Provider {
-  return provider === 'azure' ? 'azure' : provider;
 }
 
 /** Primary email/password sign-in — used by all login entry points. */
@@ -326,28 +315,5 @@ export async function supabaseRefreshSession(): Promise<AuthResult<AuthSession>>
     };
   } catch {
     return { success: false, error: AUTH_ERRORS.REFRESH_FAILED };
-  }
-}
-
-export async function supabaseSignInWithOAuth(
-  provider: SupabaseOAuthProvider,
-  options?: SupabaseOAuthOptions,
-): Promise<AuthResult> {
-  try {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: toOAuthProvider(provider),
-      options: {
-        redirectTo: options?.redirectTo ?? `${SITE_URL}/auth/login`,
-        queryParams: provider === 'google' ? { access_type: 'offline', prompt: 'consent' } : undefined,
-      },
-    });
-
-    if (error) {
-      return { success: false, error: mapSupabaseAuthError(error.message) };
-    }
-
-    return { success: true };
-  } catch {
-    return { success: false, error: AUTH_ERRORS.NETWORK_ERROR };
   }
 }

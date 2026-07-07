@@ -3,18 +3,14 @@ import {
   useContext,
   useState,
   useCallback,
-  useEffect,
   ReactNode,
 } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Modal } from '../components/ui/Modal';
-import { MemberEmailAuthForm, SocialAuthButtons } from '../components/reader/auth/MemberAuthModalContent';
+import { MemberEmailAuthForm } from '../components/reader/auth/MemberAuthModalContent';
 import { ReaderForgotPasswordForm } from '../components/reader/auth/ReaderForgotPasswordForm';
-import { useReader } from './ReaderContext';
 import { useBootstrap } from '../auth/bootstrap/hooks';
 import { storeReaderReturnTo } from '../lib/authRedirect';
-import { isProviderNotEnabledError, oauthUnavailableMessage } from '../lib/oauthConfig';
-import type { OAuthProvider } from '../lib/oauthConfig';
 import { isAuthor } from '../lib/permissions';
 import {
   setPublicAuthIntent,
@@ -22,8 +18,6 @@ import {
   clearPublicAuthIntent,
   consumeEmailAuthTab,
   consumeVerifiedEmailPrefill,
-  consumePublicAuthOAuthResume,
-  markPublicAuthOAuthResume,
   type PublicAuthIntent,
   type EmailAuthTab,
 } from '../auth/public/publicAuthIntent';
@@ -58,21 +52,16 @@ const AuthModalContext = createContext<AuthModalContextType | undefined>(undefin
 
 export function AuthModalProvider({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
-  const { signInWithOAuth, user, loading: readerLoading } = useReader();
   const { refresh: refreshBootstrap } = useBootstrap();
   const [view, setView] = useState<AuthModalView | null>(null);
   const [emailTab, setEmailTab] = useState<EmailAuthTab>('sign-in');
   const [prefillEmail, setPrefillEmail] = useState<string | null>(null);
-  const [oauthLoading, setOauthLoading] = useState(false);
-  const [oauthError, setOauthError] = useState<string | null>(null);
 
   const closeAuthModal = useCallback(() => {
     if (view === 'members-login' || view === 'email' || view === 'forgot-password') {
       clearPublicAuthIntent();
     }
     setView(null);
-    setOauthLoading(false);
-    setOauthError(null);
     setPrefillEmail(null);
   }, [view]);
 
@@ -150,34 +139,6 @@ export function AuthModalProvider({ children }: { children: ReactNode }) {
     setView('already-author');
   }, []);
 
-  const handleOAuth = async (provider: OAuthProvider) => {
-    storeReaderReturnTo();
-    markPublicAuthOAuthResume();
-    setOauthError(null);
-    setOauthLoading(true);
-    const result = await signInWithOAuth(provider);
-    if (!result.success) {
-      setOauthLoading(false);
-      if (result.error && isProviderNotEnabledError(result.error)) {
-        setOauthError(oauthUnavailableMessage(provider));
-      } else {
-        setOauthError(result.error ?? 'Social sign-in failed. Please try again.');
-      }
-    }
-  };
-
-  // Resume OAuth flows for become-author / publisher-register (members-login handled in AuthRouteEffects)
-  useEffect(() => {
-    if (readerLoading || !user || view) return;
-
-    const intent = peekPublicAuthIntent() ?? 'members-login';
-    if (intent === 'members-login') return;
-
-    if (!consumePublicAuthOAuthResume()) return;
-
-    void continueAfterAuth(intent);
-  }, [user, readerLoading, view, continueAfterAuth]);
-
   const modalTitle = (() => {
     switch (view) {
       case 'forgot-password':
@@ -221,15 +182,6 @@ export function AuthModalProvider({ children }: { children: ReactNode }) {
               <p className="text-gray-400 text-sm text-center">
                 Sign in to your member account or create one in a few steps.
               </p>
-              <SocialAuthButtons onOAuth={handleOAuth} loading={oauthLoading} oauthError={oauthError} />
-              <div className="relative py-2">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-navy-600" />
-                </div>
-                <p className="relative text-center text-xs text-gray-500">
-                  <span className="bg-navy-800 px-2">or</span>
-                </p>
-              </div>
               <button
                 type="button"
                 onClick={() => openAuthModal('email')}

@@ -5,6 +5,7 @@ export const STORAGE_BUCKETS = {
   PUBLISHER_ASSETS: 'publisher-assets',
   MEDIA: 'media',
   BLOG_IMAGES: 'blog-images',
+  AVATARS: 'avatars',
 } as const;
 
 export type StorageBucket = (typeof STORAGE_BUCKETS)[keyof typeof STORAGE_BUCKETS];
@@ -41,6 +42,15 @@ export function buildAuthorAssetPath(authorId: string, filename: string): string
 
 export function buildPublisherAssetPath(publisherId: string, filename: string): string {
   return `${publisherId}/${filename}`;
+}
+
+export function buildAvatarPath(userId: string, version: number, extension: string): string {
+  const ext = extension.toLowerCase().replace(/^\./, '');
+  return `${userId}/avatar-v${version}.${ext}`;
+}
+
+export function buildAvatarFolder(userId: string): string {
+  return userId;
 }
 
 export function sanitizeStorageFilename(name: string): string {

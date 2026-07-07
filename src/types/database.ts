@@ -37,6 +37,9 @@ export interface Database {
           email: string;
           full_name: string | null;
           avatar: string | null;
+          avatar_storage_path: string | null;
+          avatar_version: number;
+          avatar_updated_at: string | null;
           status: string;
           phone: string | null;
           preferred_language: string | null;
@@ -50,6 +53,9 @@ export interface Database {
           email: string;
           full_name?: string | null;
           avatar?: string | null;
+          avatar_storage_path?: string | null;
+          avatar_version?: number;
+          avatar_updated_at?: string | null;
           status?: string;
           phone?: string | null;
           preferred_language?: string | null;
@@ -63,6 +69,9 @@ export interface Database {
           email?: string;
           full_name?: string | null;
           avatar?: string | null;
+          avatar_storage_path?: string | null;
+          avatar_version?: number;
+          avatar_updated_at?: string | null;
           status?: string;
           phone?: string | null;
           preferred_language?: string | null;
@@ -1041,6 +1050,118 @@ export interface Database {
         Update: {
           [key: string]: unknown;
         };
+        Relationships: [];
+      };
+      audit_logs: {
+        Row: {
+          id: string;
+          request_id: string;
+          correlation_id: string;
+          trace_id: string;
+          span_id: string | null;
+          actor_id: string | null;
+          actor_role: string | null;
+          target_id: string | null;
+          target_type: string | null;
+          action: string;
+          entity: string;
+          before_state: Json | null;
+          after_state: Json | null;
+          ip_address: string | null;
+          browser: string | null;
+          platform: string | null;
+          user_agent: string | null;
+          metadata: Json;
+          created_at: string;
+        };
+        Insert: { [key: string]: unknown };
+        Update: { [key: string]: unknown };
+        Relationships: [];
+      };
+      activity_logs: {
+        Row: {
+          id: string;
+          request_id: string | null;
+          correlation_id: string | null;
+          trace_id: string | null;
+          actor_id: string | null;
+          target_id: string;
+          target_type: string;
+          activity_type: string;
+          description: string | null;
+          metadata: Json;
+          created_at: string;
+        };
+        Insert: { [key: string]: unknown };
+        Update: { [key: string]: unknown };
+        Relationships: [];
+      };
+      feature_flags: {
+        Row: {
+          id: string;
+          enabled: boolean;
+          description: string | null;
+          metadata: Json;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: { [key: string]: unknown };
+        Update: { [key: string]: unknown };
+        Relationships: [];
+      };
+      idempotency_keys: {
+        Row: {
+          key: string;
+          function_name: string;
+          actor_id: string | null;
+          request_hash: string;
+          response_status: number;
+          response_body: Json;
+          expires_at: string;
+          created_at: string;
+        };
+        Insert: { [key: string]: unknown };
+        Update: { [key: string]: unknown };
+        Relationships: [];
+      };
+      background_jobs: {
+        Row: {
+          id: string;
+          job_type: string;
+          queue: string;
+          payload: Json;
+          status: string;
+          priority: number;
+          attempts: number;
+          max_attempts: number;
+          scheduled_for: string | null;
+          locked_at: string | null;
+          locked_by: string | null;
+          last_error: string | null;
+          completed_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: { [key: string]: unknown };
+        Update: { [key: string]: unknown };
+        Relationships: [];
+      };
+      user_security: {
+        Row: {
+          user_id: string;
+          temp_password_active: boolean;
+          temp_password_expires_at: string | null;
+          temp_password_created_at: string | null;
+          temp_password_created_by: string | null;
+          force_password_change: boolean;
+          first_login_required: boolean;
+          password_rotation_due_at: string | null;
+          metadata: Json;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: { [key: string]: unknown };
+        Update: { [key: string]: unknown };
         Relationships: [];
       };
     };

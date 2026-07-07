@@ -9,14 +9,12 @@ import {
   supabaseResendVerificationEmail,
   supabaseResetPassword,
   supabaseRestoreSession,
-  supabaseSignInWithOAuth,
   supabaseVerifyEmail,
 } from './supabaseAuthService';
 
 /** Single authentication service — all login entry points must use this. */
 export const authService: AuthService & {
   signInWithPassword: typeof signInWithPassword;
-  signInWithOAuth: typeof supabaseSignInWithOAuth;
 } = {
   login: supabaseLogin,
   signInWithPassword,
@@ -28,7 +26,6 @@ export const authService: AuthService & {
   resendVerificationEmail: supabaseResendVerificationEmail,
   restoreSession: supabaseRestoreSession,
   refreshSession: supabaseRefreshSession,
-  signInWithOAuth: supabaseSignInWithOAuth,
 };
 
 export default authService;

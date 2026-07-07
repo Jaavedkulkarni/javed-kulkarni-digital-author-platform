@@ -9,8 +9,7 @@ import {
 import type { Session, User } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 import { authService } from '../auth/services/auth.service';
-import { adminMetadataNeedsRepair } from '../lib/authRoles';
-import { isReader, isStaff } from '../lib/permissions';
+import { isReader } from '../lib/permissions';
 import { fetchUserRoles } from '../lib/roleService';
 import {
   ensureReaderProfile,
@@ -28,7 +27,6 @@ interface ReaderContextType {
   loading: boolean;
   signUp: (data: ReaderSignupData) => Promise<{ success: boolean; error?: string; needsVerification?: boolean }>;
   signIn: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
-  signInWithOAuth: (provider: 'google' | 'azure' | 'facebook') => Promise<{ success: boolean; error?: string }>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<{ success: boolean; error?: string }>;
   updatePassword: (password: string) => Promise<{ success: boolean; error?: string }>;
@@ -39,28 +37,6 @@ interface ReaderContextType {
 const ReaderContext = createContext<ReaderContextType | undefined>(undefined);
 
 const SITE_URL = typeof window !== 'undefined' ? window.location.origin : '';
-const OAUTH_INTENT_KEY = 'readerOAuthIntent';
-
-async function ensureReaderRole(user: User): Promise<User> {
-  const dbRoles = await fetchUserRoles(user.id);
-  if (isStaff(dbRoles)) {
-    if (adminMetadataNeedsRepair(user)) {
-      const { data, error } = await supabase.auth.updateUser({ data: { role: 'admin' } });
-      if (!error && data.user) return data.user;
-    }
-    return user;
-  }
-  if (isReader(dbRoles)) return user;
-  const { data, error } = await supabase.auth.updateUser({
-    data: {
-      role: 'reader',
-      full_name: user.user_metadata?.full_name ?? user.user_metadata?.name,
-      display_name: user.user_metadata?.display_name ?? user.user_metadata?.name,
-    },
-  });
-  if (error || !data.user) return user;
-  return data.user;
-}
 
 export function ReaderProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
@@ -93,19 +69,10 @@ export function ReaderProvider({ children }: { children: ReactNode }) {
     let cancelled = false;
 
     const hydrateReader = async (authUser: User) => {
-      let userToUse = authUser;
-      if (sessionStorage.getItem(OAUTH_INTENT_KEY) === '1') {
-        sessionStorage.removeItem(OAUTH_INTENT_KEY);
-        userToUse = await ensureReaderRole(authUser);
-        if (!cancelled && userToUse.id !== authUser.id) {
-          setUser(userToUse);
-        }
-      }
-
-      const roles = await fetchUserRoles(userToUse.id);
+      const roles = await fetchUserRoles(authUser.id);
       if (cancelled) return;
       setUserRoles(roles);
-      await loadProfile(userToUse, roles);
+      await loadProfile(authUser, roles);
     };
 
     supabase.auth.getSession().then(({ data: { session: s } }) => {
@@ -194,21 +161,6 @@ export function ReaderProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const signInWithOAuth = async (provider: 'google' | 'azure' | 'facebook') => {
-    try {
-      sessionStorage.setItem(OAUTH_INTENT_KEY, '1');
-      const result = await authService.signInWithOAuth(provider, { redirectTo: `${SITE_URL}/` });
-      if (!result.success) {
-        sessionStorage.removeItem(OAUTH_INTENT_KEY);
-        return { success: false, error: result.error };
-      }
-      return { success: true };
-    } catch {
-      sessionStorage.removeItem(OAUTH_INTENT_KEY);
-      return { success: false, error: 'Social sign-in failed. Please try again.' };
-    }
-  };
-
   const signOut = async () => {
     await authService.logout();
     setProfile(null);
@@ -266,7 +218,6 @@ export function ReaderProvider({ children }: { children: ReactNode }) {
         loading,
         signUp,
         signIn,
-        signInWithOAuth,
         signOut,
         resetPassword,
         updatePassword,
