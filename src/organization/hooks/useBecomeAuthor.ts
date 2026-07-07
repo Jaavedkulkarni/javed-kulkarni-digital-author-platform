@@ -1,6 +1,7 @@
 import { useMutation } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { useRoles } from '../../context/RoleContext';
+import { getErrorMessage } from '../../lib/utils/errors';
 import { useOrganizationServices } from './useOrganizationServices';
 
 export function useBecomeAuthor() {
@@ -16,8 +17,13 @@ export function useBecomeAuthor() {
         profile.email?.split('@')[0] ||
         'Author';
       const result = await onboarding.becomeAuthor({ userId: profile.id, displayName });
-      if (!result.success) throw new Error(result.errors?.join(' ') ?? 'Failed to become author.');
+      if (!result.success) {
+        throw new Error(result.errors?.join(' ') ?? 'Failed to become author.');
+      }
       return result;
+    },
+    onError: (error) => {
+      console.error('[becomeAuthor]', getErrorMessage(error));
     },
     onSuccess: async () => {
       await refreshRoles();

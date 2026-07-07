@@ -3,14 +3,14 @@ import type { AuthRole } from '../../auth/types/roles.types';
 
 export interface RoleRecord {
   id: string;
-  name: SystemRole | 'publisher';
+  name: SystemRole;
   createdAt: string;
 }
 
 export interface UserRoleAssignment {
   userId: string;
   roleId: string;
-  roleName: SystemRole | 'publisher';
+  roleName: SystemRole;
   assignedAt: string;
   assignedBy: string | null;
 }

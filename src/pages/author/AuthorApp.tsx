@@ -1,13 +1,11 @@
 import { FormEvent, useState } from 'react';
-import { LayoutDashboard } from 'lucide-react';
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
-import { useRoles } from '../../context/RoleContext';
-import { useWorkspace } from '../../organization/hooks/useWorkspace';
+import { useRoles as useOrgRoles } from '../../organization/hooks/useRoles';
 import { canAccessAuthorDashboard } from '../../lib/permissions';
 import { getUnauthorizedRedirect } from '../../lib/routeGuard';
+import { buildAuthorShellMenu } from '../../lib/navigationArchitecture';
 import { RolePlaceholder, RoleShell } from '../../components/dashboard/RoleShell';
-import { AUTHOR_SHELL_MENU } from '../../lib/authorPaths';
 import { AuthorQueryProvider } from '../../author/providers/AuthorQueryProvider';
 import { useAuthorDashboard } from '../../author/hooks/useAuthorDashboard';
 import { useAuthorBooks } from '../../author/hooks/useAuthorBooks';
@@ -17,7 +15,7 @@ import { DashboardOverviewCards } from '../../author/components/dashboard/Dashbo
 import { BookListPanel } from '../../author/components/books/BookListPanel';
 
 function AuthorProtected({ children }: { children: React.ReactNode }) {
-  const { roles, loading } = useRoles();
+  const { roles, loading } = useOrgRoles();
   const location = useLocation();
 
   if (loading) {
@@ -36,22 +34,17 @@ function AuthorProtected({ children }: { children: React.ReactNode }) {
 }
 
 function AuthorShellPage({ pageTitle, children }: { pageTitle: string; children: React.ReactNode }) {
-  const { navigation } = useWorkspace();
+  const { roles, assignments, roleContext } = useOrgRoles();
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
   };
 
-  const workspaceItems = navigation
-    .filter((item) => item.isAvailable && item.workspace !== 'author')
-    .map((item) => ({
-      id: `workspace-${item.workspace}`,
-      label: item.label,
-      path: item.path,
-      icon: LayoutDashboard,
-    }));
-
-  const menuItems = [...AUTHOR_SHELL_MENU, ...workspaceItems];
+  const menuItems = buildAuthorShellMenu({
+    systemRoles: roles,
+    assignments,
+    authRoles: roleContext?.authRoles,
+  });
 
   return (
     <RoleShell
@@ -189,6 +182,66 @@ function AuthorRoutes() {
               pageTitle="Articles"
               heading="My Articles"
               description="Author-scoped blog article management will be connected in a future sprint."
+            />
+          </AuthorProtected>
+        }
+      />
+      <Route
+        path="blogs"
+        element={
+          <AuthorProtected>
+            <AuthorShellPagePlaceholder
+              pageTitle="Blogs"
+              heading="My Blogs"
+              description="Author blog management will be connected in a future sprint."
+            />
+          </AuthorProtected>
+        }
+      />
+      <Route
+        path="poems"
+        element={
+          <AuthorProtected>
+            <AuthorShellPagePlaceholder
+              pageTitle="Poems"
+              heading="My Poems"
+              description="Author poem management will be connected in a future sprint."
+            />
+          </AuthorProtected>
+        }
+      />
+      <Route
+        path="stories"
+        element={
+          <AuthorProtected>
+            <AuthorShellPagePlaceholder
+              pageTitle="Stories"
+              heading="My Stories"
+              description="Author story management will be connected in a future sprint."
+            />
+          </AuthorProtected>
+        }
+      />
+      <Route
+        path="drafts"
+        element={
+          <AuthorProtected>
+            <AuthorShellPagePlaceholder
+              pageTitle="Drafts"
+              heading="Drafts"
+              description="Unified draft queue for author content will be connected in a future sprint."
+            />
+          </AuthorProtected>
+        }
+      />
+      <Route
+        path="analytics"
+        element={
+          <AuthorProtected>
+            <AuthorShellPagePlaceholder
+              pageTitle="Analytics"
+              heading="Author Analytics"
+              description="Author analytics will be connected in a future sprint."
             />
           </AuthorProtected>
         }

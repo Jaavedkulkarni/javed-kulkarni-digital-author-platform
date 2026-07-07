@@ -1,41 +1,44 @@
 import { useCallback, useContext, useMemo, type ReactNode } from 'react';
-import { useQuery } from '@tanstack/react-query';
 import { useRoles as useAppRoles } from '../../context/RoleContext';
+import { useBootstrap } from '../../auth/bootstrap/hooks';
 import { OrganizationContext } from '../contexts/OrganizationContext';
 import { OrganizationRoleContext } from '../contexts/RoleContext';
-import { organizationQueryKeys } from '../query/queryKeys';
+import type { UserRoleAssignment } from '../types/role.types';
 
 export function OrganizationRoleProvider({ children }: { children: ReactNode }) {
   const orgCtx = useContext(OrganizationContext);
   const appRoles = useAppRoles();
-  const userId = appRoles.profile?.id ?? null;
-
-  const rolesQuery = useQuery({
-    queryKey: organizationQueryKeys.roles(userId ?? 'guest'),
-    queryFn: async () => {
-      if (!userId || !orgCtx) return { assignments: [], roleContext: null };
-      const assignments = await orgCtx.services.roles.getUserRoleAssignments(userId);
-      const dbRoles = assignments.map((a) => a.roleName);
-      const merged = [...new Set([...appRoles.roles, ...dbRoles])];
-      const roleContext = orgCtx.services.roles.buildRoleContext(merged as typeof appRoles.roles);
-      return { assignments, roleContext };
-    },
-    enabled: Boolean(userId && orgCtx),
-  });
+  const bootstrap = useBootstrap();
+  const userId = appRoles.profile?.id ?? bootstrap.user?.id ?? null;
 
   const refresh = useCallback(async () => {
-    await rolesQuery.refetch();
     await appRoles.refreshRoles();
-  }, [rolesQuery, appRoles]);
+  }, [appRoles]);
+
+  const assignments = useMemo<UserRoleAssignment[]>(() => {
+    if (!userId || !bootstrap.isReady) return [];
+    return bootstrap.assignedRoles.map((roleName) => ({
+      userId,
+      roleId: roleName,
+      roleName,
+      assignedAt: '',
+      assignedBy: null,
+    }));
+  }, [bootstrap.assignedRoles, bootstrap.isReady, userId]);
+
+  const roleContext = useMemo(() => {
+    if (!userId || !orgCtx || !bootstrap.isReady) return null;
+    return orgCtx.services.roles.buildRoleContext(bootstrap.assignedRoles);
+  }, [bootstrap.assignedRoles, bootstrap.isReady, orgCtx, userId]);
 
   const value = useMemo(
     () => ({
-      roleContext: rolesQuery.data?.roleContext ?? null,
-      assignments: rolesQuery.data?.assignments ?? [],
-      isLoading: rolesQuery.isLoading || appRoles.loading,
+      roleContext,
+      assignments,
+      isLoading: Boolean(userId && !bootstrap.isReady),
       refresh,
     }),
-    [rolesQuery.data, rolesQuery.isLoading, appRoles.loading, refresh]
+    [assignments, bootstrap.isReady, refresh, roleContext, userId],
   );
 
   return (

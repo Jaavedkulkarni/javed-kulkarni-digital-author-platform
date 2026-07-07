@@ -21,11 +21,13 @@ import {
 import { BlogProvider } from './context/BlogContext';
 import { ReaderProvider } from './context/ReaderContext';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
+import { AuthBootstrapProvider } from './auth/bootstrap';
 import { ToastProvider } from './context/ToastContext';
 import { AuthModalProvider } from './context/AuthModalContext';
 import { AuthRouteEffects } from './components/auth/AuthRouteEffects';
 import { AdminProvider } from './context/AdminContext';
 import { RoleProvider } from './context/RoleContext';
+import { RoleManagementProvider } from './roles/providers';
 import { OrganizationModuleProvider } from './organization/providers';
 import { PublicAuthNav } from './components/reader/PublicAuthNav';
 import {
@@ -441,7 +443,9 @@ function App() {
     <ToastProvider>
     <BlogProvider>
       <ReaderProvider>
+      <AuthBootstrapProvider>
       <RoleProvider>
+      <RoleManagementProvider>
       <OrganizationModuleProvider>
       <AuthModalProvider>
       <AuthRouteEffects />
@@ -503,7 +507,9 @@ function App() {
       <ScrollToTopButton />
       </AuthModalProvider>
       </OrganizationModuleProvider>
+      </RoleManagementProvider>
       </RoleProvider>
+      </AuthBootstrapProvider>
       </ReaderProvider>
     </BlogProvider>
     </ToastProvider>

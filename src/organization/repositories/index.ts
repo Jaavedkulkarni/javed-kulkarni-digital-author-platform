@@ -5,12 +5,14 @@ import { createUserRoleRepository } from './userRoleRepository';
 import { createOrganizationRepository } from './organizationRepository';
 import { createOrganizationInvitationRepository } from './organizationInvitationRepository';
 import { createAuditLogRepository } from './auditLogRepository';
+import { createOnboardingRepository } from './onboardingRepository';
 
 export function createOrganizationRepositories(client: TypedSupabaseClient) {
   return {
     profiles: createProfileRepository(client),
     roles: createRoleRepository(client),
     userRoles: createUserRoleRepository(client),
+    onboarding: createOnboardingRepository(client),
     organizations: createOrganizationRepository(),
     invitations: createOrganizationInvitationRepository(),
     auditLogs: createAuditLogRepository(),

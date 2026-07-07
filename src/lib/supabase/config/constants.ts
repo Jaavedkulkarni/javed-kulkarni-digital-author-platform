@@ -1,11 +1,8 @@
-export const SUPABASE_AUTH_STORAGE_KEY = 'authoros-supabase-auth';
-
 export const DEFAULT_AUTH_OPTIONS = {
   detectSessionInUrl: true,
   flowType: 'pkce' as const,
   persistSession: true,
   autoRefreshToken: true,
-  storageKey: SUPABASE_AUTH_STORAGE_KEY,
 };
 
 export const DEFAULT_DB_SCHEMA = 'public' as const;

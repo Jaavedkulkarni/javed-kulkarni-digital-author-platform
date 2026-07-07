@@ -1,7 +1,7 @@
 import type { User } from '@supabase/supabase-js';
 import type { Permission, SystemRole } from '../types/roles';
 
-export const ROLE_PRIORITY: SystemRole[] = ['super_admin', 'admin', 'author', 'reader'];
+export const ROLE_PRIORITY: SystemRole[] = ['super_admin', 'admin', 'author', 'publisher', 'reader'];
 
 /** Legacy bootstrap — used when DB roles are unavailable. */
 export const LEGACY_SUPER_ADMIN_EMAILS = ['jaavedkulkarni@gmail.com'];
@@ -74,6 +74,16 @@ const ROLE_PERMISSIONS: Record<SystemRole, Permission[]> = {
     'review',
     'comment',
   ],
+  publisher: [
+    'read_books',
+    'read_blog',
+    'bookmark',
+    'wishlist',
+    'subscribe',
+    'purchase',
+    'review',
+    'comment',
+  ],
 };
 
 export function isLegacySuperAdminEmail(email: string | null | undefined): boolean {
@@ -89,7 +99,6 @@ export function resolveLegacyRolesFromUser(user: User | null | undefined): Syste
   const metaRole = user.user_metadata?.role as string | undefined;
   if (metaRole === 'admin') return ['admin'];
   if (metaRole === 'reader') return ['reader'];
-  if (!metaRole) return ['admin'];
   return [];
 }
 
@@ -103,7 +112,8 @@ export function getPrimaryRole(roles: SystemRole[]): SystemRole | null {
 }
 
 export function mergeRoles(dbRoles: SystemRole[], legacyRoles: SystemRole[]): SystemRole[] {
-  return normalizeRoles([...new Set([...dbRoles, ...legacyRoles])]);
+  if (dbRoles.length > 0) return normalizeRoles(dbRoles);
+  return normalizeRoles(legacyRoles);
 }
 
 export function roleSetIncludes(roles: SystemRole[], role: SystemRole): boolean {
@@ -124,6 +134,14 @@ export function isAdmin(roles: SystemRole[]): boolean {
 
 export function isReader(roles: SystemRole[]): boolean {
   return roleSetIncludes(roles, 'reader');
+}
+
+export function isPublisher(roles: SystemRole[]): boolean {
+  return roleSetIncludes(roles, 'publisher');
+}
+
+export function isPlatformAdmin(roles: SystemRole[]): boolean {
+  return isAdmin(roles);
 }
 
 export function isStaff(roles: SystemRole[]): boolean {
@@ -193,30 +211,26 @@ export function canAccessReaderDashboard(roles: SystemRole[]): boolean {
   return isReader(roles);
 }
 
-/** Backward-compatible sync helpers using legacy metadata when roles array is empty. */
-export function legacyIsAdminUser(user: User | null | undefined): boolean {
+/** Legacy metadata helpers — only consulted when no database roles are available. */
+export function legacyIsAdminUser(user: User | null | undefined, dbRoles: SystemRole[] = []): boolean {
   if (!user) return false;
-  const roles = resolveLegacyRolesFromUser(user);
-  return isAdmin(roles);
+  return isAdmin(mergeRoles(dbRoles, resolveLegacyRolesFromUser(user)));
 }
 
-export function legacyIsReaderUser(user: User | null | undefined): boolean {
+export function legacyIsReaderUser(user: User | null | undefined, dbRoles: SystemRole[] = []): boolean {
   if (!user) return false;
-  if (isLegacySuperAdminEmail(user.email)) return false;
-  return user.user_metadata?.role === 'reader';
+  return isReader(mergeRoles(dbRoles, resolveLegacyRolesFromUser(user)));
 }
 
 export function legacyAdminMetadataNeedsRepair(user: User): boolean {
   return isLegacySuperAdminEmail(user.email) && user.user_metadata?.role === 'reader';
 }
 
-export function resolveNavRoleFromRoles(
-  roles: SystemRole[],
-  isReaderAuthenticated: boolean
-): 'guest' | SystemRole {
+export function resolveNavRoleFromRoles(roles: SystemRole[]): 'guest' | SystemRole {
   if (isSuperAdmin(roles)) return 'super_admin';
   if (isAdmin(roles)) return 'admin';
   if (isAuthor(roles)) return 'author';
-  if (isReaderAuthenticated && isReader(roles)) return 'reader';
+  if (isPublisher(roles)) return 'publisher';
+  if (isReader(roles)) return 'reader';
   return 'guest';
 }

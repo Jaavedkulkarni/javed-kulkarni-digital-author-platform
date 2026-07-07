@@ -1,0 +1,98 @@
+import {
+  AlertTriangle,
+  BarChart3,
+  ClipboardCheck,
+  FileText,
+  FolderTree,
+  Image,
+  Megaphone,
+  Star,
+} from 'lucide-react';
+import { PERMISSIONS } from '../roles/types/permission.types';
+import { PLATFORM_ADMIN_BASE_PATH } from '../platform-admin/constants/platformAdmin.constants';
+import { defineNavigationItem } from './types';
+import type { NavigationItem } from './types';
+
+/** Platform admin role additions for operational moderation and content governance. */
+export const PLATFORM_ADMIN_NAVIGATION: NavigationItem[] = [
+  defineNavigationItem({
+    id: 'platform-admin-review-queue',
+    title: 'Review Queue',
+    icon: ClipboardCheck,
+    path: `${PLATFORM_ADMIN_BASE_PATH}/content`,
+    requiredRoles: ['admin'],
+    requiredPermissions: [PERMISSIONS.admin.review.view, 'content:books:review'],
+    sortOrder: 300,
+    section: 'platform_admin',
+  }),
+  defineNavigationItem({
+    id: 'platform-admin-content-management',
+    title: 'Content Management',
+    icon: FileText,
+    path: `${PLATFORM_ADMIN_BASE_PATH}/content`,
+    requiredRoles: ['admin'],
+    requiredPermissions: [PERMISSIONS.admin.content.view],
+    sortOrder: 310,
+    section: 'platform_admin',
+  }),
+  defineNavigationItem({
+    id: 'platform-admin-categories',
+    title: 'Categories',
+    icon: FolderTree,
+    path: `${PLATFORM_ADMIN_BASE_PATH}/content/categories`,
+    requiredRoles: ['admin'],
+    requiredPermissions: [PERMISSIONS.admin.content.manage, 'content:moderation'],
+    sortOrder: 320,
+    section: 'platform_admin',
+  }),
+  defineNavigationItem({
+    id: 'platform-admin-featured-content',
+    title: 'Featured Content',
+    icon: Star,
+    path: `${PLATFORM_ADMIN_BASE_PATH}/content/featured`,
+    requiredRoles: ['admin'],
+    requiredPermissions: ['content:featured'],
+    sortOrder: 330,
+    section: 'platform_admin',
+  }),
+  defineNavigationItem({
+    id: 'platform-admin-reports-moderation',
+    title: 'Reports & Moderation',
+    icon: AlertTriangle,
+    path: `${PLATFORM_ADMIN_BASE_PATH}/content/moderation`,
+    requiredRoles: ['admin'],
+    requiredPermissions: ['content:moderation'],
+    sortOrder: 340,
+    section: 'platform_admin',
+  }),
+  defineNavigationItem({
+    id: 'platform-admin-announcements',
+    title: 'Announcements',
+    icon: Megaphone,
+    path: `${PLATFORM_ADMIN_BASE_PATH}/marketing`,
+    requiredRoles: ['admin'],
+    requiredPermissions: ['marketing:announcements'],
+    sortOrder: 350,
+    section: 'platform_admin',
+  }),
+  defineNavigationItem({
+    id: 'platform-admin-platform-reports',
+    title: 'Platform Reports',
+    icon: BarChart3,
+    path: `${PLATFORM_ADMIN_BASE_PATH}/finance`,
+    requiredRoles: ['admin'],
+    requiredPermissions: ['finance:revenue'],
+    sortOrder: 360,
+    section: 'platform_admin',
+  }),
+  defineNavigationItem({
+    id: 'platform-admin-media-library',
+    title: 'Media Library',
+    icon: Image,
+    path: `${PLATFORM_ADMIN_BASE_PATH}/content/media`,
+    requiredRoles: ['admin'],
+    requiredPermissions: [PERMISSIONS.admin.content.view],
+    sortOrder: 370,
+    section: 'platform_admin',
+  }),
+];

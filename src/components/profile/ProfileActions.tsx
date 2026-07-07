@@ -20,7 +20,7 @@ export const ProfileActions = memo(function ProfileActions() {
         <ProfileSecondaryButton>{PROFILE_ACTIONS[2]}</ProfileSecondaryButton>
         <ProfileSecondaryButton>{PROFILE_ACTIONS[3]}</ProfileSecondaryButton>
         {!hasAuthorRole && (
-          <PrimaryButton onClick={() => void becomeAuthor()} disabled={isPending}>
+          <PrimaryButton interactive onClick={() => void becomeAuthor()} disabled={isPending}>
             {isPending ? 'Activating...' : 'Become an Author'}
           </PrimaryButton>
         )}

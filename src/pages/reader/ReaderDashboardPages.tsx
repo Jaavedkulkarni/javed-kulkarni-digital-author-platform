@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { DashboardShell } from '../../components/dashboard/DashboardShell';
-import { READER_DASHBOARD_MENU } from '../../lib/dashboardNavigation';
+import { buildReaderDashboardMenuItems } from '../../lib/dashboardNavigation';
+import { useRoles as useOrgRoles } from '../../organization/hooks/useRoles';
 import { ReaderDashboardWidgets } from '../../components/dashboard/widgets/ReaderDashboardWidgets';
 import { MyLibraryContent } from '../../components/library/MyLibraryContent';
 import { MyWishlistContent } from '../../components/wishlist/MyWishlistContent';
@@ -19,8 +20,15 @@ function ReaderDashboardLayout({
   pageTitle: string;
   children: ReactNode;
 }) {
+  const { roles, assignments, roleContext } = useOrgRoles();
+  const menuItems = buildReaderDashboardMenuItems({
+    systemRoles: roles,
+    assignments,
+    authRoles: roleContext?.authRoles,
+  });
+
   return (
-    <DashboardShell pageTitle={pageTitle} menuItems={READER_DASHBOARD_MENU} roleLabel="Reader">
+    <DashboardShell pageTitle={pageTitle} menuItems={menuItems} roleLabel="Reader">
       {children}
     </DashboardShell>
   );

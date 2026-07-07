@@ -77,21 +77,27 @@ export interface Database {
         Row: {
           id: string;
           name: string;
+          slug: string;
           description: string | null;
+          is_system: boolean;
           created_at: string;
           updated_at: string;
         };
         Insert: {
           id?: string;
           name: string;
+          slug?: string;
           description?: string | null;
+          is_system?: boolean;
           created_at?: string;
           updated_at?: string;
         };
         Update: {
           id?: string;
           name?: string;
+          slug?: string;
           description?: string | null;
+          is_system?: boolean;
           created_at?: string;
           updated_at?: string;
         };
@@ -99,22 +105,64 @@ export interface Database {
       };
       user_roles: {
         Row: {
+          id: string;
           user_id: string;
           role_id: string;
           assigned_at: string;
           assigned_by: string | null;
+          is_active: boolean;
+          created_at: string;
+          updated_at: string;
         };
         Insert: {
+          id?: string;
           user_id: string;
           role_id: string;
           assigned_at?: string;
           assigned_by?: string | null;
+          is_active?: boolean;
+          created_at?: string;
+          updated_at?: string;
         };
         Update: {
+          id?: string;
           user_id?: string;
           role_id?: string;
           assigned_at?: string;
           assigned_by?: string | null;
+          is_active?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      role_assignment_logs: {
+        Row: {
+          id: string;
+          user_id: string;
+          role_id: string;
+          action: string;
+          assigned_by: string | null;
+          reason: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          role_id: string;
+          action: string;
+          assigned_by?: string | null;
+          reason?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          role_id?: string;
+          action?: string;
+          assigned_by?: string | null;
+          reason?: string | null;
+          created_at?: string;
         };
         Relationships: [];
       };
@@ -997,7 +1045,27 @@ export interface Database {
       };
     };
     Views: Record<string, never>;
-    Functions: Record<string, never>;
+    Functions: {
+      become_author: {
+        Args: {
+          p_display_name: string;
+        };
+        Returns: string;
+      };
+      apply_user_role_change: {
+        Args: {
+          p_target_user_id: string;
+          p_role_name: string;
+          p_action: string;
+          p_reason?: string | null;
+        };
+        Returns: string;
+      };
+      count_active_super_admins: {
+        Args: Record<string, never>;
+        Returns: number;
+      };
+    };
     Enums: {
       book_workflow_status: BookWorkflowStatus;
       digital_format: DigitalFormat;

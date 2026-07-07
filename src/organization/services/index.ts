@@ -1,5 +1,4 @@
 import type { TypedSupabaseClient } from '../../lib/supabase/clients/browser';
-import { createCmsServices } from '../../cms/services';
 import { createOrganizationRepositories } from '../repositories';
 import { createOrganizationService } from './organizationService';
 import { createWorkspaceService } from './workspaceService';
@@ -23,7 +22,6 @@ export interface OrganizationServices {
 
 export function createOrganizationServices(client: TypedSupabaseClient): OrganizationServices {
   const repos = createOrganizationRepositories(client);
-  const cms = createCmsServices(client);
   const roles = createRoleService(repos.profiles, repos.roles, repos.userRoles, repos.auditLogs);
   const verification = createVerificationService(repos.auditLogs);
 
@@ -35,7 +33,7 @@ export function createOrganizationServices(client: TypedSupabaseClient): Organiz
     invitations: createInvitationService(repos.invitations, repos.auditLogs),
     verification,
     audit: createAuditService(repos.auditLogs),
-    onboarding: createOnboardingService(roles, cms.authors, verification),
+    onboarding: createOnboardingService(roles, repos.onboarding, verification),
   };
 }
 

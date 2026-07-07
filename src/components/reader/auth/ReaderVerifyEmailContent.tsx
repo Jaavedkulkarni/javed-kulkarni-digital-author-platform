@@ -4,11 +4,12 @@ import { useReader } from '../../../context/ReaderContext';
 import { useAuthModal } from '../../../context/AuthModalContext';
 import { detectAuthCallbackType } from '../../../lib/authCallback';
 import { resolvePostAuthNavigation } from '../../../lib/authRedirect';
+import { setVerifiedEmailPrefill, setEmailAuthTab } from '../../../auth/public/publicAuthIntent';
 import { AlertCircle, CheckCircle2 } from 'lucide-react';
 
 export function ReaderVerifyEmailContent() {
   const { user, resendVerificationEmail } = useReader();
-  const { openMembersLogin } = useAuthModal();
+  const { openAuthModal } = useAuthModal();
   const navigate = useNavigate();
   const [processing, setProcessing] = useState(() => detectAuthCallbackType() === 'signup');
   const [verified, setVerified] = useState(!!user?.email_confirmed_at);
@@ -25,16 +26,20 @@ export function ReaderVerifyEmailContent() {
     if (!verified || redirectScheduled) return;
     setRedirectScheduled(true);
     const timer = window.setTimeout(() => {
+      if (user?.email) {
+        setVerifiedEmailPrefill(user.email);
+        setEmailAuthTab('sign-in');
+      }
       const { shouldNavigate, target } = resolvePostAuthNavigation('/');
       if (shouldNavigate) {
         navigate(target, { replace: true });
       } else {
         navigate('/', { replace: true });
-        openMembersLogin();
+        openAuthModal('email');
       }
     }, 2500);
     return () => window.clearTimeout(timer);
-  }, [verified, redirectScheduled, navigate, openMembersLogin]);
+  }, [verified, redirectScheduled, navigate, openAuthModal, user?.email]);
 
   useEffect(() => {
     if (!processing) return;

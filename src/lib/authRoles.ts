@@ -1,58 +1,50 @@
 import type { User } from '@supabase/supabase-js';
 import type { SystemRole } from '../types/roles';
 import {
-  canManageBlog,
-  canManageBooks,
-  canManageMedia,
-  canManageReaders,
-  canManageSettings,
-  canManageUsers,
-  canManageWebsite,
-  hasPermission,
-  isAdmin,
+  getPrimaryRole,
   isAuthor,
-  isReader,
   isSuperAdmin,
   legacyAdminMetadataNeedsRepair,
   legacyIsAdminUser,
   legacyIsReaderUser,
+  mergeRoles,
   resolveLegacyRolesFromUser,
 } from './permissions';
+import { getCachedRoles } from './roleCache';
 
 export type AppRole = SystemRole;
 
 export { LEGACY_SUPER_ADMIN_EMAILS as ADMIN_EMAILS, isLegacySuperAdminEmail as isAdminEmail } from './permissions';
 
-/** Sync role resolution — prefers DB roles via RoleContext when available. */
-export function getUserRolesFromLegacy(user: User | null | undefined): SystemRole[] {
-  return resolveLegacyRolesFromUser(user);
+function resolveUserRoles(user: User | null | undefined, dbRoles?: SystemRole[]): SystemRole[] {
+  if (!user) return [];
+  const fromDb = dbRoles ?? getCachedRoles(user.id) ?? [];
+  return mergeRoles(fromDb, resolveLegacyRolesFromUser(user));
 }
 
-export function getUserRole(user: User | null | undefined): SystemRole | null {
-  const roles = resolveLegacyRolesFromUser(user);
-  if (roles.includes('super_admin')) return 'super_admin';
-  if (roles.includes('admin')) return 'admin';
-  if (roles.includes('author')) return 'author';
-  if (user?.user_metadata?.role === 'reader') return 'reader';
-  return null;
+/** Sync role resolution — database roles take precedence over JWT metadata. */
+export function getUserRolesFromLegacy(user: User | null | undefined, dbRoles?: SystemRole[]): SystemRole[] {
+  return resolveUserRoles(user, dbRoles);
 }
 
-export function isAdminUser(user: User | null | undefined): boolean {
-  return legacyIsAdminUser(user);
+export function getUserRole(user: User | null | undefined, dbRoles?: SystemRole[]): SystemRole | null {
+  return getPrimaryRole(resolveUserRoles(user, dbRoles));
 }
 
-export function isReaderUser(user: User | null | undefined): boolean {
-  return legacyIsReaderUser(user);
+export function isAdminUser(user: User | null | undefined, dbRoles?: SystemRole[]): boolean {
+  return legacyIsAdminUser(user, dbRoles ?? getCachedRoles(user?.id ?? '') ?? []);
 }
 
-export function isSuperAdminUser(user: User | null | undefined): boolean {
-  if (!user) return false;
-  return resolveLegacyRolesFromUser(user).includes('super_admin');
+export function isReaderUser(user: User | null | undefined, dbRoles?: SystemRole[]): boolean {
+  return legacyIsReaderUser(user, dbRoles ?? getCachedRoles(user?.id ?? '') ?? []);
 }
 
-export function isAuthorUser(user: User | null | undefined): boolean {
-  if (!user) return false;
-  return resolveLegacyRolesFromUser(user).includes('author');
+export function isSuperAdminUser(user: User | null | undefined, dbRoles?: SystemRole[]): boolean {
+  return isSuperAdmin(resolveUserRoles(user, dbRoles));
+}
+
+export function isAuthorUser(user: User | null | undefined, dbRoles?: SystemRole[]): boolean {
+  return isAuthor(resolveUserRoles(user, dbRoles));
 }
 
 export function adminMetadataNeedsRepair(user: User): boolean {

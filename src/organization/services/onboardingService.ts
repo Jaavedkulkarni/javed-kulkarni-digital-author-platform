@@ -1,48 +1,48 @@
-import type { AuthorService } from '../../cms/services/authorService';
 import type { RoleService } from './roleService';
 import type { VerificationService } from './verificationService';
+import type { OnboardingRepository } from '../repositories/onboardingRepository';
 import type { OrganizationOperationResult } from '../types/common';
-import type { SystemRole } from '../../types/roles';
 import { isAuthor } from '../../lib/permissions';
+import { getErrorMessage } from '../../lib/utils/errors';
 
 export interface BecomeAuthorInput {
   userId: string;
   displayName: string;
 }
 
+export interface BecomeAuthorResult {
+  authorId: string;
+}
+
 export class OnboardingService {
   constructor(
     private readonly roles: RoleService,
-    private readonly cmsAuthors: AuthorService,
+    private readonly onboardingRepo: OnboardingRepository,
     private readonly verification: VerificationService
   ) {}
 
-  async becomeAuthor(input: BecomeAuthorInput): Promise<OrganizationOperationResult> {
-    const existingRoles = await this.roles.getUserRoles(input.userId);
-    if (isAuthor(existingRoles)) {
-      return { success: false, errors: ['You already have author access.'] };
+  async becomeAuthor(input: BecomeAuthorInput): Promise<OrganizationOperationResult<BecomeAuthorResult>> {
+    try {
+      const existingRoles = await this.roles.getUserRoles(input.userId);
+      if (isAuthor(existingRoles)) {
+        return { success: false, errors: ['You already have author access.'] };
+      }
+
+      const authorId = await this.onboardingRepo.becomeAuthor(input.displayName.trim());
+
+      await this.verification.transitionAuthorVerification(input.userId, 'verified', input.userId);
+
+      return { success: true, data: { authorId } };
+    } catch (error) {
+      return { success: false, errors: [getErrorMessage(error)] };
     }
-
-    const authorResult = await this.cmsAuthors.create({
-      displayName: input.displayName.trim(),
-      profileId: input.userId,
-    });
-    if (authorResult.errors?.length) {
-      return { success: false, errors: authorResult.errors };
-    }
-
-    const roleResult = await this.roles.assignRole(input.userId, 'author' as SystemRole, input.userId);
-    if (!roleResult.success) return roleResult;
-
-    await this.verification.transitionAuthorVerification(input.userId, 'verified', input.userId);
-    return { success: true, data: authorResult.author };
   }
 }
 
 export function createOnboardingService(
   roles: RoleService,
-  cmsAuthors: AuthorService,
+  onboardingRepo: OnboardingRepository,
   verification: VerificationService
 ): OnboardingService {
-  return new OnboardingService(roles, cmsAuthors, verification);
+  return new OnboardingService(roles, onboardingRepo, verification);
 }

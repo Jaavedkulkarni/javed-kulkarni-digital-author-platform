@@ -8,3 +8,4 @@ export {
   DEFAULT_SELLER,
   SELLER_STATE_CODE,
 } from './commerce.constants';
+export { COMMERCE_ORDER_STATES, ORDER_STATE_LABELS } from './order.constants';

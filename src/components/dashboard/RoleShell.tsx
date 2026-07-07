@@ -2,6 +2,7 @@ import { ReactNode } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { ChevronRight, LogOut } from 'lucide-react';
 import type { SiteNavItem } from '../../lib/siteNavigation';
+import { findActiveNavItem } from '../../lib/navRendering';
 
 interface RoleShellProps {
   title: string;
@@ -11,6 +12,35 @@ interface RoleShellProps {
   pageTitle?: string;
   onLogout: () => Promise<void>;
   logoutRedirect?: string;
+}
+
+function renderShellNavItem(item: SiteNavItem, pathname: string, depth = 0): React.ReactNode {
+  if (item.children?.length) {
+    return (
+      <div key={item.id} className="space-y-0.5">
+        <p className="px-3 pt-2 text-[11px] font-semibold uppercase tracking-wider text-gray-500">{item.label}</p>
+        {item.children.map((child) => renderShellNavItem(child, pathname, depth + 1))}
+      </div>
+    );
+  }
+
+  if (!item.path || item.action === 'logout') return null;
+
+  const active = pathname === item.path || (item.path !== '/author' && pathname.startsWith(`${item.path}/`));
+
+  return (
+    <Link
+      key={item.id}
+      to={item.path}
+      style={depth > 0 ? { paddingLeft: `${0.75 + depth * 0.75}rem` } : undefined}
+      className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
+        active ? 'bg-gold-500/15 text-gold-400' : 'text-gray-400 hover:text-white hover:bg-navy-800'
+      }`}
+    >
+      <item.icon className="w-4 h-4 flex-shrink-0" />
+      {item.label}
+    </Link>
+  );
 }
 
 export function RoleShell({
@@ -25,8 +55,8 @@ export function RoleShell({
   const location = useLocation();
   const navigate = useNavigate();
 
-  const navItems = menuItems.filter((item) => item.action !== 'logout' && item.path);
-  const activeItem = navItems.find((item) => item.path === location.pathname) ?? navItems[0];
+  const navItems = menuItems.filter((item) => item.action !== 'logout' && (item.path || item.children?.length));
+  const activeItem = findActiveNavItem(navItems, location.pathname) ?? navItems[0];
 
   const handleLogout = async () => {
     await onLogout();
@@ -41,20 +71,7 @@ export function RoleShell({
           <p className="text-gold-400 text-xs mt-0.5">{subtitle}</p>
         </div>
         <nav className="flex-1 px-3 py-4 space-y-0.5">
-          {navItems.map((item) => (
-            <Link
-              key={item.id}
-              to={item.path!}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
-                location.pathname === item.path
-                  ? 'bg-gold-500/15 text-gold-400'
-                  : 'text-gray-400 hover:text-white hover:bg-navy-800'
-              }`}
-            >
-              <item.icon className="w-4 h-4 flex-shrink-0" />
-              {item.label}
-            </Link>
-          ))}
+          {navItems.map((item) => renderShellNavItem(item, location.pathname))}
         </nav>
         <div className="p-3 border-t border-navy-800">
           <button

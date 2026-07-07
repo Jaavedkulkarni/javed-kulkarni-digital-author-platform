@@ -14,7 +14,7 @@ export function buildInvoice(input: GenerateInvoiceInput): CommerceInvoice {
   }));
 
   return {
-    invoiceNumber: generateInvoiceNumber(input.orderNumber),
+    invoiceNumber: generateInvoiceNumber(),
     orderNumber: input.orderNumber,
     orderId: input.orderId,
     issuedAt: new Date().toISOString(),

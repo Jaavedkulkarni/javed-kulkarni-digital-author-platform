@@ -1,6 +1,7 @@
-import { useMemo } from 'react';
+import { useContext, useMemo } from 'react';
 import { getBrowserClient } from '../../lib/supabase/clients/browser';
 import { createCommerceServices, type CommerceServices } from '../services';
+import { CommerceContext } from '../contexts/CommerceContext';
 
 let cachedServices: CommerceServices | null = null;
 
@@ -12,7 +13,8 @@ export function getCommerceServices(): CommerceServices {
 }
 
 export function useCommerceServices(): CommerceServices {
-  return useMemo(() => getCommerceServices(), []);
+  const ctx = useContext(CommerceContext);
+  return useMemo(() => ctx?.services ?? getCommerceServices(), [ctx]);
 }
 
 export function resetCommerceServices(): void {

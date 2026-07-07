@@ -9,7 +9,6 @@ export {
 export type { SupabaseBrowserEnv, SupabaseServerEnv, RuntimeEnvironment } from './env';
 
 export {
-  SUPABASE_AUTH_STORAGE_KEY,
   DEFAULT_AUTH_OPTIONS,
   DEFAULT_DB_SCHEMA,
   REALTIME_EVENTS,

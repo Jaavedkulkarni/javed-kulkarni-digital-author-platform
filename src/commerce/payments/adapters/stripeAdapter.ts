@@ -1,4 +1,4 @@
-import type { PaymentProvider } from '../paymentProvider.interface';
+import type { StripeProvider } from '../interfaces/stripeProvider.interface';
 import type {
   PaymentCaptureRequest,
   PaymentCaptureResult,
@@ -12,7 +12,7 @@ function createIntentId(): string {
   return `stripe_intent_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 }
 
-export class StripeAdapter implements PaymentProvider {
+export class StripeAdapter implements StripeProvider {
   readonly id = 'stripe' as const;
 
   async createPaymentIntent(request: PaymentIntentRequest): Promise<PaymentIntentResult> {

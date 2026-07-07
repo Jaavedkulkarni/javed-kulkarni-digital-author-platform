@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import type { Session } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
+import { authService } from '../auth/services/auth.service';
 import { AdminView } from '../types/blog';
 import { adminMetadataNeedsRepair } from '../lib/authRoles';
 import { mergeRoles, resolveLegacyRolesFromUser, isStaff } from '../lib/permissions';
@@ -58,26 +59,30 @@ export function AdminProvider({ children }: { children: ReactNode }) {
 
   const login = async (email: string, password: string) => {
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) {
-        return { success: false, error: error.message };
+      const result = await authService.signInWithPassword({ email, password });
+      if (!result.success) {
+        return { success: false, error: result.error ?? 'Login failed.' };
       }
-      if (!data.user) {
-        await supabase.auth.signOut();
+
+      const { data: { user: authUser }, error: userError } = await supabase.auth.getUser();
+      if (userError || !authUser) {
+        await authService.logout();
         return { success: false, error: 'Login failed.' };
       }
 
-      const dbRoles = await fetchUserRoles(data.user.id);
-      const roles = mergeRoles(dbRoles, resolveLegacyRolesFromUser(data.user));
+      const dbRoles = await fetchUserRoles(authUser.id);
+      const roles = mergeRoles(dbRoles, resolveLegacyRolesFromUser(authUser));
       if (!isStaff(roles)) {
-        await supabase.auth.signOut();
+        await authService.logout();
         setIsAuthenticated(false);
         setUser(null);
         setSession(null);
         return { success: false, error: 'This account does not have staff access.' };
       }
-      setUser(data.user);
-      setSession(data.session);
+
+      const { data: { session: currentSession } } = await supabase.auth.getSession();
+      setUser(authUser);
+      setSession(currentSession);
       setIsAuthenticated(true);
       return { success: true };
     } catch (err) {
@@ -88,7 +93,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
 
   const logout = async () => {
     try {
-      await supabase.auth.signOut();
+      await authService.logout();
       setIsAuthenticated(false);
       setUser(null);
       setSession(null);

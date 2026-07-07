@@ -9,7 +9,7 @@ export class RoleRepository extends BaseRepository<'roles'> {
     super(client, 'roles', { softDelete: false });
   }
 
-  async findByName(name: SystemRole | 'publisher'): Promise<Tables<'roles'> | null> {
+  async findByName(name: SystemRole): Promise<Tables<'roles'> | null> {
     const rows = await this.findMany({
       filters: { conditions: [eq('name', name)], match: 'all' },
       pagination: { page: 1, pageSize: 1 },

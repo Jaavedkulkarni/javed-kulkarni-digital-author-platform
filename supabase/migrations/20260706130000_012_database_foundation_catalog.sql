@@ -286,6 +286,12 @@ RETURNS BOOLEAN LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS
   SELECT public.is_admin() OR public.author_owns_book(target_book_id) OR public.publisher_owns_book(target_book_id);
 $$;
 
+-- user_owns_book placeholder — real implementation in 013; stub required for chapters RLS
+CREATE OR REPLACE FUNCTION public.user_owns_book(target_book_id UUID)
+RETURNS BOOLEAN LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $$
+  SELECT FALSE;
+$$;
+
 -- ─── RLS: authors ────────────────────────────────────────────────────────────
 
 ALTER TABLE authors ENABLE ROW LEVEL SECURITY;
@@ -435,9 +441,3 @@ CREATE POLICY "chapters_select_owner" ON chapters FOR SELECT TO authenticated
 CREATE POLICY "chapters_manage_staff" ON chapters FOR ALL TO authenticated
   USING (public.can_manage_book(book_id))
   WITH CHECK (public.can_manage_book(book_id));
-
--- user_owns_book placeholder — defined in 013; create stub here for chapters policy
-CREATE OR REPLACE FUNCTION public.user_owns_book(target_book_id UUID)
-RETURNS BOOLEAN LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $$
-  SELECT FALSE;
-$$;

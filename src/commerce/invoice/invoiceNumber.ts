@@ -1,12 +1,15 @@
-let invoiceSequence = 1000;
+import {
+  formatInvoiceNumber,
+  nextInvoiceSequence,
+  resetInvoiceSequenceStore,
+} from '../stores/invoiceSequenceStore';
 
-export function generateInvoiceNumber(orderNumber: string): string {
-  invoiceSequence += 1;
-  const suffix = String(invoiceSequence).padStart(6, '0');
-  const orderSuffix = orderNumber.replace(/^AO-/, '');
-  return `INV-${orderSuffix}-${suffix}`;
+export function generateInvoiceNumber(referenceDate = new Date()): string {
+  const year = referenceDate.getFullYear();
+  const sequence = nextInvoiceSequence(year);
+  return formatInvoiceNumber(year, sequence);
 }
 
 export function resetInvoiceSequence(): void {
-  invoiceSequence = 1000;
+  resetInvoiceSequenceStore();
 }

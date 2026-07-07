@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PublicSiteLayout } from '../../components/layout/PublicSiteLayout';
 import { useAuthModal } from '../../context/AuthModalContext';
+import { setEmailAuthTab } from '../../auth/public/publicAuthIntent';
 import { useReader } from '../../context/ReaderContext';
 import { resolvePostAuthNavigation } from '../../lib/authRedirect';
 import { ReaderSignInForm } from '../../components/reader/auth/ReaderSignInForm';
@@ -32,7 +33,10 @@ export function ReaderSignIn() {
               if (shouldNavigate) navigate(target, { replace: true });
             }}
             onForgotPassword={() => openAuthModal('forgot-password')}
-            onSignUp={() => openAuthModal('sign-up')}
+            onSignUp={() => {
+              setEmailAuthTab('create-account');
+              openAuthModal('email');
+            }}
           />
         </ReaderAuthShell>
       </div>

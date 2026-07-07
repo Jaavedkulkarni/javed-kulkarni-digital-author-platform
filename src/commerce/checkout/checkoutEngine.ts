@@ -2,11 +2,14 @@ import type { PricingEngine } from '../pricing/pricingEngine';
 import type { OrderProcessor } from '../orders/orderProcessor';
 import type { PaymentOrchestrator } from '../payments/paymentOrchestrator';
 import type { CommercePaymentRepository } from '../repositories/paymentRepository';
-import type { CartStore } from '../cart/cartStore';
-import type { CheckoutSessionStore } from './checkoutSessionStore';
+import type { CartStore } from '../stores/cartStore';
+import type { CheckoutSessionStore } from '../stores/checkoutSessionStore';
 import type {
   CheckoutResult,
   CompleteCheckoutInput,
+  EntitlementValidationContext,
+  PreparedOrderPayload,
+  PreparedPaymentRequest,
   StartCheckoutInput,
 } from '../types/checkout.types';
 import type { PaymentProviderId } from '../types/payment.types';
@@ -19,6 +22,7 @@ import { SELLER_STATE_CODE } from '../constants/commerce.constants';
 import { roundMoney, isFreeAmount } from '../utils/money';
 import type { OrderLineItem } from '../types/order.types';
 import type { TablesInsert } from '../../types/database';
+import type { CheckoutSession } from '../types/checkout.types';
 
 export interface CheckoutEngineDeps {
   cartStore: CartStore;
@@ -39,24 +43,106 @@ export interface CheckoutContext {
 export class CheckoutEngine {
   constructor(private readonly deps: CheckoutEngineDeps) {}
 
-  startCheckout(input: StartCheckoutInput, context: CheckoutContext = {}) {
-    const validation = validateCheckoutStart(input);
-    if (!validation.valid) return { success: false as const, errors: validation.errors };
+  validateCart(userId: string) {
+    const cart = this.deps.cartStore.getCart(userId);
+    return validateCart(cart);
+  }
 
-    const cart = this.deps.cartStore.getCart(input.userId);
-    const cartValidation = validateCart(cart);
-    if (!cartValidation.valid) return { success: false as const, errors: cartValidation.errors };
-
-    const purchaseValidation = validatePurchaseEligibility({
-      userId: input.userId,
+  validateEntitlement(userId: string, context: EntitlementValidationContext = { userId }) {
+    const cart = this.deps.cartStore.getCart(userId);
+    return validatePurchaseEligibility({
+      userId,
       items: cart.items,
       alreadyOwnsBookIds: context.alreadyOwnsBookIds,
       hasActiveMembership: context.hasActiveMembership,
     });
-    if (!purchaseValidation.valid) {
-      return { success: false as const, errors: purchaseValidation.errors };
+  }
+
+  prepareOrder(session: CheckoutSession): PreparedOrderPayload {
+    const orderItems: Omit<OrderLineItem, 'id'>[] = session.cart.items.map((item, index) => {
+      const linePricing = session.pricing.lines[index];
+      const lineSubtotal = linePricing?.lineSubtotal ?? item.unitPrice * item.quantity;
+      const lineDiscount = roundMoney(
+        (linePricing?.membershipDiscount ?? 0) + (linePricing?.couponDiscount ?? 0),
+        session.currency
+      );
+      const lineTaxShare =
+        session.pricing.taxableAmount > 0
+          ? roundMoney(
+              (lineSubtotal - lineDiscount) * (session.tax.taxAmount / session.pricing.taxableAmount),
+              session.currency
+            )
+          : 0;
+
+      return {
+        bookId: item.bookId,
+        title: item.title,
+        format: item.format,
+        unitPrice: item.unitPrice,
+        quantity: item.quantity,
+        discountAmount: lineDiscount,
+        taxAmount: lineTaxShare,
+        lineTotal: roundMoney(lineSubtotal - lineDiscount + lineTaxShare, session.currency),
+      };
+    });
+
+    const totalAmount = roundMoney(session.pricing.taxableAmount + session.tax.taxAmount, session.currency);
+
+    return {
+      userId: session.userId,
+      buyer: session.buyer,
+      items: orderItems,
+      subtotal: session.pricing.subtotal,
+      discountAmount: session.pricing.discountTotal,
+      taxAmount: session.tax.taxAmount,
+      totalAmount,
+      currency: session.currency,
+      couponCode: session.couponCode,
+      metadata: {
+        checkoutSessionId: session.id,
+        taxRegion: session.tax.region,
+        gstComponents: session.tax.components,
+      },
+    };
+  }
+
+  preparePaymentRequest(
+    session: CheckoutSession,
+    orderId: string,
+    provider: PaymentProviderId = 'mock'
+  ): PreparedPaymentRequest {
+    const totalAmount = roundMoney(session.pricing.taxableAmount + session.tax.taxAmount, session.currency);
+
+    return {
+      orderId,
+      userId: session.userId,
+      amount: totalAmount,
+      currency: session.currency,
+      provider,
+      metadata: {
+        checkoutSessionId: session.id,
+        couponCode: session.couponCode ?? undefined,
+      },
+    };
+  }
+
+  startCheckout(input: StartCheckoutInput, context: CheckoutContext = {}) {
+    const validation = validateCheckoutStart(input);
+    if (!validation.valid) return { success: false as const, errors: validation.errors };
+
+    const cartValidation = this.validateCart(input.userId);
+    if (!cartValidation.valid) return { success: false as const, errors: cartValidation.errors };
+
+    const entitlementValidation = this.validateEntitlement(input.userId, {
+      userId: input.userId,
+      alreadyOwnsBookIds: context.alreadyOwnsBookIds,
+      hasActiveMembership: context.hasActiveMembership,
+    });
+    if (!entitlementValidation.valid) {
+      return { success: false as const, errors: entitlementValidation.errors };
     }
 
+    const cart = this.deps.cartStore.getCart(input.userId);
     const pricing = this.deps.pricingEngine.price({
       items: cart.items,
       currency: cart.currency,
@@ -102,53 +188,11 @@ export class CheckoutEngine {
     const session = this.deps.sessionStore.get(input.sessionId);
     if (!session) return { success: false, errors: ['Checkout session expired or not found.'] };
 
-    const orderItems: Omit<OrderLineItem, 'id'>[] = session.cart.items.map((item, index) => {
-      const linePricing = session.pricing.lines[index];
-      const lineSubtotal = linePricing?.lineSubtotal ?? item.unitPrice * item.quantity;
-      const lineDiscount = roundMoney(
-        (linePricing?.membershipDiscount ?? 0) + (linePricing?.couponDiscount ?? 0),
-        session.currency
-      );
-      const lineTaxShare =
-        session.pricing.taxableAmount > 0
-          ? roundMoney(
-              (lineSubtotal - lineDiscount) * (session.tax.taxAmount / session.pricing.taxableAmount),
-              session.currency
-            )
-          : 0;
-
-      return {
-        bookId: item.bookId,
-        title: item.title,
-        format: item.format,
-        unitPrice: item.unitPrice,
-        quantity: item.quantity,
-        discountAmount: lineDiscount,
-        taxAmount: lineTaxShare,
-        lineTotal: roundMoney(lineSubtotal - lineDiscount + lineTaxShare, session.currency),
-      };
-    });
-
-    const totalAmount = roundMoney(session.pricing.taxableAmount + session.tax.taxAmount, session.currency);
-
-    const order = await this.deps.orderProcessor.createOrder({
-      userId: session.userId,
-      buyer: session.buyer,
-      items: orderItems,
-      subtotal: session.pricing.subtotal,
-      discountAmount: session.pricing.discountTotal,
-      taxAmount: session.tax.taxAmount,
-      totalAmount,
-      currency: session.currency,
-      couponCode: session.couponCode,
-      metadata: {
-        checkoutSessionId: session.id,
-        taxRegion: session.tax.region,
-        gstComponents: session.tax.components,
-      },
-    });
+    const preparedOrder = this.prepareOrder(session);
+    const order = await this.deps.orderProcessor.createOrder(preparedOrder);
 
     let orderStatus = order.status;
+    const totalAmount = preparedOrder.totalAmount;
     const paymentInsert: TablesInsert<'payments'> = {
       order_id: order.id,
       user_id: session.userId,
@@ -179,14 +223,8 @@ export class CheckoutEngine {
       });
       orderStatus = 'processing';
 
-      const intent = await this.deps.paymentOrchestrator.initiatePayment({
-        orderId: order.id,
-        userId: session.userId,
-        amount: totalAmount,
-        currency: session.currency,
-        provider,
-        metadata: { orderNumber: order.orderNumber },
-      });
+      const paymentRequest = this.preparePaymentRequest(session, order.id, provider);
+      const intent = await this.deps.paymentOrchestrator.initiatePayment(paymentRequest);
 
       await this.deps.paymentRepo.updatePayment(paymentRow.id, {
         provider_payment_id: intent.providerPaymentId,

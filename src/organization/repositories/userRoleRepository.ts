@@ -35,9 +35,15 @@ export class UserRoleRepository extends BaseRepository<'user_roles'> {
   }
 
   async assignRole(payload: TablesInsert<'user_roles'>): Promise<boolean> {
-    const { error } = await this.client.from('user_roles').upsert(payload, {
-      onConflict: 'user_id,role_id',
-    });
+    const { error } = await this.client.from('user_roles').upsert(
+      {
+        user_id: payload.user_id,
+        role_id: payload.role_id,
+        assigned_by: payload.assigned_by,
+        assigned_at: payload.assigned_at ?? new Date().toISOString(),
+      },
+      { onConflict: 'user_id,role_id' },
+    );
     if (error) {
       console.warn('UserRoleRepository.assignRole failed:', error.message);
       return false;

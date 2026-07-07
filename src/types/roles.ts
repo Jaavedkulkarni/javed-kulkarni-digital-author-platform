@@ -1,4 +1,4 @@
-export type SystemRole = 'super_admin' | 'author' | 'admin' | 'reader';
+export type SystemRole = 'super_admin' | 'author' | 'admin' | 'reader' | 'publisher';
 
 export type Permission =
   | 'manage_website'

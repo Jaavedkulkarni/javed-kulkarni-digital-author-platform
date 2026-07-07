@@ -5,7 +5,7 @@ interface ModalProps {
   title: string;
   onClose: () => void;
   children: ReactNode;
-  maxWidth?: 'sm' | 'md';
+  maxWidth?: 'sm' | 'md' | 'lg';
 }
 
 export function Modal({ title, onClose, children, maxWidth = 'md' }: ModalProps) {
@@ -21,7 +21,8 @@ export function Modal({ title, onClose, children, maxWidth = 'md' }: ModalProps)
     };
   }, [onClose]);
 
-  const widthCls = maxWidth === 'sm' ? 'max-w-sm' : 'max-w-md';
+  const widthCls =
+    maxWidth === 'sm' ? 'max-w-sm' : maxWidth === 'lg' ? 'max-w-lg' : 'max-w-md';
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">

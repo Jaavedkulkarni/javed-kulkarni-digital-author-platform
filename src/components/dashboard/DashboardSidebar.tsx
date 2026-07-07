@@ -1,7 +1,9 @@
+import type { ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 import type { SiteNavItem } from '../../lib/siteNavigation';
 import { isDashboardPlaceholderPath } from '../../lib/dashboardNavigation';
+import { isNavPathActive } from '../../lib/navRendering';
 
 interface DashboardSidebarProps {
   darkMode: boolean;
@@ -13,11 +15,94 @@ interface DashboardSidebarProps {
   onToggleCollapse: () => void;
 }
 
-function isNavActive(pathname: string, path: string): boolean {
-  if (path === '/reader') {
-    return pathname === '/reader' || pathname === '/reader/dashboard';
+function renderNavEntry(
+  item: SiteNavItem,
+  depth: number,
+  locationPathname: string,
+  collapsed: boolean,
+  onClose: () => void,
+  darkMode: boolean,
+  itemIdle: string,
+  itemActive: string
+): ReactNode[] {
+  if (item.children?.length) {
+    return item.children.flatMap((child) =>
+      renderNavEntry(child, depth + 1, locationPathname, collapsed, onClose, darkMode, itemIdle, itemActive)
+    );
   }
-  return pathname === path || pathname.startsWith(`${path}/`);
+
+  if (!item.path || item.action === 'logout') return [];
+
+  const placeholder = isDashboardPlaceholderPath(item.path);
+  const active = !placeholder && isNavPathActive(locationPathname, item.path);
+  const className = `flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-gold-400/50 ${
+    active ? itemActive : itemIdle
+  } ${collapsed ? 'justify-center px-2' : ''}`;
+
+  const indentStyle = !collapsed && depth > 0 ? { paddingLeft: `${0.75 + depth * 0.75}rem` } : undefined;
+
+  if (placeholder) {
+    return [
+      <button
+        key={item.id}
+        type="button"
+        disabled
+        aria-disabled="true"
+        title={collapsed ? item.label : undefined}
+        style={indentStyle}
+        className={`${className} w-full cursor-not-allowed opacity-60`}
+      >
+        <item.icon className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
+        {!collapsed && <span>{item.label}</span>}
+      </button>,
+    ];
+  }
+
+  return [
+    <Link
+      key={item.id}
+      to={item.path}
+      onClick={onClose}
+      title={collapsed ? item.label : undefined}
+      style={indentStyle}
+      aria-current={active ? 'page' : undefined}
+      className={className}
+    >
+      <item.icon className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
+      {!collapsed && <span>{item.label}</span>}
+    </Link>,
+  ];
+}
+
+function renderNavGroup(
+  item: SiteNavItem,
+  locationPathname: string,
+  collapsed: boolean,
+  onClose: () => void,
+  darkMode: boolean,
+  itemIdle: string,
+  itemActive: string
+): ReactNode {
+  if (!item.children?.length) {
+    return renderNavEntry(item, 0, locationPathname, collapsed, onClose, darkMode, itemIdle, itemActive);
+  }
+
+  return (
+    <div key={item.id} className="space-y-0.5">
+      {!collapsed && (
+        <p
+          className={`px-3 pt-2 text-[11px] font-semibold uppercase tracking-wider ${
+            darkMode ? 'text-gray-500' : 'text-gray-400'
+          }`}
+        >
+          {item.label}
+        </p>
+      )}
+      {item.children.flatMap((child) =>
+        renderNavEntry(child, 1, locationPathname, collapsed, onClose, darkMode, itemIdle, itemActive)
+      )}
+    </div>
+  );
 }
 
 export function DashboardSidebar({
@@ -30,7 +115,7 @@ export function DashboardSidebar({
   onToggleCollapse,
 }: DashboardSidebarProps) {
   const location = useLocation();
-  const navItems = menuItems.filter((item) => item.action !== 'logout' && item.path);
+  const navItems = menuItems.filter((item) => item.action !== 'logout' && (item.path || item.children?.length));
 
   const sidebarSurface = darkMode ? 'bg-navy-900 border-navy-800' : 'bg-white border-gray-200';
   const itemIdle = darkMode
@@ -74,43 +159,11 @@ export function DashboardSidebar({
       </div>
 
       <nav className="flex-1 space-y-0.5 overflow-y-auto px-3 py-4">
-        {navItems.map((item) => {
-          const placeholder = isDashboardPlaceholderPath(item.path);
-          const active = !placeholder && item.path ? isNavActive(location.pathname, item.path) : false;
-          const className = `flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-gold-400/50 ${
-            active ? itemActive : itemIdle
-          } ${collapsed ? 'justify-center px-2' : ''}`;
-
-          if (placeholder) {
-            return (
-              <button
-                key={item.id}
-                type="button"
-                disabled
-                aria-disabled="true"
-                title={collapsed ? item.label : undefined}
-                className={`${className} w-full cursor-not-allowed opacity-60`}
-              >
-                <item.icon className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
-                {!collapsed && <span>{item.label}</span>}
-              </button>
-            );
-          }
-
-          return (
-            <Link
-              key={item.id}
-              to={item.path!}
-              onClick={onClose}
-              title={collapsed ? item.label : undefined}
-              aria-current={active ? 'page' : undefined}
-              className={className}
-            >
-              <item.icon className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
-              {!collapsed && <span>{item.label}</span>}
-            </Link>
-          );
-        })}
+        {navItems.flatMap((item) =>
+          item.children?.length
+            ? [renderNavGroup(item, location.pathname, collapsed, onClose, darkMode, itemIdle, itemActive)]
+            : renderNavEntry(item, 0, location.pathname, collapsed, onClose, darkMode, itemIdle, itemActive)
+        )}
       </nav>
 
       <div className={`hidden border-t p-3 lg:block ${darkMode ? 'border-navy-800' : 'border-gray-200'}`}>

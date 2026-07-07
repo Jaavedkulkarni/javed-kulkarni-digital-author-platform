@@ -3,16 +3,11 @@ import { WORKSPACE_DEFINITIONS } from '../constants/workspace.constants';
 import type { WorkspaceNavigationMeta } from '../types/workspace.types';
 
 export function getWorkspaceNavigationMetadata(
-  availableWorkspaces: WorkspaceType[],
-  currentWorkspace: WorkspaceType
+  _availableWorkspaces: WorkspaceType[],
+  _currentWorkspace: WorkspaceType
 ): WorkspaceNavigationMeta[] {
-  return WORKSPACE_DEFINITIONS.map((def) => ({
-    workspace: def.type,
-    label: def.label,
-    path: def.path,
-    isActive: def.type === currentWorkspace,
-    isAvailable: availableWorkspaces.includes(def.type),
-  }));
+  // AuthorOS uses role-driven navigation — workspace switching is not part of the UX model.
+  return [];
 }
 
 export function getPathForWorkspace(workspace: WorkspaceType): string {

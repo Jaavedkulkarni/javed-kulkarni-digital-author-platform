@@ -1,3 +1,9 @@
+export interface GstResult {
+  baseAmount: number;
+  gstAmount: number;
+  total: number;
+}
+
 export type TaxRegion = 'IN' | 'IN-MH' | 'IN-DL' | 'IN-KA' | 'DEFAULT';
 
 export interface GstComponent {

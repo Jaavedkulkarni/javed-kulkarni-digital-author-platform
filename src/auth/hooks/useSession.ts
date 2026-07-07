@@ -1,6 +1,6 @@
 import { useCallback, useMemo } from 'react';
 import { useAuth } from './useAuth';
-import { isAccessTokenValid, shouldRefreshAccessToken } from '../services/tokenService';
+import { shouldRefreshAccessToken } from '../services/tokenService';
 
 export function useSession() {
   const { session, refreshSession, isAuthenticated } = useAuth();
@@ -13,9 +13,9 @@ export function useSession() {
   const refreshExpiresAt = session?.tokens.refreshTokenExpiresAt ?? null;
 
   const isExpired = useMemo(() => {
-    if (!accessToken) return true;
-    return !isAccessTokenValid(accessToken);
-  }, [accessToken]);
+    if (!expiresAt) return true;
+    return Date.now() >= expiresAt;
+  }, [expiresAt]);
 
   const needsRefresh = useMemo(() => {
     if (!expiresAt) return false;

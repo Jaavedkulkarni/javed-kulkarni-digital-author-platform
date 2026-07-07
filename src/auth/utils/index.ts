@@ -20,3 +20,5 @@ export {
 
 export { AUTH_ERRORS, getAuthErrorMessage } from './errors';
 export type { AuthErrorCode } from './errors';
+
+export { resolveAuthPostLoginPath } from './postAuthNavigation';

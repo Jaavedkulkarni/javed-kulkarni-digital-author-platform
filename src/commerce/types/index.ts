@@ -8,3 +8,6 @@ export * from './coupon.types';
 export * from './tax.types';
 export * from './invoice.types';
 export * from './receipt.types';
+export * from './membership.types';
+export * from './wallet.types';
+export * from './entitlement.types';

@@ -1,6 +1,7 @@
 export { ExecutiveOverviewCards } from './executive/ExecutiveOverviewCards';
 export { RecentActivitiesPanel, SystemStatusPanel } from './executive/ExecutivePanels';
 export { PeopleManagementPanel } from './people/PeopleManagementPanel';
+export { AllUsersManagementPanel } from './users';
 export { PublisherManagementPanel } from './publishers/PublisherManagementPanel';
 export { AuthorManagementPanel } from './authors/AuthorManagementPanel';
 export { PlatformAdminManagementPanel } from './platform-admins/PlatformAdminManagementPanel';

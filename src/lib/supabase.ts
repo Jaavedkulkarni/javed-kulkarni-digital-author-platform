@@ -1,20 +1,7 @@
-import { createClient } from '@supabase/supabase-js';
+import { getBrowserClient } from './supabase/clients/browser';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables');
-}
-
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    detectSessionInUrl: true,
-    flowType: 'pkce',
-    persistSession: true,
-    autoRefreshToken: true,
-  },
-});
+/** Shared browser Supabase singleton — auth, contexts, organization, and RPCs. */
+export const supabase = getBrowserClient();
 
 // Helper to get user IP for likes/bookmarks
 export async function getUserIP(): Promise<string> {

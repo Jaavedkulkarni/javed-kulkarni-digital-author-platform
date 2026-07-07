@@ -19,28 +19,33 @@ export {
 } from './sessionStorage';
 
 export {
-  findMockUserByEmail,
-  findMockUserById,
-  createMockUser,
-  updateMockUserPassword,
-  verifyMockUserEmail,
-  toAuthUser,
-  getMockUsersForDev,
-} from './mockUsers';
-export type { MockUserRecord } from './mockUsers';
+  signInWithPassword,
+  supabaseLogin,
+  supabaseRegister,
+  supabaseLogout,
+  supabaseForgotPassword,
+  supabaseResetPassword,
+  supabaseVerifyEmail,
+  supabaseResendVerificationEmail,
+  supabaseRestoreSession,
+  supabaseRefreshSession,
+  supabaseSignInWithOAuth,
+} from './supabaseAuthService';
+export type {
+  SupabaseOAuthProvider,
+  SupabaseOAuthOptions,
+  SupabaseRegisterOptions,
+  SupabaseForgotPasswordOptions,
+} from './supabaseAuthService';
+
+export { authService } from './auth.service';
 
 export {
-  mockLogin,
-  mockRegister,
-  mockForgotPassword,
-  mockResetPassword,
-  mockVerifyEmail,
-  mockResendVerificationEmail,
-  mockRestoreSession,
-  mockRefreshSession,
-  mockLogout,
-  getPendingVerificationTokenForEmail,
-  getPendingResetTokenForDev,
-} from './mockAuthService';
+  mapSupabaseUserToAuthUser,
+  mapSupabaseSessionToAuthSession,
+  mapSupabaseTokens,
+  getRememberMePreference,
+  setRememberMePreference,
+} from './supabaseSessionMapper';
 
 export type { AuthService } from './authService.interface';

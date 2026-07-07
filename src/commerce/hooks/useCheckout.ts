@@ -53,6 +53,31 @@ export function useCheckout() {
     [pricing]
   );
 
+  const validateCart = useCallback(
+    (userId: string) => checkout.validateCart(userId),
+    [checkout]
+  );
+
+  const validateEntitlement = useCallback(
+    (userId: string, context?: Parameters<typeof checkout.validateEntitlement>[1]) =>
+      checkout.validateEntitlement(userId, context),
+    [checkout]
+  );
+
+  const prepareOrder = useCallback(
+    (checkoutSession: CheckoutSession) => checkout.prepareOrder(checkoutSession),
+    [checkout]
+  );
+
+  const preparePaymentRequest = useCallback(
+    (
+      checkoutSession: CheckoutSession,
+      orderId: string,
+      provider: PaymentProviderId = 'mock'
+    ) => checkout.preparePaymentRequest(checkoutSession, orderId, provider),
+    [checkout]
+  );
+
   const reset = useCallback(() => {
     setSession(null);
     setError(null);
@@ -65,6 +90,10 @@ export function useCheckout() {
     startCheckout,
     completeCheckout,
     previewPricing,
+    validateCart,
+    validateEntitlement,
+    prepareOrder,
+    preparePaymentRequest,
     reset,
   };
 }

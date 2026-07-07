@@ -1,4 +1,4 @@
-import type { PaymentProvider } from '../paymentProvider.interface';
+import type { RazorpayProvider } from '../interfaces/razorpayProvider.interface';
 import type {
   PaymentCaptureRequest,
   PaymentCaptureResult,
@@ -12,7 +12,7 @@ function createIntentId(): string {
   return `razorpay_intent_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 }
 
-export class RazorpayAdapter implements PaymentProvider {
+export class RazorpayAdapter implements RazorpayProvider {
   readonly id = 'razorpay' as const;
 
   async createPaymentIntent(request: PaymentIntentRequest): Promise<PaymentIntentResult> {

@@ -8,14 +8,17 @@ import {
 } from 'react';
 import type { Session, User } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
-import { isReaderUser, isAdminUser, adminMetadataNeedsRepair } from '../lib/authRoles';
-import { getUserRole } from '../lib/authRoles';
+import { authService } from '../auth/services/auth.service';
+import { adminMetadataNeedsRepair } from '../lib/authRoles';
+import { isReader, isStaff } from '../lib/permissions';
+import { fetchUserRoles } from '../lib/roleService';
 import {
   ensureReaderProfile,
   fetchReaderProfile,
   touchReaderLastLogin,
 } from '../lib/readerService';
 import type { ReaderProfile, ReaderSignupData } from '../types/reader';
+import type { SystemRole } from '../types/roles';
 
 interface ReaderContextType {
   session: Session | null;
@@ -39,14 +42,15 @@ const SITE_URL = typeof window !== 'undefined' ? window.location.origin : '';
 const OAUTH_INTENT_KEY = 'readerOAuthIntent';
 
 async function ensureReaderRole(user: User): Promise<User> {
-  if (isAdminUser(user)) {
+  const dbRoles = await fetchUserRoles(user.id);
+  if (isStaff(dbRoles)) {
     if (adminMetadataNeedsRepair(user)) {
       const { data, error } = await supabase.auth.updateUser({ data: { role: 'admin' } });
       if (!error && data.user) return data.user;
     }
     return user;
   }
-  if (getUserRole(user) === 'reader') return user;
+  if (isReader(dbRoles)) return user;
   const { data, error } = await supabase.auth.updateUser({
     data: {
       role: 'reader',
@@ -62,10 +66,11 @@ export function ReaderProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<ReaderProfile | null>(null);
+  const [userRoles, setUserRoles] = useState<SystemRole[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const loadProfile = useCallback(async (authUser: User | null) => {
-    if (!authUser || !isReaderUser(authUser)) {
+  const loadProfile = useCallback(async (authUser: User | null, roles: SystemRole[]) => {
+    if (!authUser || !isReader(roles)) {
       setProfile(null);
       return;
     }
@@ -85,10 +90,33 @@ export function ReaderProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
+    let cancelled = false;
+
+    const hydrateReader = async (authUser: User) => {
+      let userToUse = authUser;
+      if (sessionStorage.getItem(OAUTH_INTENT_KEY) === '1') {
+        sessionStorage.removeItem(OAUTH_INTENT_KEY);
+        userToUse = await ensureReaderRole(authUser);
+        if (!cancelled && userToUse.id !== authUser.id) {
+          setUser(userToUse);
+        }
+      }
+
+      const roles = await fetchUserRoles(userToUse.id);
+      if (cancelled) return;
+      setUserRoles(roles);
+      await loadProfile(userToUse, roles);
+    };
+
     supabase.auth.getSession().then(({ data: { session: s } }) => {
+      if (cancelled) return;
+      const authUser = s?.user ?? null;
       setSession(s);
-      setUser(s?.user ?? null);
-      loadProfile(s?.user ?? null).finally(() => setLoading(false));
+      setUser(authUser);
+      setLoading(false);
+      if (authUser) {
+        void hydrateReader(authUser);
+      }
     });
 
     const {
@@ -99,40 +127,47 @@ export function ReaderProvider({ children }: { children: ReactNode }) {
         return;
       }
 
-      let nextUser = s?.user ?? null;
+      const authUser = s?.user ?? null;
+      setSession(s);
+      setUser(authUser);
 
-      if (nextUser && sessionStorage.getItem(OAUTH_INTENT_KEY) === '1') {
-        sessionStorage.removeItem(OAUTH_INTENT_KEY);
-        nextUser = await ensureReaderRole(nextUser);
+      if (!authUser) {
+        setProfile(null);
+        setUserRoles([]);
+        return;
       }
 
-      setSession(s);
-      setUser(nextUser);
-      loadProfile(nextUser);
+      await hydrateReader(authUser);
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      cancelled = true;
+      subscription.unsubscribe();
+    };
   }, [loadProfile]);
 
-  const isReaderAuthenticated = !!session && !!user && isReaderUser(user);
+  const isReaderAuthenticated = !!session && !!user && isReader(userRoles);
 
   const signUp = async (data: ReaderSignupData) => {
     try {
-      const { data: result, error } = await supabase.auth.signUp({
-        email: data.email,
-        password: data.password,
-        options: {
-          data: {
+      const result = await authService.register(
+        {
+          email: data.email,
+          password: data.password,
+          confirmPassword: data.password,
+          fullName: data.full_name,
+        },
+        {
+          emailRedirectTo: `${SITE_URL}/reader/verify-email`,
+          userMetadata: {
             role: 'reader',
             full_name: data.full_name,
             display_name: data.display_name || data.full_name,
           },
-          emailRedirectTo: `${SITE_URL}/reader/verify-email`,
         },
-      });
-      if (error) return { success: false, error: error.message };
-      const needsVerification = !result.session;
-      return { success: true, needsVerification };
+      );
+      if (!result.success) return { success: false, error: result.error };
+      return { success: true, needsVerification: result.needsVerification ?? false };
     } catch {
       return { success: false, error: 'Sign up failed. Please try again.' };
     }
@@ -140,13 +175,19 @@ export function ReaderProvider({ children }: { children: ReactNode }) {
 
   const signIn = async (email: string, password: string) => {
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) return { success: false, error: error.message };
-      if (!isReaderUser(data.user)) {
-        await supabase.auth.signOut();
-        return { success: false, error: 'This account is not a reader account. Please use the admin login for CMS access.' };
+      const result = await authService.signInWithPassword({ email, password });
+      if (!result.success) {
+        return { success: false, error: result.error, needsVerification: result.needsVerification };
       }
-      await touchReaderLastLogin(data.user.id);
+
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+      if (authUser) {
+        const dbRoles = await fetchUserRoles(authUser.id);
+        setUserRoles(dbRoles);
+        if (isReader(dbRoles)) {
+          await touchReaderLastLogin(authUser.id);
+        }
+      }
       return { success: true };
     } catch {
       return { success: false, error: 'Sign in failed. Please try again.' };
@@ -156,17 +197,10 @@ export function ReaderProvider({ children }: { children: ReactNode }) {
   const signInWithOAuth = async (provider: 'google' | 'azure' | 'facebook') => {
     try {
       sessionStorage.setItem(OAUTH_INTENT_KEY, '1');
-      const redirectTo = `${SITE_URL}/`;
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider,
-        options: {
-          redirectTo,
-          queryParams: provider === 'google' ? { access_type: 'offline', prompt: 'consent' } : undefined,
-        },
-      });
-      if (error) {
+      const result = await authService.signInWithOAuth(provider, { redirectTo: `${SITE_URL}/` });
+      if (!result.success) {
         sessionStorage.removeItem(OAUTH_INTENT_KEY);
-        return { success: false, error: error.message };
+        return { success: false, error: result.error };
       }
       return { success: true };
     } catch {
@@ -176,16 +210,17 @@ export function ReaderProvider({ children }: { children: ReactNode }) {
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    await authService.logout();
     setProfile(null);
   };
 
   const resetPassword = async (email: string) => {
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${SITE_URL}/reader/reset-password`,
-      });
-      if (error) return { success: false, error: error.message };
+      const result = await authService.forgotPassword(
+        { email },
+        { redirectTo: `${SITE_URL}/reader/reset-password` },
+      );
+      if (!result.success) return { success: false, error: result.error };
       return { success: true };
     } catch {
       return { success: false, error: 'Could not send reset email.' };
@@ -218,7 +253,7 @@ export function ReaderProvider({ children }: { children: ReactNode }) {
   };
 
   const refreshProfile = async () => {
-    await loadProfile(user);
+    await loadProfile(user, userRoles);
   };
 
   return (
