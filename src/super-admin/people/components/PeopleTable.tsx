@@ -17,8 +17,34 @@ import {
 } from 'lucide-react';
 import { EmptyState } from '../../../components/shared/states/EmptyState';
 import { TOOLBAR_CONTROL_CLASS } from '../../../components/shared/constants';
-import { PEOPLE_PAGE_SIZE_OPTIONS, PEOPLE_ROW_ACTIONS } from '../constants/people.constants';
+import { PEOPLE_PAGE_SIZE_OPTIONS } from '../constants/people.constants';
+import type { BulkOperationType } from '../bulk-operations/bulk-operations.types';
+import { BULK_OPERATION_LABELS } from '../bulk-operations/bulk-operations.types';
 import type { PeopleRowAction, PeopleUser, PeopleUserStatus } from '../types/people.types';
+
+const ROW_ACTION_LABELS: Record<PeopleRowAction, string> = {
+  view: 'View',
+  edit: 'Edit',
+  suspend: 'Suspend',
+  restore: 'Restore',
+  delete: 'Delete',
+  recover: 'Recover',
+};
+
+function getRowActions(user: PeopleUser): PeopleRowAction[] {
+  if (user.status === 'deleted') {
+    return ['view', 'recover'];
+  }
+
+  const actions: PeopleRowAction[] = ['view', 'edit'];
+  if (user.status === 'suspended') {
+    actions.push('restore');
+  } else {
+    actions.push('suspend');
+  }
+  actions.push('delete');
+  return actions;
+}
 
 interface PeopleTableProps {
   users: PeopleUser[];
@@ -34,12 +60,32 @@ interface PeopleTableProps {
   onPageSizeChange: (pageSize: number) => void;
   onViewUser?: (user: PeopleUser) => void;
   onRowAction?: (action: PeopleRowAction, user: PeopleUser) => void;
+  onSelectionChange?: (users: PeopleUser[]) => void;
+  selectionResetKey?: number;
+  rowSelection?: RowSelectionState;
+  onRowSelectionChange?: (value: RowSelectionState) => void;
+  selectedCount?: number;
+  allPagesSelected?: boolean;
+  onSelectAllPages?: () => void;
+  onSelectCurrentPage?: () => void;
+  onInvertSelection?: () => void;
+  onClearSelection?: () => void;
+  onBulkOperation?: (operation: BulkOperationType) => void;
+  onBulkSuspend?: () => void;
+  onBulkRestore?: () => void;
+  onBulkDelete?: () => void;
+  onBulkRecover?: () => void;
+  suspendableSelectedCount?: number;
+  restorableSelectedCount?: number;
+  deletableSelectedCount?: number;
+  recoverableSelectedCount?: number;
 }
 
 const STATUS_STYLES: Record<PeopleUserStatus, string> = {
   active: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30',
   suspended: 'bg-amber-500/15 text-amber-400 border-amber-500/30',
   pending: 'bg-blue-500/15 text-blue-400 border-blue-500/30',
+  deleted: 'bg-red-500/15 text-red-400 border-red-500/30',
 };
 
 function formatDate(iso: string | null): string {
@@ -126,20 +172,24 @@ function RowActionsMenu({
           role="menu"
           className="absolute right-0 z-20 mt-1 min-w-[10rem] rounded-lg border border-navy-600 bg-navy-800 py-1 shadow-xl"
         >
-          {PEOPLE_ROW_ACTIONS.map((action) => (
+          {getRowActions(user).map((action) => (
             <button
-              key={action.id}
+              key={action}
               type="button"
               role="menuitem"
               onClick={() => {
                 setOpen(false);
-                onAction?.(action.id as PeopleRowAction, user);
+                onAction?.(action, user);
               }}
               className={`flex w-full px-3 py-2 text-left text-sm transition-colors hover:bg-navy-700 ${
-                action.id === 'delete' ? 'text-red-400' : 'text-gray-200'
+                action === 'delete' || action === 'recover'
+                  ? action === 'delete'
+                    ? 'text-red-400'
+                    : 'text-emerald-300'
+                  : 'text-gray-200'
               }`}
             >
-              {action.label}
+              {ROW_ACTION_LABELS[action]}
             </button>
           ))}
         </div>
@@ -162,11 +212,34 @@ export const PeopleTable = memo(function PeopleTable({
   onPageSizeChange,
   onViewUser,
   onRowAction,
+  onSelectionChange,
+  selectionResetKey = 0,
+  rowSelection: controlledRowSelection,
+  onRowSelectionChange,
+  selectedCount: selectedCountProp,
+  allPagesSelected = false,
+  onSelectAllPages,
+  onSelectCurrentPage,
+  onInvertSelection,
+  onClearSelection,
+  onBulkOperation,
+  onBulkSuspend,
+  onBulkRestore,
+  onBulkDelete,
+  onBulkRecover,
+  suspendableSelectedCount = 0,
+  restorableSelectedCount = 0,
+  deletableSelectedCount = 0,
+  recoverableSelectedCount = 0,
 }: PeopleTableProps) {
-  const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
+  const [internalRowSelection, setInternalRowSelection] = useState<RowSelectionState>({});
+  const rowSelection = controlledRowSelection ?? internalRowSelection;
+  const setRowSelection = onRowSelectionChange ?? setInternalRowSelection;
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [showColumnMenu, setShowColumnMenu] = useState(false);
+  const [showBulkMenu, setShowBulkMenu] = useState(false);
   const columnMenuRef = useRef<HTMLDivElement>(null);
+  const bulkMenuRef = useRef<HTMLDivElement>(null);
 
   const columns = useMemo<ColumnDef<PeopleUser>[]>(
     () => [
@@ -320,6 +393,7 @@ export const PeopleTable = memo(function PeopleTable({
   const table = useReactTable({
     data: users,
     columns,
+    getRowId: (row) => row.id,
     state: {
       rowSelection,
       columnVisibility,
@@ -327,7 +401,10 @@ export const PeopleTable = memo(function PeopleTable({
     },
     pageCount: totalPages,
     manualPagination: true,
-    onRowSelectionChange: setRowSelection,
+    onRowSelectionChange: (updater) => {
+      const next = typeof updater === 'function' ? updater(rowSelection) : updater;
+      setRowSelection(next);
+    },
     onColumnVisibilityChange: setColumnVisibility,
     getCoreRowModel: getCoreRowModel(),
     enableRowSelection: true,
@@ -336,24 +413,51 @@ export const PeopleTable = memo(function PeopleTable({
   });
 
   useEffect(() => {
-    if (!showColumnMenu) return;
+    setRowSelection({});
+  }, [selectionResetKey, setRowSelection]);
+
+  useEffect(() => {
+    if (!onSelectionChange) return;
+    const selected = table.getSelectedRowModel().rows.map((row) => row.original);
+    onSelectionChange(selected);
+  }, [onSelectionChange, rowSelection, table]);
+
+  useEffect(() => {
+    if (!showColumnMenu && !showBulkMenu) return;
     const handleClickOutside = (event: MouseEvent) => {
       if (columnMenuRef.current && !columnMenuRef.current.contains(event.target as Node)) {
         setShowColumnMenu(false);
       }
+      if (bulkMenuRef.current && !bulkMenuRef.current.contains(event.target as Node)) {
+        setShowBulkMenu(false);
+      }
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [showColumnMenu]);
+  }, [showBulkMenu, showColumnMenu]);
 
   const toggleableColumns = table
     .getAllLeafColumns()
     .filter((column) => column.id !== 'select' && column.id !== 'actions');
 
   const showEmpty = !isLoading && !isError && users.length === 0;
-  const selectedCount = Object.keys(rowSelection).length;
+  const pageSelectedCount = Object.keys(rowSelection).filter((id) => rowSelection[id]).length;
+  const selectedCount = selectedCountProp ?? (allPagesSelected ? total : pageSelectedCount);
   const canPrevious = page > 1;
   const canNext = totalPages > 0 && page < totalPages;
+
+  const bulkOperations: BulkOperationType[] = [
+    'bulk_edit',
+    'suspend',
+    'restore',
+    'delete',
+    'recover',
+    'assign_role',
+    'remove_role',
+    'force_password_reset',
+    'send_verification',
+    'send_invite',
+  ];
 
   return (
     <section
@@ -367,13 +471,108 @@ export const PeopleTable = memo(function PeopleTable({
           ) : (
             <>
               <span className="font-medium text-white">{total.toLocaleString()}</span> users
-              {selectedCount > 0 ? (
-                <span className="ml-2 text-gold-400">· {selectedCount} selected</span>
+              {selectedCount > 0 || allPagesSelected ? (
+                <span className="ml-2 text-gold-400">
+                  · {allPagesSelected ? `All ${total.toLocaleString()} selected` : `${selectedCount} selected`}
+                </span>
               ) : null}
               {isRefreshing ? <span className="ml-2 text-gray-500">Refreshing…</span> : null}
             </>
           )}
         </div>
+
+        {selectedCount > 0 || allPagesSelected ? (
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="relative" ref={bulkMenuRef}>
+              <button
+                type="button"
+                onClick={() => setShowBulkMenu((value) => !value)}
+                className={`${TOOLBAR_CONTROL_CLASS} gap-2 border-gold-500/40 bg-gold-500/10 px-3 text-gold-300 hover:bg-gold-500/20`}
+              >
+                Bulk Actions
+                <ChevronDown className="h-4 w-4" />
+              </button>
+              {showBulkMenu ? (
+                <div className="absolute left-0 z-20 mt-1 max-h-64 min-w-[14rem] overflow-y-auto rounded-lg border border-navy-600 bg-navy-800 py-1 shadow-xl">
+                  {bulkOperations.map((operation) => (
+                    <button
+                      key={operation}
+                      type="button"
+                      onClick={() => {
+                        setShowBulkMenu(false);
+                        onBulkOperation?.(operation);
+                      }}
+                      className="flex w-full px-3 py-2 text-left text-sm text-gray-200 hover:bg-navy-700"
+                    >
+                      {BULK_OPERATION_LABELS[operation]}
+                    </button>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+            {onSelectCurrentPage ? (
+              <button type="button" onClick={onSelectCurrentPage} className={`${TOOLBAR_CONTROL_CLASS} border-navy-600 px-3 text-xs`}>
+                Current Page
+              </button>
+            ) : null}
+            {onSelectAllPages ? (
+              <button type="button" onClick={onSelectAllPages} className={`${TOOLBAR_CONTROL_CLASS} border-navy-600 px-3 text-xs`}>
+                All Pages
+              </button>
+            ) : null}
+            {onInvertSelection ? (
+              <button type="button" onClick={onInvertSelection} className={`${TOOLBAR_CONTROL_CLASS} border-navy-600 px-3 text-xs`}>
+                Invert
+              </button>
+            ) : null}
+            {onClearSelection ? (
+              <button type="button" onClick={onClearSelection} className={`${TOOLBAR_CONTROL_CLASS} border-navy-600 px-3 text-xs`}>
+                Clear
+              </button>
+            ) : null}
+          </div>
+        ) : null}
+
+        {(selectedCount > 0 || allPagesSelected) && onBulkSuspend ? (
+          <div className="flex flex-wrap items-center gap-2">
+            {suspendableSelectedCount > 0 ? (
+              <button
+                type="button"
+                onClick={onBulkSuspend}
+                className={`${TOOLBAR_CONTROL_CLASS} border-amber-500/40 bg-amber-500/10 px-3 text-amber-300 hover:bg-amber-500/20`}
+              >
+                Bulk Suspend ({suspendableSelectedCount})
+              </button>
+            ) : null}
+            {restorableSelectedCount > 0 ? (
+              <button
+                type="button"
+                onClick={onBulkRestore}
+                className={`${TOOLBAR_CONTROL_CLASS} border-emerald-500/40 bg-emerald-500/10 px-3 text-emerald-300 hover:bg-emerald-500/20`}
+              >
+                Bulk Restore ({restorableSelectedCount})
+              </button>
+            ) : null}
+            {deletableSelectedCount > 0 ? (
+              <button
+                type="button"
+                onClick={onBulkDelete}
+                className={`${TOOLBAR_CONTROL_CLASS} border-red-500/40 bg-red-500/10 px-3 text-red-300 hover:bg-red-500/20`}
+              >
+                Bulk Delete ({deletableSelectedCount})
+              </button>
+            ) : null}
+            {recoverableSelectedCount > 0 ? (
+              <button
+                type="button"
+                onClick={onBulkRecover}
+                className={`${TOOLBAR_CONTROL_CLASS} border-emerald-500/40 bg-emerald-500/10 px-3 text-emerald-300 hover:bg-emerald-500/20`}
+              >
+                Bulk Recover ({recoverableSelectedCount})
+              </button>
+            ) : null}
+          </div>
+        ) : null}
 
         <div className="relative" ref={columnMenuRef}>
           <button

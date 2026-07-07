@@ -26,6 +26,30 @@ export const PEOPLE_PROFILE_SELECT = `
   timezone,
   created_at,
   updated_at,
+  deleted_at,
+  user_roles (
+    is_active,
+    roles (
+      name,
+      slug
+    )
+  )
+`;
+
+export const PEOPLE_EDIT_PROFILE_SELECT = `
+  id,
+  email,
+  full_name,
+  avatar,
+  avatar_storage_path,
+  avatar_version,
+  status,
+  phone,
+  timezone,
+  preferred_language,
+  created_at,
+  updated_at,
+  deleted_at,
   user_roles (
     is_active,
     roles (
@@ -57,6 +81,7 @@ export const PEOPLE_STATUS_FILTER_OPTIONS = [
   { value: 'active', label: 'Active' },
   { value: 'suspended', label: 'Suspended' },
   { value: 'pending', label: 'Pending' },
+  { value: 'deleted', label: 'Deleted' },
 ] as const;
 
 export const PEOPLE_VERIFICATION_FILTER_OPTIONS = [
@@ -82,7 +107,9 @@ export const PEOPLE_DRAWER_TABS = [
   { id: 'orders', label: 'Orders' },
   { id: 'subscriptions', label: 'Subscriptions' },
   { id: 'activity', label: 'Activity' },
+  { id: 'audit', label: 'Audit' },
   { id: 'login-history', label: 'Login History' },
+  { id: 'security-events', label: 'Security Events' },
 ] as const;
 
 export const PEOPLE_ROW_ACTIONS = [

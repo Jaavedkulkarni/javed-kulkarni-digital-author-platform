@@ -16,12 +16,14 @@ import { PasswordStrength } from './PasswordStrength';
 import { RoleSelector } from './RoleSelector';
 import { StatusSelector } from './StatusSelector';
 
+import type { CreateUserFormValues } from '../create-user.schema';
+
 interface CreateUserFormProps {
   form: UseCreateUserFormReturn;
   roleOptions: CreateUserRoleOption[];
   rolesLoading?: boolean;
   disabled?: boolean;
-  onSubmit: () => void;
+  onSubmit: (values: CreateUserFormValues) => void | Promise<void>;
 }
 
 function FieldError({ message }: { message?: string }) {

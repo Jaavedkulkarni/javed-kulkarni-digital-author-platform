@@ -11,6 +11,7 @@ import {
   type PeopleQueryInput,
 } from '../schemas/people.schemas';
 import type {
+  EditUserDetail,
   PeopleFilterOptions,
   PeopleListResult,
   PeopleQueryParams,
@@ -52,6 +53,17 @@ export class PeopleService {
     });
   }
 
+  async getEditDetailById(id: string): Promise<PeopleServiceResult<EditUserDetail>> {
+    return this.execute(async () => {
+      peopleLog('Service', 'getEditDetailById', { id });
+      const detail = await this.repository.findEditDetailById(id);
+      if (!detail) {
+        throw new PeopleRepositoryError('not_found', `User ${id} not found`);
+      }
+      return detail;
+    });
+  }
+
   async getStatistics(): Promise<PeopleServiceResult<PeopleStatistics>> {
     return this.execute(async () => {
       peopleLog('Service', 'getStatistics');
@@ -65,6 +77,14 @@ export class PeopleService {
       peopleLog('Service', 'getFilters');
       const filters = await this.repository.getFilters();
       return parsePeopleFilterOptions(filters);
+    });
+  }
+
+  async getAllMatchingIds(params: PeopleQueryParams): Promise<PeopleServiceResult<string[]>> {
+    return this.execute(async () => {
+      const query = parsePeopleQuery(params);
+      peopleLog('Service', 'getAllMatchingIds', query);
+      return this.repository.findAllIds(query);
     });
   }
 

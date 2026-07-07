@@ -21,6 +21,8 @@ interface PeopleToolbarProps {
   onToggleFilters: () => void;
   onRefresh: () => void;
   onNewUser?: () => void;
+  onImport?: () => void;
+  onExport?: () => void;
   isRefreshing?: boolean;
   disabled?: boolean;
 }
@@ -34,6 +36,8 @@ export const PeopleToolbar = memo(function PeopleToolbar({
   onToggleFilters,
   onRefresh,
   onNewUser,
+  onImport,
+  onExport,
   isRefreshing = false,
   disabled = false,
 }: PeopleToolbarProps) {
@@ -41,15 +45,15 @@ export const PeopleToolbar = memo(function PeopleToolbar({
     <section aria-label="People actions" className={`${TOOLBAR_SHELL_CLASS} space-y-4`}>
       <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
         <div className="flex flex-wrap items-center gap-2">
-          <PrimaryButton placeholder interactive onClick={onNewUser} className="gap-2">
+          <PrimaryButton placeholder interactive disabled={false} onClick={onNewUser} className="gap-2">
             <Plus className="h-4 w-4" aria-hidden="true" />
             New User
           </PrimaryButton>
-          <SecondaryButton placeholder disabled={false} className="gap-2">
+          <SecondaryButton placeholder interactive disabled={false} onClick={onImport} className="gap-2">
             <Upload className="h-4 w-4" aria-hidden="true" />
             <span className="hidden sm:inline">Import</span>
           </SecondaryButton>
-          <SecondaryButton placeholder disabled={false} className="gap-2">
+          <SecondaryButton placeholder interactive disabled={false} onClick={onExport} className="gap-2">
             <Download className="h-4 w-4" aria-hidden="true" />
             <span className="hidden sm:inline">Export</span>
           </SecondaryButton>

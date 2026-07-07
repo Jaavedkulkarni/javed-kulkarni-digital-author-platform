@@ -1,0 +1,1 @@
+export { PeopleLoginHistoryPanel } from './PeopleLoginHistoryPanel';

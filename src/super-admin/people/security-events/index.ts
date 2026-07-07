@@ -1,0 +1,1 @@
+export { PeopleSecurityEventsPanel } from './PeopleSecurityEventsPanel';

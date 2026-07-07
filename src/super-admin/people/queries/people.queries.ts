@@ -8,6 +8,8 @@ export const peopleQueryKeys = {
   filters: () => [...peopleQueryKeys.all, 'filters'] as const,
   details: () => [...peopleQueryKeys.all, 'detail'] as const,
   detail: (id: string) => [...peopleQueryKeys.details(), id] as const,
+  security: (id: string) => [...peopleQueryKeys.detail(id), 'security'] as const,
+  sessions: (id: string) => [...peopleQueryKeys.detail(id), 'sessions'] as const,
 };
 
 export function serializePeopleQueryKey(params: PeopleQueryInput): PeopleQueryInput {

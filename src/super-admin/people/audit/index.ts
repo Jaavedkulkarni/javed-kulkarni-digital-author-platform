@@ -1,0 +1,1 @@
+export { PeopleAuditPanel } from './PeopleAuditPanel';

@@ -105,35 +105,43 @@ export const SecondaryButton = memo(function SecondaryButton({
   children,
   disabled = true,
   placeholder = false,
+  interactive = false,
   padding = 'sm',
   size = 'default',
   className = '',
   title,
-}: Omit<SharedButtonProps, 'interactive' | 'onClick'>) {
+  onClick,
+}: Omit<SharedButtonProps, 'onMouseDown' | 'onKeyDown'>) {
+  const isDisabled = disabled || (placeholder && !interactive);
   const classes = buildButtonClass(
     OUTLINE_BASE,
     padding,
     size,
-    `${placeholder ? 'cursor-default opacity-90' : ''} ${className}`
+    `${placeholder && !interactive ? 'cursor-default opacity-90' : ''} ${className}`
   );
 
   return (
     <button
       type="button"
-      disabled={disabled}
-      aria-disabled={disabled ? true : undefined}
-      title={title ?? (placeholder ? 'Coming soon' : undefined)}
+      disabled={isDisabled && !interactive}
+      aria-disabled={isDisabled && !interactive ? true : undefined}
+      title={title ?? (placeholder && !interactive ? 'Coming soon' : undefined)}
       className={classes}
       onClick={
-        placeholder
+        interactive
           ? (e) => {
-              e.preventDefault();
               stopInteraction(e);
+              onClick?.(e);
             }
-          : undefined
+          : placeholder
+            ? (e) => {
+                e.preventDefault();
+                stopInteraction(e);
+              }
+            : undefined
       }
-      onMouseDown={placeholder ? stopInteraction : undefined}
-      onKeyDown={placeholder ? stopInteraction : undefined}
+      onMouseDown={interactive || placeholder ? stopInteraction : undefined}
+      onKeyDown={interactive || placeholder ? stopInteraction : undefined}
     >
       {children}
     </button>

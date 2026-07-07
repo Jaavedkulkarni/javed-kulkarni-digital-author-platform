@@ -3,6 +3,7 @@ import { getPaginationRange, normalizePage, normalizePageSize } from '../../../l
 import { normalizeSupabaseError } from '../../../lib/utils/errors';
 import {
   COUNTRY_TIMEZONE_PREFIXES,
+  PEOPLE_EDIT_PROFILE_SELECT,
   PEOPLE_PROFILE_SELECT,
   PEOPLE_STATUS_FILTER_OPTIONS,
   PEOPLE_VERIFICATION_FILTER_OPTIONS,
@@ -10,14 +11,16 @@ import {
 } from '../constants/people.constants';
 import { PeopleRepositoryError } from '../errors/people.errors';
 import type {
+  EditUserDetail,
   PeopleFilterOptions,
   PeopleListResult,
   PeopleQueryParams,
+  PeopleEditRepositoryRow,
   PeopleRepositoryRow,
   PeopleStatistics,
   PeopleUser,
 } from '../types/people.types';
-import { mapPeopleRepositoryRow } from '../utils/people.mapper';
+import { mapEditUserDetail, mapPeopleRepositoryRow } from '../utils/people.mapper';
 import { peopleLog } from '../utils/people.logger';
 import type { PeopleQueryInput } from '../schemas/people.schemas';
 
@@ -51,7 +54,43 @@ export class PeopleRepository {
       }
 
       if (!data) return null;
-      return mapPeopleRepositoryRow(data as PeopleRepositoryRow);
+      return mapPeopleRepositoryRow(data as unknown as PeopleRepositoryRow);
+    } catch (error) {
+      if (error instanceof PeopleRepositoryError) throw error;
+      throw new PeopleRepositoryError(
+        'query_failed',
+        normalizeSupabaseError(error, 'database').message,
+        error,
+      );
+    }
+  }
+
+  async findEditDetailById(id: string): Promise<EditUserDetail | null> {
+    peopleLog('Repository', 'findEditDetailById', { id });
+
+    try {
+      const [{ data, error }, { data: securityRow, error: securityError }] = await Promise.all([
+        this.client
+          .from('profiles')
+          .select(PEOPLE_EDIT_PROFILE_SELECT)
+          .eq('id', id)
+          .is('deleted_at', null)
+          .maybeSingle(),
+        this.client.from('user_security').select('metadata').eq('user_id', id).maybeSingle(),
+      ]);
+
+      if (error) {
+        throw new PeopleRepositoryError('query_failed', error.message, error);
+      }
+
+      if (securityError && securityError.code !== 'PGRST116') {
+        peopleLog('Repository', 'findEditDetailById security read skipped', securityError.message);
+      }
+
+      if (!data) return null;
+
+      const metadata = (securityRow?.metadata as { internal_notes?: string } | null) ?? null;
+      return mapEditUserDetail(data as unknown as PeopleEditRepositoryRow, metadata?.internal_notes ?? '');
     } catch (error) {
       if (error instanceof PeopleRepositoryError) throw error;
       throw new PeopleRepositoryError(
@@ -65,6 +104,44 @@ export class PeopleRepository {
   async search(params: PeopleQueryInput): Promise<PeopleListResult> {
     peopleLog('Repository', 'search', params);
     return this.queryPeople(params);
+  }
+
+  async findAllIds(params: PeopleQueryInput): Promise<string[]> {
+    peopleLog('Repository', 'findAllIds', params);
+
+    try {
+      const roleUserIds = params.role ? await this.findUserIdsForRole(params.role) : null;
+      if (roleUserIds && roleUserIds.length === 0) return [];
+
+      let query = this.client.from('profiles').select('id');
+
+      if (params.status === 'deleted') {
+        query = query.not('deleted_at', 'is', null);
+      } else {
+        query = query.is('deleted_at', null);
+      }
+
+      query = this.applySearchFilter(query, params.search);
+      query = this.applyStatusFilter(query, params.status);
+      query = this.applyVerificationFilter(query, params.verification);
+      query = this.applyCountryFilter(query, params.country);
+      query = this.applyDateRangeFilter(query, params.dateFrom, params.dateTo);
+
+      if (roleUserIds) {
+        query = query.in('id', roleUserIds);
+      }
+
+      const { data, error } = await query.limit(5000);
+      if (error) throw new PeopleRepositoryError('query_failed', error.message, error);
+      return (data ?? []).map((row) => row.id as string);
+    } catch (error) {
+      if (error instanceof PeopleRepositoryError) throw error;
+      throw new PeopleRepositoryError(
+        'query_failed',
+        normalizeSupabaseError(error, 'database').message,
+        error,
+      );
+    }
   }
 
   async getStatistics(): Promise<PeopleStatistics> {
@@ -186,8 +263,13 @@ export class PeopleRepository {
 
       let query = this.client
         .from('profiles')
-        .select(PEOPLE_PROFILE_SELECT, { count: 'exact' })
-        .is('deleted_at', null);
+        .select(PEOPLE_PROFILE_SELECT, { count: 'exact' });
+
+      if (params.status === 'deleted') {
+        query = query.not('deleted_at', 'is', null);
+      } else {
+        query = query.is('deleted_at', null);
+      }
 
       query = this.applySearchFilter(query, params.search);
       query = this.applyStatusFilter(query, params.status);
@@ -209,7 +291,7 @@ export class PeopleRepository {
 
       const total = count ?? 0;
       const totalPages = total === 0 ? 0 : Math.ceil(total / pageSize);
-      const items = (data ?? []).map((row) => mapPeopleRepositoryRow(row as PeopleRepositoryRow));
+      const items = (data ?? []).map((row) => mapPeopleRepositoryRow(row as unknown as PeopleRepositoryRow));
 
       return { items, page, pageSize, total, totalPages };
     } catch (error) {
@@ -262,7 +344,7 @@ export class PeopleRepository {
   }
 
   private applyStatusFilter(query: ProfileQuery, status?: string): ProfileQuery {
-    if (!status) return query;
+    if (!status || status === 'deleted') return query;
     return query.eq('status', status) as ProfileQuery;
   }
 

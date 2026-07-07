@@ -1,5 +1,7 @@
 import { TIMEZONE_COUNTRY_MAP } from '../constants/people.constants';
 import type {
+  EditUserDetail,
+  PeopleEditRepositoryRow,
   PeopleRepositoryRow,
   PeopleUser,
   PeopleUserStatus,
@@ -13,7 +15,8 @@ const ROLE_PRIORITY = [
   'reader',
 ] as const;
 
-function normalizeStatus(status: string): PeopleUserStatus {
+function normalizeStatus(status: string, deletedAt: string | null): PeopleUserStatus {
+  if (deletedAt || status === 'deleted') return 'deleted';
   if (status === 'suspended' || status === 'pending') return status;
   return 'active';
 }
@@ -46,7 +49,7 @@ function resolvePrimaryRole(
   return { slug: fallback, label: formatRoleLabel(fallback) };
 }
 
-function resolveLastLogin(_row: PeopleRepositoryRow): string | null {
+function resolveLastLogin(): string | null {
   return null;
 }
 
@@ -56,11 +59,11 @@ function resolveCountry(timezone: string | null): string | null {
 }
 
 function isEmailVerified(status: PeopleUserStatus): boolean {
-  return status !== 'pending';
+  return status === 'active' || status === 'suspended';
 }
 
 export function mapPeopleRepositoryRow(row: PeopleRepositoryRow): PeopleUser {
-  const status = normalizeStatus(row.status);
+  const status = normalizeStatus(row.status, row.deleted_at);
   const primaryRole = resolvePrimaryRole(row.user_roles);
 
   return {
@@ -73,9 +76,49 @@ export function mapPeopleRepositoryRow(row: PeopleRepositoryRow): PeopleUser {
     primaryRoleSlug: primaryRole.slug,
     status,
     emailVerified: isEmailVerified(status),
-    lastLogin: resolveLastLogin(row),
+    lastLogin: resolveLastLogin(),
     createdAt: row.created_at,
     country: resolveCountry(row.timezone),
     timezone: row.timezone,
+  };
+}
+
+function splitFullName(fullName: string | null): { firstName: string; lastName: string } {
+  const normalized = (fullName ?? '').trim();
+  if (!normalized) return { firstName: '', lastName: '' };
+  const parts = normalized.split(/\s+/);
+  return { firstName: parts[0] ?? '', lastName: parts.slice(1).join(' ') };
+}
+
+function resolveActiveRoles(roles: PeopleRepositoryRow['user_roles']): string[] {
+  return (roles ?? [])
+    .filter((row) => row.is_active !== false && row.roles?.name)
+    .map((row) => row.roles!.name);
+}
+
+export function mapEditUserDetail(row: PeopleEditRepositoryRow, internalNotes = ''): EditUserDetail {
+  const status = normalizeStatus(row.status, row.deleted_at ?? null);
+  const primaryRole = resolvePrimaryRole(row.user_roles);
+  const { firstName, lastName } = splitFullName(row.full_name);
+
+  return {
+    id: row.id,
+    email: row.email,
+    firstName,
+    lastName,
+    displayName: row.full_name?.trim() ?? '',
+    phone: row.phone,
+    language: row.preferred_language?.trim() || 'mr',
+    timezone: row.timezone,
+    status,
+    avatarUrl: row.avatar,
+    avatarVersion: row.avatar_version,
+    internalNotes,
+    activeRoles: resolveActiveRoles(row.user_roles),
+    primaryRoleSlug: primaryRole.slug,
+    primaryRole: primaryRole.label,
+    createdAt: row.created_at,
+    lastLogin: row.updated_at ?? null,
+    registrationMethod: 'Email',
   };
 }

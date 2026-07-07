@@ -140,6 +140,123 @@ export function validateUserIdRequest(body: unknown, requireReason = false): Use
   return { userId: input.userId.trim(), reason };
 }
 
+const SUSPEND_REASONS = new Set([
+  'policy_violation',
+  'spam',
+  'security',
+  'requested_by_user',
+  'duplicate_account',
+  'other',
+]);
+
+export interface SuspendUserRequest {
+  userId: string;
+  reason: string;
+  notes?: string;
+  effectiveImmediately: boolean;
+}
+
+export function validateSuspendUserRequest(body: unknown): SuspendUserRequest {
+  if (!body || typeof body !== 'object') {
+    throw new ValidationError('Request body is required');
+  }
+
+  const input = body as Record<string, unknown>;
+  if (!isNonEmptyString(input.userId)) {
+    throw new ValidationError('userId is required');
+  }
+  if (!isNonEmptyString(input.reason) || !SUSPEND_REASONS.has(input.reason.trim())) {
+    throw new ValidationError('A valid suspension reason is required');
+  }
+
+  const notes = optionalTrimmed(input.notes);
+  const effectiveImmediately = input.effectiveImmediately !== false;
+
+  return {
+    userId: input.userId.trim(),
+    reason: input.reason.trim(),
+    notes,
+    effectiveImmediately,
+  };
+}
+
+export interface RestoreUserRequest {
+  userId: string;
+  notes?: string;
+}
+
+export function validateRestoreUserRequest(body: unknown): RestoreUserRequest {
+  if (!body || typeof body !== 'object') {
+    throw new ValidationError('Request body is required');
+  }
+
+  const input = body as Record<string, unknown>;
+  if (!isNonEmptyString(input.userId)) {
+    throw new ValidationError('userId is required');
+  }
+
+  return {
+    userId: input.userId.trim(),
+    notes: optionalTrimmed(input.notes),
+  };
+}
+
+const DELETE_REASONS = new Set([
+  'duplicate_account',
+  'requested_by_user',
+  'spam',
+  'legal_request',
+  'security',
+  'other',
+]);
+
+export interface DeleteUserRequest {
+  userId: string;
+  reason: string;
+  notes?: string;
+}
+
+export function validateDeleteUserRequest(body: unknown): DeleteUserRequest {
+  if (!body || typeof body !== 'object') {
+    throw new ValidationError('Request body is required');
+  }
+
+  const input = body as Record<string, unknown>;
+  if (!isNonEmptyString(input.userId)) {
+    throw new ValidationError('userId is required');
+  }
+  if (!isNonEmptyString(input.reason) || !DELETE_REASONS.has(input.reason.trim())) {
+    throw new ValidationError('A valid deletion reason is required');
+  }
+
+  return {
+    userId: input.userId.trim(),
+    reason: input.reason.trim(),
+    notes: optionalTrimmed(input.notes),
+  };
+}
+
+export interface RecoverUserRequest {
+  userId: string;
+  notes?: string;
+}
+
+export function validateRecoverUserRequest(body: unknown): RecoverUserRequest {
+  if (!body || typeof body !== 'object') {
+    throw new ValidationError('Request body is required');
+  }
+
+  const input = body as Record<string, unknown>;
+  if (!isNonEmptyString(input.userId)) {
+    throw new ValidationError('userId is required');
+  }
+
+  return {
+    userId: input.userId.trim(),
+    notes: optionalTrimmed(input.notes),
+  };
+}
+
 export interface UpdateUserRequest {
   userId: string;
   firstName?: string;
@@ -149,6 +266,10 @@ export interface UpdateUserRequest {
   status?: 'active' | 'pending' | 'suspended';
   language?: string;
   timezone?: string;
+  internalNotes?: string;
+  assignRoles?: string[];
+  removeRoles?: string[];
+  primaryRole?: string;
   reason?: string;
 }
 
@@ -200,6 +321,23 @@ export function validateUpdateUserRequest(body: unknown): UpdateUserRequest {
     if (!isNonEmptyString(input.timezone)) throw new ValidationError('timezone cannot be empty');
     patch.timezone = input.timezone.trim();
   }
+  if (input.internalNotes !== undefined) {
+    patch.internalNotes = optionalTrimmed(input.internalNotes) ?? '';
+  }
+  if (input.assignRoles !== undefined) {
+    if (!Array.isArray(input.assignRoles)) throw new ValidationError('assignRoles must be an array');
+    patch.assignRoles = input.assignRoles.filter((r): r is string => typeof r === 'string' && VALID_ROLES.has(r.trim())).map((r) => r.trim());
+  }
+  if (input.removeRoles !== undefined) {
+    if (!Array.isArray(input.removeRoles)) throw new ValidationError('removeRoles must be an array');
+    patch.removeRoles = input.removeRoles.filter((r): r is string => typeof r === 'string' && VALID_ROLES.has(r.trim())).map((r) => r.trim());
+  }
+  if (input.primaryRole !== undefined) {
+    if (!isNonEmptyString(input.primaryRole) || !VALID_ROLES.has(input.primaryRole.trim())) {
+      throw new ValidationError('Invalid primary role');
+    }
+    patch.primaryRole = input.primaryRole.trim();
+  }
 
   const hasPatch =
     patch.firstName !== undefined ||
@@ -208,7 +346,11 @@ export function validateUpdateUserRequest(body: unknown): UpdateUserRequest {
     patch.phone !== undefined ||
     patch.status !== undefined ||
     patch.language !== undefined ||
-    patch.timezone !== undefined;
+    patch.timezone !== undefined ||
+    patch.internalNotes !== undefined ||
+    (patch.assignRoles && patch.assignRoles.length > 0) ||
+    (patch.removeRoles && patch.removeRoles.length > 0) ||
+    patch.primaryRole !== undefined;
 
   if (!hasPatch) {
     throw new ValidationError('At least one field to update is required');

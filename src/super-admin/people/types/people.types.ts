@@ -1,4 +1,4 @@
-export type PeopleUserStatus = 'active' | 'suspended' | 'pending';
+export type PeopleUserStatus = 'active' | 'suspended' | 'pending' | 'deleted';
 
 export type PeopleVerificationStatus = 'verified' | 'pending' | 'unverified';
 
@@ -12,7 +12,11 @@ export type PeopleDrawerTab =
   | 'orders'
   | 'subscriptions'
   | 'activity'
-  | 'login-history';
+  | 'audit'
+  | 'login-history'
+  | 'security-events';
+
+export type PeopleDrawerMode = 'view' | 'edit';
 
 export interface PeopleUser {
   id: string;
@@ -72,7 +76,7 @@ export interface PeopleQueryParams {
   pageSize?: number;
 }
 
-export type PeopleRowAction = 'view' | 'edit' | 'suspend' | 'delete';
+export type PeopleRowAction = 'view' | 'edit' | 'suspend' | 'restore' | 'delete' | 'recover';
 
 export interface PeopleServiceResult<T> {
   success: boolean;
@@ -90,7 +94,35 @@ export interface PeopleRepositoryRow {
   timezone: string | null;
   created_at: string;
   updated_at: string;
+  deleted_at: string | null;
   user_roles: PeopleRepositoryRoleRow[] | null;
+}
+
+export interface PeopleEditRepositoryRow extends PeopleRepositoryRow {
+  preferred_language: string | null;
+  avatar_storage_path: string | null;
+  avatar_version: number | null;
+}
+
+export interface EditUserDetail {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  displayName: string;
+  phone: string | null;
+  language: string;
+  timezone: string | null;
+  status: PeopleUserStatus;
+  avatarUrl: string | null;
+  avatarVersion: number | null;
+  internalNotes: string;
+  activeRoles: string[];
+  primaryRoleSlug: string;
+  primaryRole: string;
+  createdAt: string;
+  lastLogin: string | null;
+  registrationMethod: string;
 }
 
 export interface PeopleRepositoryRoleRow {

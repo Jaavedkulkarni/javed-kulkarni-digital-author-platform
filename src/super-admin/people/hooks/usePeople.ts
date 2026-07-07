@@ -23,6 +23,22 @@ export function usePeople(query: PeopleQueryInput) {
   });
 }
 
+export function usePeopleUserDetail(userId: string | null, enabled = true) {
+  return useQuery({
+    queryKey: userId ? peopleQueryKeys.detail(userId) : peopleQueryKeys.details(),
+    queryFn: async () => {
+      if (!userId) throw new Error('User id is required');
+      const result = await peopleService.getEditDetailById(userId);
+      if (!result.success || !result.data) {
+        throw new Error(result.error ?? 'Failed to load user details');
+      }
+      return result.data;
+    },
+    enabled: Boolean(userId) && enabled,
+    staleTime: PEOPLE_QUERY_STALE_TIME_MS,
+  });
+}
+
 export function useInvalidatePeople() {
   const queryClient = useQueryClient();
 
@@ -31,6 +47,26 @@ export function useInvalidatePeople() {
     invalidateLists: () => queryClient.invalidateQueries({ queryKey: peopleQueryKeys.lists() }),
     invalidateStats: () => queryClient.invalidateQueries({ queryKey: peopleQueryKeys.stats() }),
     invalidateFilters: () => queryClient.invalidateQueries({ queryKey: peopleQueryKeys.filters() }),
+    invalidateDetail: (userId: string) =>
+      queryClient.invalidateQueries({ queryKey: peopleQueryKeys.detail(userId) }),
+    invalidateActivity: (userId: string) =>
+      queryClient.invalidateQueries({ queryKey: ['super-admin', 'people-module', 'activity', userId] }),
+    invalidateAudit: (userId: string) =>
+      queryClient.invalidateQueries({ queryKey: ['super-admin', 'people-module', 'audit', userId] }),
+    invalidateLoginHistory: (userId: string) =>
+      queryClient.invalidateQueries({ queryKey: ['super-admin', 'people-module', 'login-history', userId] }),
+    invalidateSecurityEvents: (userId: string) =>
+      queryClient.invalidateQueries({ queryKey: ['super-admin', 'people-module', 'security-events', userId] }),
+    invalidateTimelines: (userId: string) => {
+      void queryClient.invalidateQueries({ queryKey: ['super-admin', 'people-module', 'activity', userId] });
+      void queryClient.invalidateQueries({ queryKey: ['super-admin', 'people-module', 'audit', userId] });
+      void queryClient.invalidateQueries({ queryKey: ['super-admin', 'people-module', 'login-history', userId] });
+      void queryClient.invalidateQueries({ queryKey: ['super-admin', 'people-module', 'security-events', userId] });
+    },
+    invalidateSecurity: (userId: string) =>
+      queryClient.invalidateQueries({ queryKey: peopleQueryKeys.security(userId) }),
+    invalidateSessions: (userId: string) =>
+      queryClient.invalidateQueries({ queryKey: peopleQueryKeys.sessions(userId) }),
     invalidateEverything: () => {
       void queryClient.invalidateQueries({ queryKey: peopleQueryKeys.all });
     },

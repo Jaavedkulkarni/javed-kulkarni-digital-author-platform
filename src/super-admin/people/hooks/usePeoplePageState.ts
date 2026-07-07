@@ -14,19 +14,25 @@ export function usePeoplePageState() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<PeopleUser | null>(null);
   const [activeDrawerTab, setActiveDrawerTab] = useState<PeopleDrawerTab>('general');
+  const [drawerMode, setDrawerMode] = useState<'view' | 'edit'>('view');
 
   const toggleFilters = useCallback(() => {
     setIsFiltersOpen((open) => !open);
   }, []);
 
-  const openDrawer = useCallback((user: PeopleUser, tab: PeopleDrawerTab = 'general') => {
-    setSelectedUser(user);
-    setActiveDrawerTab(tab);
-    setDrawerOpen(true);
-  }, []);
+  const openDrawer = useCallback(
+    (user: PeopleUser, tab: PeopleDrawerTab = 'general', mode: 'view' | 'edit' = 'view') => {
+      setSelectedUser(user);
+      setActiveDrawerTab(tab);
+      setDrawerMode(mode);
+      setDrawerOpen(true);
+    },
+    [],
+  );
 
   const closeDrawer = useCallback(() => {
     setDrawerOpen(false);
+    setDrawerMode('view');
   }, []);
 
   const applyFilters = useCallback(() => {
@@ -81,6 +87,7 @@ export function usePeoplePageState() {
     drawerOpen,
     selectedUser,
     activeDrawerTab,
+    drawerMode,
     setActiveDrawerTab,
     toggleFilters,
     openDrawer,

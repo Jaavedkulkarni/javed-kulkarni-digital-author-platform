@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import type { PeopleStatistics } from '../types/people.types';
 
 export const peopleSortFieldSchema = z.enum(['newest', 'oldest', 'name', 'last_login', 'role']);
 
@@ -38,7 +39,7 @@ export const peopleUserSchema = z.object({
   phone: z.string().nullable(),
   primaryRole: z.string(),
   primaryRoleSlug: z.string(),
-  status: z.enum(['active', 'suspended', 'pending']),
+  status: z.enum(['active', 'suspended', 'pending', 'deleted']),
   emailVerified: z.boolean(),
   lastLogin: z.string().nullable(),
   createdAt: z.string(),
@@ -63,7 +64,6 @@ export const peopleFilterOptionsSchema = z.object({
 
 export type PeopleFiltersInput = z.infer<typeof peopleFiltersSchema>;
 export type PeopleQueryInput = z.infer<typeof peopleQuerySchema>;
-export type PeopleStatistics = z.infer<typeof peopleStatisticsSchema>;
 export type PeopleUserDto = z.infer<typeof peopleUserSchema>;
 export type PeopleListResultDto = z.infer<typeof peopleListResultSchema>;
 export type PeopleFilterOptionsDto = z.infer<typeof peopleFilterOptionsSchema>;

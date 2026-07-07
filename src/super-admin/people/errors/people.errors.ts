@@ -9,6 +9,7 @@ export type PeopleErrorCode =
 
 export class PeopleRepositoryError extends Error {
   readonly code: PeopleErrorCode;
+  readonly cause?: unknown;
 
   constructor(code: PeopleErrorCode, message: string, cause?: unknown) {
     super(message);
@@ -20,6 +21,7 @@ export class PeopleRepositoryError extends Error {
 
 export class PeopleServiceError extends Error {
   readonly code: PeopleErrorCode;
+  readonly cause?: unknown;
 
   constructor(code: PeopleErrorCode, message: string, cause?: unknown) {
     super(message);
