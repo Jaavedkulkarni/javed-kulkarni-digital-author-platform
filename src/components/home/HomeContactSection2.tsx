@@ -37,7 +37,21 @@ export function HomeContactSection({ darkMode }: HomeContactSectionProps) {
                 <p className={`text-sm font-semibold ${darkMode ? 'text-white' : 'text-navy-800'}`}>{SITE_CONTACT.email}</p>
               </div>
             </a>
-
+            <div
+              className={`flex items-center gap-3 p-4 rounded-xl ${
+                darkMode ? 'bg-navy-800 border border-navy-700' : 'bg-white shadow-md border border-gray-100'
+              }`}
+            >
+              <Phone className="w-5 h-5 text-gold-500 flex-shrink-0" />
+              <div>
+                <p className={`text-xs font-medium ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Phone</p>
+                <p className={`text-sm font-semibold ${darkMode ? 'text-white' : 'text-navy-800'}`}>
+                  <a href={`mailto:${SITE_CONTACT.email}`} className="hover:text-gold-400 transition-colors">
+                    Contact via Email
+                  </a>
+                </p>
+              </div>
+            </div>
             <div
               className={`flex items-center gap-3 p-4 rounded-xl ${
                 darkMode ? 'bg-navy-800 border border-navy-700' : 'bg-white shadow-md border border-gray-100'
@@ -71,35 +85,62 @@ export function HomeContactSection({ darkMode }: HomeContactSectionProps) {
             </div>
           </div>
 
-          <div
-            className={`p-6 sm:p-8 rounded-2xl flex flex-col items-center justify-center text-center ${
-              darkMode
-                ? 'bg-navy-800 border border-navy-700'
-                : 'bg-white shadow-lg border border-gray-100'
+          <form
+            onSubmit={handleSubmit}
+            className={`p-6 sm:p-8 rounded-2xl space-y-4 ${
+              darkMode ? 'bg-navy-800 border border-navy-700' : 'bg-white shadow-lg border border-gray-100'
             }`}
           >
-            <Mail className="w-12 h-12 text-gold-500 mb-4" />
-
-            <h3 className={`text-2xl font-bold mb-3 ${darkMode ? 'text-white' : 'text-navy-900'}`}>
-              Contact Form Coming Soon
-            </h3>
-
-            <p className={`${darkMode ? 'text-gray-300' : 'text-gray-600'} leading-7 mb-6`}>
-              The online contact form will be available soon.
-              <br />
-              For now, please feel free to contact me via email.
-            </p>
-
-            <a
-              href={`mailto:${SITE_CONTACT.email}`}
-              className="btn-primary inline-flex items-center gap-2"
-            >
-              <Mail className="w-4 h-4" />
-              Email Me
-            </a>
-
-
-          </div>
+            <div>
+              <label htmlFor="contact-name" className={`block text-sm font-medium mb-1.5 ${darkMode ? 'text-gray-300' : 'text-navy-700'}`}>
+                Name
+              </label>
+              <input
+                id="contact-name"
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+                className={`w-full px-4 py-3 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gold-400 ${
+                  darkMode ? 'bg-navy-900 border border-navy-700 text-white' : 'bg-gray-50 border border-gray-200 text-navy-900'
+                }`}
+              />
+            </div>
+            <div>
+              <label htmlFor="contact-email" className={`block text-sm font-medium mb-1.5 ${darkMode ? 'text-gray-300' : 'text-navy-700'}`}>
+                Email
+              </label>
+              <input
+                id="contact-email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className={`w-full px-4 py-3 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gold-400 ${
+                  darkMode ? 'bg-navy-900 border border-navy-700 text-white' : 'bg-gray-50 border border-gray-200 text-navy-900'
+                }`}
+              />
+            </div>
+            <div>
+              <label htmlFor="contact-message" className={`block text-sm font-medium mb-1.5 ${darkMode ? 'text-gray-300' : 'text-navy-700'}`}>
+                Message
+              </label>
+              <textarea
+                id="contact-message"
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                required
+                rows={4}
+                className={`w-full px-4 py-3 rounded-lg text-sm resize-none focus:outline-none focus:ring-2 focus:ring-gold-400 ${
+                  darkMode ? 'bg-navy-900 border border-navy-700 text-white' : 'bg-gray-50 border border-gray-200 text-navy-900'
+                }`}
+              />
+            </div>
+            <button type="submit" className="btn-primary w-full sm:w-auto">
+              <Send className="w-4 h-4" />
+              Contact via Email
+            </button>
+          </form>
         </div>
       </div>
     </section>

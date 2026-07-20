@@ -4,8 +4,8 @@ import { HomeSectionHeader } from './HomeSectionHeader';
 
 const STATS: { icon: LucideIcon; text: string }[] = [
   { icon: Library, text: '१० प्रकाशित पुस्तके' },
-  { icon: ShoppingCart, text: '२६ Amazon विक्री' },
-  { icon: BookOpen, text: '४१२ Kindle पृष्ठे वाचली' },
+  { icon: ShoppingCart, text: '२५+ Amazon विक्री' },
+  { icon: BookOpen, text: '९१२+ Kindle पृष्ठे वाचली' },
   { icon: Globe, text: '६+ देशांतील वाचक' },
 ];
 

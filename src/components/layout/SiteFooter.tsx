@@ -83,9 +83,10 @@ export function SiteFooter({ darkMode = true }: SiteFooterProps) {
                   </li>
                 ) : (
                   <li key={item.label}>
-                    <Link to={item.path} className="text-gray-400 hover:text-gold-400 transition-colors">
-                      {item.label}
-                    </Link>
+                    <a href={item.path}
+                     className="text-gray-400 hover:text-gold-400 transition-colors"
+>                      {item.label}
+                    </a>
                   </li>
                 )
               )}
@@ -97,9 +98,10 @@ export function SiteFooter({ darkMode = true }: SiteFooterProps) {
             <ul className="space-y-3">
               {FOOTER_BOOK_CATEGORIES.map((name) => (
                 <li key={name}>
-                  <Link to="/#categories" className="text-gray-400 hover:text-gold-400 transition-colors">
-                    {name}
-                  </Link>
+                      <a href="/#categories"
+                        className="text-gray-400 hover:text-gold-400 transition-colors"
+    >                    {name}
+                  </a>
                 </li>
               ))}
             </ul>
@@ -113,7 +115,12 @@ export function SiteFooter({ darkMode = true }: SiteFooterProps) {
               <li><Link to="/refund" className="text-gray-400 hover:text-gold-400 transition-colors">Refund Policy</Link></li>
               <li><Link to="/shipping" className="text-gray-400 hover:text-gold-400 transition-colors">Shipping Policy</Link></li>
               <li><Link to="/cookies" className="text-gray-400 hover:text-gold-400 transition-colors">Cookie Policy</Link></li>
-              <li><Link to="/#contact" className="text-gray-400 hover:text-gold-400 transition-colors">Contact</Link></li>
+              <li>  <a
+    href="/#contact"
+    className="text-gray-400 hover:text-gold-400 transition-colors"
+  >
+    Contact
+  </a></li>
             </ul>
           </div>
         </div>
@@ -124,15 +131,13 @@ export function SiteFooter({ darkMode = true }: SiteFooterProps) {
               © {new Date().getFullYear()} Javed Kulkarni. All Rights Reserved.
             </p>
             <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4">
-              <Link to="/admin/login" className="text-gray-600 hover:text-gold-400 transition-colors text-xs">
-                Admin Access
-              </Link>
+
               <p className="text-gray-500 text-sm flex items-center gap-1">
                 Crafted with <Heart className="w-4 h-4 text-red-500" /> for Marathi Literature
               </p>
             </div>
           </div>
-          <p className="text-gray-600 text-xs text-center mt-4">Homepage UI Version 1.0 – Frozen</p>
+          <p className="text-gray-600 text-xs text-center mt-4"></p>
         </div>
       </div>
     </footer>

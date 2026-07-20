@@ -415,7 +415,7 @@ function MainWebsite() {
 
               {/* Floating badge */}
               <div className="absolute -bottom-3 -right-3 bg-gradient-to-r from-gold-400 to-gold-500 text-navy-900 px-4 py-2 rounded-lg shadow-lg font-semibold text-sm">
-                8+ Published Books
+                10 Published Books
               </div>
                 </div> 
                 </div> 
