@@ -173,14 +173,25 @@ export function ArticleEditor({ article, onSaved, onCancel }: ArticleEditorProps
 
   // Load existing tags for the article being edited
   useEffect(() => {
-    if (!article?.id) return;
+    if (!article?.id) {
+      setSelectedTagIds([]);
+      return;
+    }
+
+    let ignore = false;
+    setSelectedTagIds([]);
+
     supabase
       .from('blog_article_tags')
       .select('tag_id')
       .eq('article_id', article.id)
       .then(({ data }) => {
-        if (data) setSelectedTagIds(data.map((r: any) => r.tag_id));
+        if (!ignore && data) setSelectedTagIds(data.map((r: any) => r.tag_id));
       });
+
+    return () => {
+      ignore = true;
+    };
   }, [article?.id]);
 
   const setField = <K extends keyof ArticleForm>(key: K, value: ArticleForm[K]) => {
@@ -272,33 +283,14 @@ export function ArticleEditor({ article, onSaved, onCancel }: ArticleEditorProps
         meta_description: form.meta_description || form.excerpt || null,
         og_image: form.og_image || form.featured_image || null,
         reading_time: calcReadingTime(form.content),
-        updated_at: new Date().toISOString(),
       };
 
-      let articleId = article?.id;
-
-      if (articleId) {
-        const { error } = await supabase.from('blog_articles').update(payload).eq('id', articleId);
-        if (error) throw error;
-      } else {
-        const { data, error } = await supabase
-          .from('blog_articles')
-          .insert({ ...payload, views_count: 0, likes_count: 0, comments_count: 0 })
-          .select('id')
-          .maybeSingle();
-        if (error) throw error;
-        articleId = data?.id;
-      }
-
-      // Sync tags
-      if (articleId) {
-        await supabase.from('blog_article_tags').delete().eq('article_id', articleId);
-        if (selectedTagIds.length > 0) {
-          await supabase.from('blog_article_tags').insert(
-            selectedTagIds.map((tag_id) => ({ article_id: articleId, tag_id }))
-          );
-        }
-      }
+      const { error: rpcError } = await supabase.rpc('save_article_with_tags', {
+        p_article_id: article?.id ?? null,
+        p_article_data: payload,
+        p_tag_ids: selectedTagIds
+      });
+      if (rpcError) throw rpcError;
 
       showMsg('success', status === 'published' ? 'लेख प्रकाशित झाला!' : 'ड्राफ्ट साठवला.');
       if (overrideStatus === 'published' || returnToList) {
